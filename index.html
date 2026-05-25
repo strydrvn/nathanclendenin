@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Photojournalist · Storyteller · Entrepreneur. Documentary and brand photography from Durham, NC.">
+<!-- Open Graph — iMessage, Slack, social previews -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://nathanclendenin.com">
+<meta property="og:site_name"   content="Nathan Clendenin">
+<meta property="og:title"       content="Nathan Clendenin — Photojournalist &amp; Storyteller">
+<meta property="og:description" content="Photojournalist · Storyteller · Entrepreneur. Documentary and brand photography from Durham, NC.">
+<meta property="og:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<meta property="og:image:width"  content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt"   content="Nathan Clendenin on a shoot">
+<!-- Twitter/X Card -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:site"        content="@nathanclendenin">
+<meta name="twitter:creator"     content="@nathanclendenin">
+<meta name="twitter:title"       content="Nathan Clendenin — Photojournalist &amp; Storyteller">
+<meta name="twitter:description" content="Photojournalist · Storyteller · Entrepreneur. Documentary and brand photography from Durham, NC.">
+<meta name="twitter:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<title>Nathan Clendenin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #090909;
+  --surface: #111010;
+  --text: #e2d9ce;
+  --muted: #6b6258;
+  --accent: #c8a97e;
+  --line: #1c1b1a;
+  --white: #f4ede4;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 40px;
+  background: linear-gradient(to bottom, rgba(9,9,9,.95) 0%, transparent 100%);
+  transition: background .4s;
+}
+nav.scrolled { background: rgba(9,9,9,.97); border-bottom: 1px solid var(--line); }
+.nav-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 300; letter-spacing: .08em;
+  color: var(--white); text-decoration: none;
+}
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a {
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .2s;
+}
+.nav-links a:hover { color: var(--text); }
+.config-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); padding: 4px; display: flex; align-items: center;
+  transition: color .2s;
+}
+.config-btn:hover { color: var(--accent); }
+.config-btn svg { width: 14px; height: 14px; }
+
+/* ── HERO ── */
+.hero {
+  position: relative; width: 100%; height: 100vh;
+  display: flex; align-items: flex-end;
+  overflow: hidden;
+}
+.hero-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  transition: transform 8s ease-out;
+}
+.hero:hover .hero-img { transform: scale(1.03); }
+.hero-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(9,9,9,.9) 0%,
+    rgba(9,9,9,.3) 40%,
+    rgba(9,9,9,.1) 70%,
+    transparent 100%
+  );
+}
+.hero-text {
+  position: relative; z-index: 2;
+  padding: 0 40px 52px;
+  max-width: 680px;
+}
+.hero-eyebrow {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 14px;
+  opacity: 0; animation: fadeUp .8s .3s forwards;
+}
+.hero-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(42px, 7vw, 80px);
+  font-weight: 300; line-height: 1;
+  color: var(--white); letter-spacing: -.02em;
+  opacity: 0; animation: fadeUp .8s .5s forwards;
+}
+.hero-name em { font-style: italic; color: var(--accent); }
+.hero-sub {
+  margin-top: 14px;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); line-height: 2;
+  opacity: 0; animation: fadeUp .8s .7s forwards;
+}
+.hero-caption {
+  position: absolute; bottom: 52px; right: 40px;
+  font-size: 10px; letter-spacing: .1em;
+  color: rgba(255,255,255,.3); font-style: italic;
+}
+.scroll-hint {
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  opacity: 0; animation: fadeIn 1s 1.2s forwards;
+}
+.scroll-hint span { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.scroll-line {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, var(--muted), transparent);
+  animation: scrollPulse 2s 1.5s infinite;
+}
+@keyframes scrollPulse {
+  0%,100% { opacity: .3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.2); }
+}
+
+/* ── NO-IMAGE HERO ── */
+.hero-placeholder {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #0f0e0d 0%, #1a1714 50%, #0f0e0d 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-placeholder-text {
+  font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted); text-align: center; line-height: 2;
+}
+
+/* ── ALBUMS SECTION ── */
+.albums-section { padding: 80px 40px 120px; }
+.section-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 48px; padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.section-label {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--muted);
+}
+.section-count { font-size: 10px; color: var(--muted); letter-spacing: .1em; }
+
+.albums-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 3px;
+}
+.album-card {
+  position: relative; aspect-ratio: 4/3;
+  overflow: hidden; cursor: pointer;
+  background: var(--surface);
+  text-decoration: none; display: block;
+}
+
+.album-thumb {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  transition: transform .6s ease, filter .4s ease;
+  filter: brightness(.85) saturate(.9);
+}
+.album-card:hover .album-thumb {
+  transform: scale(1.05);
+  filter: brightness(.95) saturate(1.05);
+}
+.album-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(9,9,9,.85) 0%, transparent 60%);
+  opacity: 0; transition: opacity .4s;
+}
+.album-card:hover .album-overlay { opacity: 1; }
+.album-info {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 24px 20px 20px;
+  transform: translateY(8px); opacity: 0;
+  transition: transform .4s, opacity .4s;
+}
+.album-card:hover .album-info { transform: translateY(0); opacity: 1; }
+.album-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 300;
+  color: var(--white); line-height: 1.2;
+}
+
+.album-meta {
+  margin-top: 6px;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent);
+}
+.album-placeholder {
+  width: 100%; height: 100%;
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+}
+.album-placeholder-icon { color: var(--line); font-size: 32px; }
+
+/* ── STATUS BANNER ── */
+.status-banner {
+  margin: 0 40px 40px;
+  padding: 16px 20px;
+  border: 1px solid #2a2218;
+  border-radius: 4px;
+  background: #1a140e;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 11px; color: var(--accent);
+}
+.status-banner svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 40px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+}
+.footer-copy { font-size: 10px; letter-spacing: .1em; color: var(--muted); }
+.social-links { display: flex; gap: 24px; }
+.social-links a {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .2s;
+}
+.social-links a:hover { color: var(--accent); }
+
+/* ── CONFIG OVERLAY ── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.8);
+  z-index: 500; display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.config-panel {
+  background: #141312; border: 1px solid var(--line);
+  border-radius: 8px; padding: 32px; width: 90%; max-width: 480px;
+  transform: translateY(16px); transition: transform .3s;
+}
+.overlay.open .config-panel { transform: translateY(0); }
+.config-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 300; color: var(--white);
+  margin-bottom: 8px;
+}
+.config-sub { font-size: 10px; color: var(--muted); line-height: 1.8; margin-bottom: 24px; letter-spacing: .05em; }
+.config-label { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; }
+.config-input {
+  width: 100%; background: #0d0c0b; border: 1px solid var(--line);
+  border-radius: 4px; padding: 10px 14px;
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  color: var(--text); outline: none; transition: border-color .2s;
+}
+.config-input:focus { border-color: var(--accent); }
+.config-note { font-size: 10px; color: var(--muted); margin-top: 6px; line-height: 1.7; }
+.config-actions { display: flex; gap: 10px; margin-top: 20px; }
+.btn-save {
+  flex: 1; background: var(--accent); color: #0a0a0a;
+  border: none; border-radius: 4px; padding: 10px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+  transition: background .2s;
+}
+.btn-save:hover { background: #d4b98e; }
+.btn-cancel {
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 4px; padding: 10px 16px;
+  font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer;
+  transition: color .2s;
+}
+.btn-cancel:hover { color: var(--text); }
+
+/* ── LOADING ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface) 25%, #1a1917 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:.6; } }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 18px 20px; }
+  .nav-links { gap: 16px; }
+  .nav-links a:not(:last-child) { display: none; }
+  .hero-text { padding: 0 20px 44px; }
+  .albums-section { padding: 60px 20px 80px; }
+  .albums-grid { grid-template-columns: 1fr 1fr; gap: 2px; }
+  
+  .album-info { opacity: 1; transform: none; }
+  .album-overlay { opacity: 1; }
+  footer { padding: 24px 20px; }
+  .status-banner { margin: 0 20px 32px; }
+}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:      #f8f6f2;
+    --surface: #f0ece6;
+    --text:    #1a1714;
+    --muted:   #8a7e74;
+    --line:    #d4ccc4;
+    --card:    #ffffff;
+    --white:   #1a1714;
+    --shadow:  0 1px 3px rgba(26,23,20,.09), 0 4px 16px rgba(26,23,20,.07);
+  }
+
+  /* ── NAV — warm off-white, dark text ── */
+  nav {
+    background: linear-gradient(to bottom, rgba(240,236,230,.97) 0%, transparent 100%);
+  }
+  nav.scrolled {
+    background: rgba(240,236,230,.98);
+    border-bottom-color: var(--line);
+  }
+  .nav-title      { color: #1a1714; }
+  .nav-links a    { color: var(--muted); }
+  .nav-links a:hover { color: #1a1714; }
+  .config-btn     { color: var(--muted); }
+  .config-btn:hover { color: var(--accent); }
+
+  /* ── HERO — always white text (dark gradient is always on) ── */
+  .hero-name    { color: #f4ede4; text-shadow: 0 2px 24px rgba(0,0,0,.7), 0 1px 6px rgba(0,0,0,.5); }
+  .hero-name em { color: var(--accent); }
+  .hero-eyebrow { color: var(--accent); text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  .hero-sub     { color: rgba(235,225,210,.85); text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+  .hero-caption { color: rgba(235,225,210,.45); }
+
+  /* ── ALBUM HOVER — white text on dark overlay in both modes ── */
+  .album-title { color: #f4ede4; text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+  .album-meta  { color: var(--accent); }
+
+  /* ── SCROLL HINT ── */
+  .scroll-hint span { color: var(--muted); }
+
+  /* ── ALBUM GRID — readable overlay, still airy ── */
+  .album-overlay {
+    background: linear-gradient(to top, rgba(10,8,6,.75) 0%, rgba(10,8,6,.1) 60%, transparent 100%);
+  }
+  .album-info .album-title { text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  .album-thumb { filter: brightness(.92) saturate(.95); }
+  .album-card:hover .album-thumb { filter: brightness(1) saturate(1.05); }
+
+  /* ── SECTION HEADER ── */
+  .section-label { color: var(--muted); }
+
+  /* ── STATUS BANNER ── */
+  .status-banner {
+    background: #fdf8f2;
+    border-color: #e8d8c4;
+    color: #7a5c2e;
+  }
+
+  /* ── FOOTER ── */
+  footer { background: var(--bg); border-top-color: var(--line); }
+  .footer-copy { color: var(--muted); }
+  .social-links a { color: var(--muted); }
+  .social-links a:hover { color: var(--accent); }
+
+  /* ── CONFIG PANEL ── */
+  .config-panel {
+    background: #ffffff;
+    border-color: var(--line);
+  }
+  .config-title { color: #1a1714; }
+  .config-sub   { color: var(--muted); }
+  .config-input {
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--text);
+  }
+  .btn-cancel {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--line);
+  }
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="/" class="nav-title">Nathan Clendenin</a>
+  <div class="nav-links">
+    <a href="#albums">Work</a>
+    <a href="bio.html">Bio</a>
+
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-placeholder" id="heroPlaceholder">
+    <div class="hero-placeholder-text">
+      Add your R2 URL in Settings ⚙<br>to load your hero image
+    </div>
+  </div>
+  <img class="hero-img" id="heroImg" alt="" style="display:none">
+  <div class="hero-gradient"></div>
+  <div class="hero-text">
+    <div class="hero-eyebrow">Portfolio</div>
+    <h1 class="hero-name">Nathan <em>Clendenin</em></h1>
+    <p class="hero-sub" id="heroSub">Photojournalist · Storyteller · Entrepreneur</p>
+  </div>
+  <p class="hero-caption" id="heroCaption"></p>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ALBUMS -->
+<section class="albums-section" id="albums">
+  <div class="status-banner" id="statusBanner" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span id="statusMsg"></span>
+  </div>
+  <div class="section-header">
+    <span class="section-label">Albums</span>
+    <span class="section-count" id="albumCount"></span>
+  </div>
+  <div class="albums-grid" id="albumsGrid">
+    <!-- populated by JS -->
+  </div>
+</section>
+
+<footer>
+  <p class="footer-copy" id="footerCopy">© Nathan Clendenin</p>
+  <div class="social-links" id="socialLinks"></div>
+</footer>
+
+  </div>
+</div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────
+const API_URL = 'https://nc-manifest.nathan-48c.workers.dev';
+const R2_URL  = 'https://images.nathanclendenin.com';
+
+function getApiUrl() { return API_URL; }
+function getR2Url()  { return R2_URL; }
+
+// ── NAV SCROLL ─────────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 80);
+});
+
+// ── LOAD SITE ──────────────────────────────────────────────────────
+async function loadSite() {
+  const api = getApiUrl();
+  const r2  = getR2Url(); // kept for future use; image URLs now come from Worker
+
+  if (!api) {
+    showStatus('Open Settings ⚙ in the top-right to enter your Worker API URL, then your photos will appear here.');
+    renderSkeletons(6);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${api}/manifest.json`, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderSite(r2, data);
+  } catch (e) {
+    showStatus(`Could not reach the manifest Worker at ${api} — check Settings. Make sure the Worker is deployed and the R2 binding is set. (${e.message})`);
+    renderSkeletons(4);
+  }
+}
+
+function showStatus(msg) {
+  const banner = document.getElementById('statusBanner');
+  document.getElementById('statusMsg').textContent = msg;
+  banner.style.display = 'flex';
+}
+
+function renderSite(r2, data) {
+  document.getElementById('statusBanner').style.display = 'none';
+
+  // HERO — pre-sized by Worker via Cloudflare Image Resizing
+  if (data.hero && data.hero.url) {
+    const img = document.getElementById('heroImg');
+    img.src = data.hero.url;
+    img.alt = data.hero.caption || '';
+    img.style.display = 'block';
+    document.getElementById('heroPlaceholder').style.display = 'none';
+    if (data.hero.caption) {
+      document.getElementById('heroCaption').textContent = data.hero.caption;
+    }
+  }
+
+  // SITE META
+  if (data.site) {
+    document.title = data.site.title || 'Nathan Clendenin';
+    if (data.site.subtitle) {
+      document.getElementById('heroSub').textContent = data.site.subtitle;
+    }
+    if (data.site.bio) {
+      document.getElementById('footerCopy').textContent = `Soli Deo Gloria · © ${data.site.title}`;
+    }
+    // SOCIAL
+    if (data.site.social) {
+      const links = [];
+      if (data.site.social.instagram) links.push(`<a href="https://instagram.com/${data.site.social.instagram}" target="_blank" rel="noopener">Instagram</a>`);
+      if (data.site.social.twitter)   links.push(`<a href="https://twitter.com/${data.site.social.twitter}" target="_blank" rel="noopener">Twitter</a>`);
+      if (data.site.social.linkedin)  links.push(`<a href="https://linkedin.com/in/${data.site.social.linkedin}" target="_blank" rel="noopener">LinkedIn</a>`);
+      document.getElementById('socialLinks').innerHTML = links.join('');
+    }
+  }
+
+  // ALBUMS
+  const albums = data.albums || [];
+  document.getElementById('albumCount').textContent = `${albums.length} album${albums.length !== 1 ? 's' : ''}`;
+  const grid = document.getElementById('albumsGrid');
+  grid.innerHTML = '';
+
+  albums.forEach((album, idx) => {
+    const a = document.createElement('a');
+    a.className = 'album-card';
+    // Collections link to collection page; albums link to album page
+    a.href = album.type === 'collection'
+      ? `collection.html?id=${album.id}`
+      : `album.html?album=${encodeURIComponent(album.id)}`;
+
+    const countLabel = album.type === 'collection'
+      ? (album.count ? `${album.count} album${album.count !== 1 ? 's' : ''}` : null)
+      : (album.count ? `${album.count} photos` : null);
+    const metaParts = [album.year, countLabel].filter(Boolean);
+    const loading = idx < 3 ? 'eager' : 'lazy';
+
+    // cover is now { thumb, medium } from Worker — already sized by CF Image Resizing
+    const coverHtml = album.cover
+      ? `<img class="album-thumb"
+              src="${album.cover.thumb}"
+              srcset="${album.cover.thumb} 600w, ${album.cover.medium} 1200w"
+              sizes="(max-width: 600px) 100vw, 50vw"
+              alt="${album.title}"
+              loading="${loading}">`
+      : `<div class="album-placeholder"><div class="album-placeholder-icon">📷</div></div>`;
+
+    a.innerHTML = `
+      ${coverHtml}
+      <div class="album-overlay"></div>
+      <div class="album-info">
+        <div class="album-title">${album.title}</div>
+        ${metaParts.length ? `<div class="album-meta">${metaParts.join(' · ')}</div>` : ''}
+      </div>
+    `;
+    grid.appendChild(a);
+  });
+}
+
+function renderSkeletons(n) {
+  const grid = document.getElementById('albumsGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const div = document.createElement('div');
+    div.className = 'album-card skeleton';
+    grid.appendChild(div);
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────
+loadSite();
+</script>
+</body>
+</html>

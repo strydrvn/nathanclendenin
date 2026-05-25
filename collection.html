@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collection — Nathan Clendenin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<!-- Open Graph -->
+<meta property="og:type"        content="website">
+<meta property="og:site_name"   content="Nathan Clendenin">
+<meta property="og:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<meta property="og:image:width"  content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<style>
+:root{
+  --bg:#090909;--surface:#111010;--text:#e2d9ce;
+  --muted:#948f8a;--accent:#c8a97e;--line:#1c1b1a;--white:#f4ede4;
+  --shadow:0 1px 3px rgba(15,14,23,.07),0 4px 16px rgba(15,14,23,.05);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-weight:300;min-height:100vh;overscroll-behavior:none}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:22px 40px;background:rgba(9,9,9,.97);border-bottom:1px solid var(--line)}
+.nav-back{display:flex;align-items:center;gap:10px;color:var(--muted);text-decoration:none;font-size:10px;letter-spacing:.18em;text-transform:uppercase;transition:color .2s}
+.nav-back:hover{color:var(--accent)}
+.nav-back svg{width:14px;height:14px}
+.nav-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:var(--white);text-decoration:none;letter-spacing:-.02em}
+
+.collection-header{padding:110px 40px 48px;border-bottom:1px solid var(--line)}
+.collection-eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.collection-title{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,6vw,64px);font-weight:300;color:var(--white);line-height:1.05;letter-spacing:-.02em}
+.collection-desc{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.8;max-width:520px}
+.collection-meta{display:flex;gap:24px;margin-top:20px}
+.meta-item strong{color:var(--text);display:block;font-size:13px;font-weight:400;letter-spacing:0;margin-bottom:2px}
+.meta-item{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+.albums-section{padding:48px 40px 100px}
+.section-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:36px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.section-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.section-count{font-size:10px;color:var(--muted)}
+
+.albums-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:3px}
+.album-card{position:relative;aspect-ratio:4/3;overflow:hidden;cursor:pointer;background:var(--surface);text-decoration:none;display:block}
+/* first-child equal size */
+.album-thumb{width:100%;height:100%;object-fit:cover;transition:transform .6s ease,filter .4s ease;filter:brightness(.85) saturate(.9)}
+.album-card:hover .album-thumb{transform:scale(1.05);filter:brightness(.95) saturate(1.05)}
+.album-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,9,.85) 0%,transparent 60%);opacity:0;transition:opacity .4s}
+.album-card:hover .album-overlay{opacity:1}
+.album-info{position:absolute;bottom:0;left:0;right:0;padding:24px 20px 20px;transform:translateY(8px);opacity:0;transition:transform .4s,opacity .4s}
+.album-card:hover .album-info{transform:translateY(0);opacity:1}
+.album-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--white);line-height:1.2}
+
+.album-meta{margin-top:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.album-placeholder{width:100%;height:100%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--line)}
+
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,#1a1917 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.empty{text-align:center;padding:80px 40px;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.status{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:8px;font-size:11px;margin:0 40px 24px;background:#1a140e;color:var(--accent);border:1px solid #2a2218}
+
+footer{border-top:1px solid var(--line);padding:24px 40px;display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:.1em}
+
+@media(max-width:768px){
+  nav{padding:16px 20px}
+  .collection-header{padding:88px 20px 36px}
+  .albums-section{padding:36px 20px 80px}
+  .albums-grid{grid-template-columns:1fr 1fr;gap:2px}
+  /* first-child equal size */
+  .album-info{opacity:1;transform:none}
+  .album-overlay{opacity:1}
+  footer,.status{padding-left:20px;padding-right:20px}
+}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:      #f8f6f2;
+    --surface: #f0ece6;
+    --text:    #1a1714;
+    --muted:   #8a7e74;
+    --line:    #d4ccc4;
+    --card:    #ffffff;
+    --white:   #1a1714;
+    --shadow:  0 1px 3px rgba(26,23,20,.09), 0 4px 16px rgba(26,23,20,.07);
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: rgba(240,236,230,.98);
+    border-bottom-color: var(--line);
+  }
+  .nav-title      { color: #1a1714; }
+  .nav-back       { color: var(--muted); }
+  .nav-back:hover { color: var(--accent); }
+
+  /* ── COLLECTION HEADER ── */
+  .collection-eyebrow { color: var(--accent); }
+  .collection-title   { color: #1a1714; }
+  .collection-desc    { color: var(--muted); }
+
+  /* ── ALBUM GRID — readable overlay, still airy ── */
+  .album-overlay {
+    background: linear-gradient(to top, rgba(10,8,6,.75) 0%, rgba(10,8,6,.1) 60%, transparent 100%);
+  }
+  .album-info .album-title { text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  .album-thumb { filter: brightness(.92) saturate(.95); }
+  .album-card:hover .album-thumb { filter: brightness(1) saturate(1.05); }
+
+  /* ── SECTION ── */
+  .section-label { color: var(--muted); }
+
+  /* ── STATUS ── */
+  .status {
+    background: #fdf8f2;
+    border-color: #e8d8c4;
+    color: #7a5c2e;
+  }
+
+  /* ── SKELETON ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface) 25%, #e0d8cf 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+  }
+
+  /* ── FOOTER ── */
+  footer { background: var(--bg); border-top-color: var(--line); }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    All Albums
+  </a>
+  <a href="/" class="nav-title">Nathan Clendenin</a>
+</nav>
+
+<div id="headerBlock">
+  <div class="collection-header">
+    <div class="collection-eyebrow">Collection</div>
+    <h1 class="collection-title skeleton" style="width:260px;height:52px;border-radius:2px">&nbsp;</h1>
+  </div>
+</div>
+
+<div class="albums-section">
+  <div id="statusMsg" style="display:none" class="status"></div>
+  <div class="section-header">
+    <span class="section-label">Albums</span>
+    <span class="section-count" id="albumCount"></span>
+  </div>
+  <div class="albums-grid" id="albumsGrid">
+    <div class="album-card skeleton"></div>
+    <div class="album-card skeleton"></div>
+    <div class="album-card skeleton"></div>
+  </div>
+</div>
+
+<footer>
+  <span>© Nathan Clendenin</span>
+  <span id="footerMeta"></span>
+</footer>
+
+<script>
+const API_URL = 'https://nc-manifest.nathan-48c.workers.dev';
+const R2_URL  = 'https://images.nathanclendenin.com';
+
+const params       = new URLSearchParams(location.search);
+const collectionId = params.get('id');
+
+/* buildCollectionPage */
+async function loadCollection() {
+  if (!collectionId) { showError('No collection specified.'); return; }
+
+  try {
+    const res = await fetch(`${API_URL}/${collectionId}`, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderCollection(data);
+  } catch(e) {
+    showError(`Could not load collection "${collectionId}". (${e.message})`);
+  }
+}
+
+function renderCollection(data) {
+  document.title = `${data.title} — Nathan Clendenin`;
+
+  // Header
+  const metaParts = [
+    data.year ? `<div class="meta-item"><strong>${data.year}</strong>Year</div>` : '',
+    data.albums.length ? `<div class="meta-item"><strong>${data.albums.length}</strong>Album${data.albums.length !== 1 ? 's' : ''}</div>` : '',
+  ].filter(Boolean).join('');
+
+  document.getElementById('headerBlock').innerHTML = `
+    <div class="collection-header">
+      <div class="collection-eyebrow">Collection</div>
+      <h1 class="collection-title">${data.title}</h1>
+      ${data.description ? `<p class="collection-desc">${data.description}</p>` : ''}
+      ${metaParts ? `<div class="collection-meta">${metaParts}</div>` : ''}
+    </div>`;
+
+  document.getElementById('footerMeta').textContent =
+    `${data.albums.length} album${data.albums.length !== 1 ? 's' : ''}`;
+
+  // Albums grid
+  const albums = data.albums || [];
+  document.getElementById('albumCount').textContent =
+    `${albums.length} album${albums.length !== 1 ? 's' : ''}`;
+
+  const grid = document.getElementById('albumsGrid');
+  grid.innerHTML = '';
+
+  if (!albums.length) {
+    grid.innerHTML = '<div class="empty"><div class="empty-icon">📷</div><p>No albums in this collection yet.</p></div>';
+    return;
+  }
+
+  albums.forEach((album, idx) => {
+    const a = document.createElement('a');
+    a.className = 'album-card';
+    a.href = `album.html?album=${encodeURIComponent(album.id)}`;
+
+    const metaRow = [album.year, album.count ? `${album.count} photos` : null]
+      .filter(Boolean).join(' · ');
+    const loading = idx < 2 ? 'eager' : 'lazy';
+
+    a.innerHTML = album.cover
+      ? `<img class="album-thumb"
+              src="${album.cover.thumb}"
+              srcset="${album.cover.thumb} 600w, ${album.cover.medium} 1200w"
+              sizes="(max-width:600px) 100vw, 50vw"
+              alt="${album.title}" loading="${loading}">
+         <div class="album-overlay"></div>
+         <div class="album-info">
+           <div class="album-title">${album.title}</div>
+           ${metaRow ? `<div class="album-meta">${metaRow}</div>` : ''}
+         </div>`
+      : `<div class="album-placeholder">📷</div>
+         <div class="album-overlay"></div>
+         <div class="album-info">
+           <div class="album-title">${album.title}</div>
+           ${metaRow ? `<div class="album-meta">${metaRow}</div>` : ''}
+         </div>`;
+
+    grid.appendChild(a);
+  });
+}
+
+function showError(msg) {
+  const el = document.getElementById('statusMsg');
+  el.textContent = msg; el.style.display = 'flex';
+  document.getElementById('albumsGrid').innerHTML =
+    `<div class="empty" style="grid-column:1/-1">
+       <a href="/" style="color:var(--accent);font-size:11px">← Back to portfolio</a>
+     </div>`;
+}
+
+loadCollection();
+</script>
+</body>
+</html>

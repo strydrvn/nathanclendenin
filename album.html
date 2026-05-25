@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Open Graph — iMessage, Slack, social previews -->
+<meta property="og:type"        content="article">
+<meta property="og:url"         content="https://nathanclendenin.com">
+<meta property="og:site_name"   content="Nathan Clendenin">
+<meta property="og:title"       content="Nathan Clendenin — Photojournalist &amp; Storyteller">
+<meta property="og:description" content="Photojournalist · Storyteller · Entrepreneur. Documentary and brand photography from Durham, NC.">
+<meta property="og:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<meta property="og:image:width"  content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt"   content="Nathan Clendenin on a shoot">
+<!-- Twitter/X Card -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:site"        content="@nathanclendenin">
+<meta name="twitter:creator"     content="@nathanclendenin">
+<meta name="twitter:title"       content="Nathan Clendenin — Photojournalist &amp; Storyteller">
+<meta name="twitter:description" content="Photojournalist · Storyteller · Entrepreneur. Documentary and brand photography from Durham, NC.">
+<meta name="twitter:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<title>Album — Nathan Clendenin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#090909; --surface:#111010; --text:#e2d9ce;
+  --muted:#6b6258; --accent:#c8a97e; --line:#1c1b1a; --white:#f4ede4;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-weight:300;min-height:100vh}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:22px 40px;background:rgba(9,9,9,.97);border-bottom:1px solid var(--line)}
+.nav-back{display:flex;align-items:center;gap:10px;color:var(--muted);text-decoration:none;font-size:10px;letter-spacing:.18em;text-transform:uppercase;transition:color .2s}
+.nav-back:hover{color:var(--accent)}
+.nav-back svg{width:14px;height:14px}
+.nav-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:300;color:var(--white);text-decoration:none}
+
+.album-header{padding:120px 40px 48px;border-bottom:1px solid var(--line)}
+.album-eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.album-title{font-family:'Cormorant Garamond',serif;font-size:clamp(32px,5vw,60px);font-weight:300;color:var(--white);line-height:1.1}
+.album-desc{margin-top:14px;font-size:12px;color:var(--muted);line-height:1.8;max-width:500px}
+.album-meta-row{display:flex;gap:24px;margin-top:20px}
+.album-meta-item{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.album-meta-item strong{color:var(--text);display:block;font-weight:400;font-size:13px;letter-spacing:0;margin-bottom:2px}
+
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:3px;padding:3px}
+.photo-item{aspect-ratio:3/2;overflow:hidden;cursor:pointer;position:relative;background:var(--surface)}
+.photo-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease,filter .3s;filter:brightness(.9) saturate(.95)}
+.photo-item:hover img{transform:scale(1.04);filter:brightness(1) saturate(1.05)}
+.photo-item.portrait{aspect-ratio:2/3}
+.photo-caption-hover{position:absolute;bottom:0;left:0;right:0;padding:12px 14px;background:linear-gradient(transparent,rgba(0,0,0,.8));font-size:10px;color:rgba(255,255,255,.7);opacity:0;transition:opacity .3s;letter-spacing:.05em}
+.photo-item:hover .photo-caption-hover{opacity:1}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center}
+.lightbox.open{display:flex}
+.lb-img-wrap{position:relative;max-width:92vw;max-height:82vh;min-width:200px;min-height:150px;display:flex;align-items:center;justify-content:center}
+.lb-img{position:absolute;max-width:92vw;max-height:82vh;object-fit:contain;user-select:none;transition:opacity .35s ease}
+.lb-img.hidden{opacity:0;pointer-events:none}
+.lb-close{position:fixed;top:24px;right:28px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);font-size:28px;line-height:1;transition:color .2s}
+.lb-close:hover{color:var(--white)}
+.lb-nav-btn{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.6);transition:all .2s}
+.lb-nav-btn:hover{background:rgba(255,255,255,.12);color:var(--white)}
+.lb-prev{left:16px}
+.lb-next{right:16px}
+.lb-nav-btn svg{width:18px;height:18px}
+/* lb-caption replaced by lb-exif */
+/* spinner removed — crossfade replaces it */
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.error-msg{text-align:center;padding:120px 40px;color:var(--muted);font-size:12px;line-height:2}
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,#1a1917 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── EXIF OVERLAY ── */
+.photo-exif{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:10px 12px 10px;
+  background:linear-gradient(transparent,rgba(0,0,0,.85));
+  opacity:0;transition:opacity .3s;
+  display:flex;flex-direction:column;gap:4px;
+}
+.photo-item:hover .photo-exif{opacity:1}
+.exif-caption{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:13px;
+  color:rgba(255,255,255,.92);line-height:1.3;
+}
+.exif-data{
+  display:flex;align-items:center;flex-wrap:wrap;gap:6px;
+  font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,.55);
+}
+.exif-sep{color:rgba(255,255,255,.2)}
+.exif-val{color:rgba(255,255,255,.75)}
+
+/* ── LIGHTBOX EXIF ── */
+.lb-exif{
+  position:fixed;bottom:0;left:0;right:0;
+  padding:16px 48px 24px;
+  background:linear-gradient(transparent,rgba(0,0,0,.8));
+  text-align:center;
+}
+.lb-exif-caption{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:18px;
+  color:rgba(255,255,255,.85);
+  margin-bottom:6px;line-height:1.3;
+}
+.lb-exif-row{
+  display:flex;justify-content:center;align-items:center;
+  flex-wrap:wrap;gap:8px;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:rgba(255,255,255,.45);
+}
+.lb-exif-item{color:rgba(255,255,255,.65)}
+.lb-exif-sep{color:rgba(255,255,255,.2);margin:0 2px}
+
+footer{border-top:1px solid var(--line);padding:24px 40px;font-size:10px;color:var(--muted);letter-spacing:.1em;display:flex;justify-content:space-between;align-items:center}
+
+@media(max-width:768px){
+  nav{padding:16px 20px}
+  .album-header{padding:88px 20px 36px}
+  .photo-grid{grid-template-columns:1fr 1fr;gap:2px;padding:2px}
+  footer{padding:20px}
+}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:      #f8f6f2;
+    --surface: #f0ece6;
+    --text:    #1a1714;
+    --muted:   #8a7e74;
+    --line:    #d4ccc4;
+    --card:    #ffffff;
+    --white:   #1a1714;
+    --accent2: #2d6a4f;
+    --shadow:  0 1px 3px rgba(26,23,20,.09), 0 4px 16px rgba(26,23,20,.07);
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: rgba(240,236,230,.98);
+    border-bottom-color: var(--line);
+  }
+  .nav-title     { color: #1a1714; }
+  .nav-back      { color: var(--muted); }
+  .nav-back:hover { color: var(--accent); }
+
+  /* ── ALBUM HEADER ── */
+  .album-eyebrow { color: var(--accent); }
+  .album-title   { color: #1a1714; }
+  .album-desc    { color: var(--muted); }
+
+  /* ── PHOTO GRID ── */
+  .photo-item img { filter: brightness(.95) saturate(.97); }
+  .photo-item:hover img { filter: brightness(1) saturate(1.05); }
+
+  /* ── PHOTO EXIF OVERLAY — readable in light mode ── */
+  .photo-exif {
+    background: linear-gradient(transparent, rgba(10,8,6,.72));
+  }
+  .exif-caption { text-shadow: 0 1px 4px rgba(0,0,0,.4); }
+
+  /* ── LIGHTBOX — stays dark (cinematic) — no change needed ── */
+
+  /* ── ERROR ── */
+  .error-msg { color: var(--muted); }
+
+  /* ── SKELETON ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface) 25%, #e0d8cf 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+  }
+
+  /* ── FOOTER ── */
+  footer { background: var(--bg); border-top-color: var(--line); }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-back" id="navBack">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    <span id="navBackLabel">All Albums</span>
+  </a>
+  <a href="/" class="nav-title">Nathan Clendenin</a>
+</nav>
+
+<div id="albumContent">
+  <div class="album-header">
+    <div class="album-eyebrow">Album</div>
+    <h1 class="album-title skeleton" style="width:300px;height:50px;border-radius:2px">&nbsp;</h1>
+  </div>
+  <div class="photo-grid" id="photoGrid">
+    ${Array.from({length:9},()=>'<div class="photo-item skeleton"></div>').join('')}
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="handleLbClick(event)">
+  <button class="lb-close" onclick="closeLb()">×</button>
+  <button class="lb-nav-btn lb-prev" onclick="lbNav(-1);event.stopPropagation()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <div class="lb-img-wrap" id="lbWrap">
+    <img class="lb-img" id="lbImg0" alt="">
+    <img class="lb-img hidden" id="lbImg1" alt="">
+  </div>
+  <button class="lb-nav-btn lb-next" onclick="lbNav(1);event.stopPropagation()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+  <div class="lb-exif" id="lbExif">
+    <p class="lb-exif-caption" id="lbCaption"></p>
+    <div class="lb-exif-row" id="lbExifRow"></div>
+  </div>
+  <div style="position:fixed;top:28px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.18em;color:rgba(255,255,255,.35)" id="lbCounter"></div>
+</div>
+
+<footer>
+  <span>© Nathan Clendenin</span>
+  <span id="footerAlbum"></span>
+</footer>
+
+<script>
+const api = 'https://nc-manifest.nathan-48c.workers.dev';
+const r2  = 'https://images.nathanclendenin.com';
+const params = new URLSearchParams(location.search);
+const albumId = params.get('album');
+let photos = [], lbIdx = 0;
+
+async function loadAlbum() {
+  if (!r2) { showError('R2 URL not configured. Return to home and open Settings.'); return; }
+  if (!albumId) { showError('No album specified.'); return; }
+  try {
+    const res = await fetch(`${api}/${albumId}`, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderAlbum(data);
+  } catch(e) {
+    showError(`Could not load album "${albumId}" from Worker at ${api}. (${e.message})`);
+  }
+}
+
+function renderAlbum(data) {
+  photos = data.images || [];
+  document.title = `${data.title} — Nathan Clendenin`;
+  document.getElementById('footerAlbum').textContent = `${photos.length} photos`;
+
+  // Update back button — nested albums go back to their collection
+  if (data.parent) {
+    const backLink  = document.getElementById('navBack');
+    const backLabel = document.getElementById('navBackLabel');
+    backLink.href   = `collection.html?id=${encodeURIComponent(data.parent)}`;
+    // Capitalise parent name for the label
+    backLabel.textContent = data.parent.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
+
+  const metaParts = [
+    data.year ? `<div class="album-meta-item"><strong>${data.year}</strong>Year</div>` : '',
+    photos.length ? `<div class="album-meta-item"><strong>${photos.length}</strong>Photos</div>` : '',
+    data.location ? `<div class="album-meta-item"><strong>${data.location}</strong>Location</div>` : '',
+  ].filter(Boolean).join('');
+
+  document.getElementById('albumContent').innerHTML = `
+    <div class="album-header">
+      <div class="album-eyebrow">Album · ${albumId.replace(/-/g,' ')}</div>
+      <h1 class="album-title">${data.title}</h1>
+      ${data.description ? `<p class="album-desc">${data.description}</p>` : ''}
+      ${metaParts ? `<div class="album-meta-row">${metaParts}</div>` : ''}
+    </div>
+    <div class="photo-grid" id="photoGrid"></div>
+  `;
+
+  const grid = document.getElementById('photoGrid');
+  photos.forEach((photo, idx) => {
+    const div = document.createElement('div');
+    div.className = `photo-item${photo.portrait ? ' portrait' : ''}`;
+    div.onclick = () => openLb(idx);
+
+    // Worker provides pre-built sized URLs via CF Image Resizing
+    const thumb  = photo.urls ? photo.urls.thumb  : `${r2}/${albumId}/${photo.file}`;
+    const medium = photo.urls ? photo.urls.medium : thumb;
+
+    // Build EXIF overlay for grid
+    const exifParts = [];
+    if (photo.camera)  exifParts.push(`<span class="exif-val">${photo.camera}</span>`);
+    if (photo.focal)   exifParts.push(`<span class="exif-val">${photo.focal}</span>`);
+    if (photo.aperture)exifParts.push(`<span class="exif-val">${photo.aperture}</span>`);
+    if (photo.shutter) exifParts.push(`<span class="exif-val">${photo.shutter}</span>`);
+    if (photo.iso)     exifParts.push(`<span class="exif-val">ISO ${photo.iso}</span>`);
+    const exifHtml = exifParts.join('<span class="exif-sep"> · </span>');
+    const hasOverlay = photo.caption || exifParts.length;
+
+    div.innerHTML = `
+      <img src="${thumb}"
+           srcset="${thumb} 600w, ${medium} 1200w"
+           sizes="(max-width: 600px) 50vw, 33vw"
+           alt="${photo.caption || ''}"
+           loading="${idx < 6 ? 'eager' : 'lazy'}">
+      ${hasOverlay ? `
+      <div class="photo-exif">
+        ${photo.caption ? `<div class="exif-caption">${photo.caption}</div>` : ''}
+        ${exifHtml ? `<div class="exif-data">${exifHtml}</div>` : ''}
+      </div>` : ''}
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function showError(msg) {
+  document.getElementById('albumContent').innerHTML =
+    `<div class="error-msg">${msg}<br><br><a href="/" style="color:var(--accent)">← Back to portfolio</a></div>`;
+}
+
+// ── LIGHTBOX — crossfade + pre-loader ─────────────────────────────
+const lbLayers  = [null, null]; // populated after DOM ready
+let   activeLayer = 0;          // which layer is currently visible
+const preloadCache = new Set(); // avoid duplicate preloads
+
+function lbImg(n) { return document.getElementById(`lbImg${n}`); }
+
+function openLb(idx) {
+  lbIdx = idx;
+  // Reset layers
+  activeLayer = 0;
+  lbImg(0).classList.remove('hidden');
+  lbImg(1).classList.add('hidden');
+  lbImg(0).src = ''; lbImg(1).src = '';
+  updateLb(true); // true = skip transition on first open
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLb() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleLbClick(e) { if (e.target === e.currentTarget) closeLb(); }
+
+function lbNav(dir) {
+  lbIdx = (lbIdx + dir + photos.length) % photos.length;
+  updateLb(false);
+}
+
+function updateLb(instant) {
+  const photo     = photos[lbIdx];
+  const medSrc    = photo.urls ? photo.urls.medium : `${r2}/${albumId}/${photo.file}`;
+  const fullSrc   = photo.urls ? photo.urls.full   : medSrc;
+
+  const nextLayer = 1 - activeLayer;
+  const current   = lbImg(activeLayer);
+  const next      = lbImg(nextLayer);
+
+  // If already cached/loaded, crossfade immediately
+  if (instant || preloadCache.has(medSrc)) {
+    next.src = medSrc;
+    next.alt = photo.caption || '';
+    if (instant) {
+      // No animation on open
+      current.classList.add('hidden');
+      next.classList.remove('hidden');
+    } else {
+      next.classList.remove('hidden');
+      // Let browser render one frame then fade
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          current.classList.add('hidden');
+        });
+      });
+    }
+    activeLayer = nextLayer;
+    upgradeToFull(next, medSrc, fullSrc);
+  } else {
+    // Load into background, crossfade on ready
+    next.onload = () => {
+      preloadCache.add(medSrc);
+      next.classList.remove('hidden');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          current.classList.add('hidden');
+        });
+      });
+      activeLayer = nextLayer;
+      upgradeToFull(next, medSrc, fullSrc);
+    };
+    next.src = medSrc;
+    next.alt = photo.caption || '';
+  }
+
+  // Caption
+  const captEl = document.getElementById('lbCaption');
+  captEl.textContent = photo.caption || '';
+  captEl.style.display = photo.caption ? 'block' : 'none';
+
+  // EXIF row
+  const exifParts = [];
+  if (photo.camera)   exifParts.push(photo.camera);
+  if (photo.focal)    exifParts.push(photo.focal);
+  if (photo.aperture) exifParts.push(photo.aperture);
+  if (photo.shutter)  exifParts.push(photo.shutter);
+  if (photo.iso)      exifParts.push(`ISO ${photo.iso}`);
+  if (photo.date)     exifParts.push(photo.date);
+  const exifRow = document.getElementById('lbExifRow');
+  exifRow.innerHTML = exifParts
+    .map(p => `<span class="lb-exif-item">${p}</span>`)
+    .join('<span class="lb-exif-sep">·</span>');
+
+  // Hide entire exif bar if nothing to show
+  document.getElementById('lbExif').style.display =
+    (photo.caption || exifParts.length) ? 'block' : 'none';
+
+  document.getElementById('lbCounter').textContent = `${lbIdx + 1} / ${photos.length}`;
+
+  // Pre-load neighbours: prev, next, next+1
+  preloadNeighbors();
+}
+
+function upgradeToFull(imgEl, medSrc, fullSrc) {
+  if (fullSrc === medSrc) return;
+  const hires = new Image();
+  hires.onload = () => {
+    // Only upgrade if this img element is still showing the medium version
+    if (imgEl.src.includes(medSrc.split('/').pop())) imgEl.src = fullSrc;
+  };
+  hires.src = fullSrc;
+}
+
+function preloadNeighbors() {
+  [-1, 1, 2].forEach(offset => {
+    const idx = (lbIdx + offset + photos.length) % photos.length;
+    const p   = photos[idx];
+    if (!p) return;
+    const src = p.urls ? p.urls.medium : `${r2}/${albumId}/${p.file}`;
+    if (preloadCache.has(src)) return;
+    const img = new Image();
+    img.onload = () => preloadCache.add(src);
+    img.src = src;
+  });
+}
+
+// KEYBOARD NAV
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowRight') lbNav(1);
+  if (e.key === 'ArrowLeft')  lbNav(-1);
+  if (e.key === 'Escape')     closeLb();
+});
+
+// SWIPE NAV
+(function() {
+  const lb = document.getElementById('lightbox');
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let swiping     = false;
+
+  lb.addEventListener('touchstart', e => {
+    // Only track single-finger touches
+    if (e.touches.length !== 1) { swiping = false; return; }
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    swiping = true;
+  }, { passive: true });
+
+  lb.addEventListener('touchend', e => {
+    if (!swiping || e.changedTouches.length !== 1) return;
+    swiping = false;
+
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+
+    // Ignore mostly-vertical movement (user scrolling)
+    if (Math.abs(dy) > Math.abs(dx)) return;
+
+    // Require at least 50px horizontal swipe
+    if (Math.abs(dx) < 50) return;
+
+    if (dx < 0) lbNav(1);   // swipe left  → next
+    else        lbNav(-1);  // swipe right → previous
+  }, { passive: true });
+
+  // Cancel if multi-touch (pinch zoom etc.)
+  lb.addEventListener('touchcancel', () => { swiping = false; }, { passive: true });
+})();
+
+loadAlbum();
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+/**
+ * Nathan Clendenin Portfolio — Manifest Worker
+ *
+ * Bindings required:
+ *   R2 Bucket binding → variable name: BUCKET
+ *
+ * Routes:
+ *   GET /              → full site manifest
+ *   GET /manifest.json → same
+ *   GET /{albumId}     → image list for one album
+ */
+
+const SITE_META = {
+  title: 'Nathan Clendenin',
+  subtitle: 'Photojournalist · Storyteller · Entrepreneur',
+  bio: 'Soli Deo Gloria.',
+  social: {
+    instagram: 'nathanclendenin',
+    twitter:   'nathanclendenin',
+    linkedin:  'nathanclendenin'
+  }
+};
+
+// R2 public domain — images served from here
+const R2_DOMAIN = 'https://images.nathanclendenin.com';
+
+// Cloudflare Image Resizing helper
+// Sizes served per context:
+//   thumb  → album grid cards  (600w, 4:3 crop, WebP)
+//   medium → lightbox preload  (1200w, WebP)
+//   full   → lightbox full res (2400w, WebP)
+//   hero   → homepage hero     (2560w, WebP)
+function imgUrl(key, size) {
+  const params = {
+    thumb:  'width=600,height=450,fit=cover,quality=82,format=webp',
+    medium: 'width=1200,quality=88,format=webp',
+    full:   'width=2400,quality=90,format=webp',
+    hero:   'width=2560,quality=90,format=webp',
+  }[size] || 'width=1200,format=webp';
+
+  return `${R2_DOMAIN}/cdn-cgi/image/${params}/${key}`;
+}
+
+const SKIP      = new Set(['hero', '_archive', '_drafts', '_covers']);
+const IMAGE_RE  = /\.(jpg|jpeg|png|webp|gif|avif)$/i;
+const isImage   = key => IMAGE_RE.test(key);
+
+const CORS = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Cache-Control':                'public, max-age=60',
+  'Content-Type':                 'application/json',
+};
+
+export default {
+  async fetch(request, env) {
+    if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
+    if (request.method !== 'GET')     return json({ error: 'Method not allowed' }, 405);
+
+    const path = new URL(request.url).pathname.replace(/^\/|\/$/g, '');
+
+    try {
+      if (!path || path === 'manifest.json') {
+        return json(await buildManifest(env.BUCKET));
+      } else {
+        return json(await buildAlbum(env.BUCKET, path));
+      }
+    } catch (e) {
+      return json({ error: e.message }, 500);
+    }
+  }
+};
+
+// ── MANIFEST ──────────────────────────────────────────────────────────
+async function buildManifest(bucket) {
+  const listed  = await bucket.list({ delimiter: '/' });
+  const folders = (listed.delimitedPrefixes || [])
+    .map(p => p.replace(/\/$/, ''))
+    .filter(id => !SKIP.has(id) && !id.startsWith('_'));
+
+  const albums = (
+    await Promise.all(folders.map(id => buildAlbumCard(bucket, id)))
+  ).filter(a => a.count > 0);
+
+  albums.sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || a.title.localeCompare(b.title));
+  albums.forEach(a => delete a.order);
+
+  const hero = await buildHero(bucket);
+  return { site: SITE_META, hero, albums };
+}
+
+// ── ALBUM CARD (homepage grid) ────────────────────────────────────────
+async function buildAlbumCard(bucket, albumId) {
+  const { meta, objects } = await getFolderData(bucket, albumId);
+
+  const autoTitle = albumId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const coverKey  = findCoverKey(objects, albumId);
+  const count     = objects.filter(o => isImageInRoot(o.key, albumId)).length;
+
+  return {
+    id:          albumId,
+    title:       meta.title       || autoTitle,
+    description: meta.description || '',
+    year:        meta.year        || '',
+    location:    meta.location    || '',
+    // Responsive cover URLs — browser picks the right one
+    cover: coverKey ? {
+      thumb:  imgUrl(coverKey, 'thumb'),
+      medium: imgUrl(coverKey, 'medium'),
+    } : null,
+    count,
+    order: meta.order ?? 999,
+  };
+}
+
+// ── ALBUM DETAIL (album.html) ─────────────────────────────────────────
+async function buildAlbum(bucket, albumId) {
+  const { meta, objects } = await getFolderData(bucket, albumId);
+
+  const autoTitle = albumId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  // Load exif.json if present
+  const exifMap = await loadExif(bucket, albumId, objects);
+
+  // All images sorted numerically, cover first
+  const coverKey = findCoverKey(objects, albumId);
+  const rest     = objects
+    .filter(o => isImageInRoot(o.key, albumId) && o.key !== coverKey)
+    .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
+
+  const allKeys = coverKey
+    ? [{ key: coverKey, iscover: true }, ...rest.map(o => ({ key: o.key, iscover: false }))]
+    : rest.map(o => ({ key: o.key, iscover: false }));
+
+  const images = allKeys.map(({ key, iscover }) => {
+    const file     = key.slice(albumId.length + 1);
+    const exif     = exifMap[file] || {};
+    // Caption: exif.caption wins, then cover caption from meta, then empty
+    const caption  = exif.caption || (iscover && meta.coverCaption ? meta.coverCaption : '');
+
+    return {
+      file,
+      caption,
+      portrait: false,
+      // EXIF data — only included if present
+      ...(exif.camera    && { camera:   exif.camera }),
+      ...(exif.lens      && { lens:     exif.lens }),
+      ...(exif.aperture  && { aperture: exif.aperture }),
+      ...(exif.shutter   && { shutter:  exif.shutter }),
+      ...(exif.iso       && { iso:      exif.iso }),
+      ...(exif.focal     && { focal:    exif.focal }),
+      ...(exif.date      && { date:     exif.date }),
+      urls: {
+        thumb:  imgUrl(key, 'thumb'),
+        medium: imgUrl(key, 'medium'),
+        full:   imgUrl(key, 'full'),
+      }
+    };
+  });
+
+  return {
+    title:       meta.title       || autoTitle,
+    description: meta.description || '',
+    year:        meta.year        || '',
+    location:    meta.location    || '',
+    images,
+  };
+}
+
+// Load exif.json from R2 — returns {} if not present
+async function loadExif(bucket, albumId, objects) {
+  const exifKey = `${albumId}/exif.json`;
+  if (!objects.find(o => o.key === exifKey)) return {};
+  const obj = await bucket.get(exifKey);
+  if (!obj) return {};
+  try { return await obj.json(); } catch { return {}; }
+}
+
+// ── HERO ──────────────────────────────────────────────────────────────
+async function buildHero(bucket) {
+  let heroMeta = {};
+  const mObj = await bucket.get('hero/meta.json');
+  if (mObj) { try { heroMeta = await mObj.json(); } catch {} }
+
+  let heroKey = heroMeta.imageKey || null;
+
+  if (!heroKey) {
+    const listed = await bucket.list({ prefix: 'hero/' });
+    const first  = listed.objects
+      .filter(o => isImage(o.key) && !o.key.endsWith('/'))
+      .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }))[0];
+    if (first) heroKey = first.key;
+  }
+
+  return {
+    // Full-bleed hero — serve at max width
+    url:     heroKey ? imgUrl(heroKey, 'hero') : null,
+    caption: heroMeta.caption || '',
+  };
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────
+async function getFolderData(bucket, albumId) {
+  const listed  = await bucket.list({ prefix: `${albumId}/`, limit: 1000 });
+  const objects = listed.objects;
+
+  let meta = {};
+  const metaKey = `${albumId}/meta.json`;
+  if (objects.find(o => o.key === metaKey)) {
+    const fetched = await bucket.get(metaKey);
+    if (fetched) { try { meta = await fetched.json(); } catch {} }
+  }
+
+  return { meta, objects };
+}
+
+function isImageInRoot(key, albumId) {
+  const rel = key.slice(albumId.length + 1);
+  return isImage(rel) && !rel.includes('/');
+}
+
+function findCoverKey(objects, albumId) {
+  const cover = objects.find(o => /\/cover\.(jpg|jpeg|png|webp)$/i.test(o.key));
+  if (cover) return cover.key;
+
+  const first = objects
+    .filter(o => isImageInRoot(o.key, albumId))
+    .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }))[0];
+
+  return first ? first.key : null;
+}
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data, null, 2), { status, headers: CORS });
+}

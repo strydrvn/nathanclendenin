@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>meta.json Builder — Nathan Clendenin Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0b0a;
+  --surface: #141312;
+  --surface2: #1a1917;
+  --text: #e2d9ce;
+  --muted: #6b6258;
+  --accent: #c8a97e;
+  --accent2: #8fba9f;
+  --line: #222120;
+  --white: #f4ede4;
+  --red: #c0695a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-weight: 300;
+  font-size: 13px;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── LAYOUT ── */
+.page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  min-height: 100vh;
+}
+.header {
+  grid-column: 1 / -1;
+  padding: 32px 48px 28px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: baseline; justify-content: space-between;
+  background: var(--surface);
+}
+.header-left {}
+.site-label {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.site-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px; font-weight: 300; color: var(--white);
+  letter-spacing: -.02em;
+}
+.site-title em { color: var(--accent); font-style: italic; }
+.header-right {
+  font-size: 10px; color: var(--muted); text-align: right; line-height: 1.8;
+}
+
+/* ── FORM PANEL ── */
+.form-panel {
+  padding: 40px 48px;
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+}
+.form-section {
+  margin-bottom: 36px;
+}
+.section-heading {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px; font-weight: 600; color: var(--white);
+  margin-bottom: 18px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 10px;
+}
+.section-heading .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
+.field { margin-bottom: 16px; }
+.field-label {
+  display: block; font-size: 10px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 6px;
+}
+.field-label .required { color: var(--accent); margin-left: 3px; }
+.field-label .optional {
+  color: var(--muted); font-size: 9px; opacity: .6;
+  text-transform: none; letter-spacing: 0; margin-left: 4px;
+}
+.inp, .sel, .textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 300;
+  outline: none;
+  transition: border-color .2s, background .2s;
+  appearance: none;
+}
+.inp:focus, .sel:focus, .textarea:focus {
+  border-color: var(--accent);
+  background: #1e1c1a;
+}
+.inp::placeholder, .textarea::placeholder { color: var(--muted); }
+.textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+.sel {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b6258' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  padding-right: 36px;
+  cursor: pointer;
+}
+.sel option { background: var(--surface2); }
+
+.field-hint {
+  margin-top: 5px; font-size: 10px; color: var(--muted); line-height: 1.6;
+}
+
+/* Order field row */
+.field-row { display: flex; gap: 12px; }
+.field-row .field { flex: 1; }
+.field-row .field.narrow { flex: 0 0 90px; }
+
+/* ── OUTPUT PANEL ── */
+.output-panel {
+  padding: 40px 48px;
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow: hidden;
+}
+.output-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; flex-shrink: 0;
+}
+.output-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px; font-weight: 600; color: var(--white);
+  display: flex; align-items: center; gap: 10px;
+}
+.output-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; }
+.filename-display {
+  font-size: 11px; color: var(--accent);
+  background: rgba(200,169,126,.1); border: 1px solid rgba(200,169,126,.2);
+  border-radius: 20px; padding: 3px 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.filename-display .fname { font-weight: 500; }
+
+.output-actions { display: flex; gap: 8px; flex-shrink: 0; margin-bottom: 14px; }
+.btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 16px; border-radius: 6px; border: none; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 400;
+  letter-spacing: .06em; transition: all .15s;
+}
+.btn-copy {
+  background: var(--accent); color: #0c0b0a; flex: 1;
+  justify-content: center;
+}
+.btn-copy:hover { background: #d4b98e; }
+.btn-copy:active { transform: scale(.97); }
+.btn-copy.copied { background: var(--accent2); }
+.btn-dl {
+  background: var(--surface2); color: var(--text);
+  border: 1px solid var(--line);
+}
+.btn-dl:hover { border-color: var(--muted); }
+.btn-dl:active { transform: scale(.97); }
+.btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+.code-wrap {
+  flex: 1; overflow: hidden; border-radius: 8px;
+  border: 1px solid var(--line); position: relative;
+}
+.code-output {
+  width: 100%; height: 100%;
+  background: var(--surface);
+  color: #e2d9ce;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 300;
+  padding: 20px;
+  border: none; outline: none; resize: none;
+  line-height: 1.7;
+  overflow-y: auto;
+}
+/* Syntax coloring via ::selection isn't enough — we'll use a light overlay on keys */
+.preview-overlay {
+  position: absolute; inset: 0; padding: 20px;
+  font-family: 'DM Mono', monospace; font-size: 12px;
+  line-height: 1.7; pointer-events: none; overflow: hidden;
+  white-space: pre; color: transparent;
+}
+
+/* Validation */
+.validation-bar {
+  margin-top: 12px; flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+}
+.valid-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent2); flex-shrink: 0;
+  transition: background .3s;
+}
+.valid-dot.invalid { background: var(--red); }
+.valid-label { color: var(--muted); }
+.valid-msg { color: var(--text); }
+
+/* ── FOLDER TYPE TOGGLE ── */
+.type-toggle {
+  display: flex; gap: 0; margin-bottom: 24px;
+  border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
+}
+.type-btn {
+  flex: 1; padding: 10px; background: none; border: none; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted);
+  transition: all .15s; border-right: 1px solid var(--line);
+}
+.type-btn:last-child { border-right: none; }
+.type-btn.active { background: var(--surface2); color: var(--accent); }
+.type-btn:hover:not(.active) { color: var(--text); }
+
+/* Hero-specific fields */
+.hero-fields, .album-fields { display: none; }
+.hero-fields.show, .album-fields.show { display: block; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .page { grid-template-columns: 1fr; }
+  .form-panel { border-right: none; border-bottom: 1px solid var(--line); }
+  .output-panel { position: static; height: auto; }
+  .code-wrap { height: 300px; }
+  .header { padding: 24px 20px; }
+  .form-panel, .output-panel { padding: 28px 20px; }
+}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:       #f8f6f2;
+    --surface:  #f0ece6;
+    --surface2: #e8e2db;
+    --text:     #1a1714;
+    --muted:    #8a7e74;
+    --line:     #d4ccc4;
+    --white:    #1a1714;
+  }
+
+  .header      { background: var(--surface); border-color: var(--line); }
+  .site-title  { color: #1a1714; }
+  .form-panel  { background: var(--bg); border-color: var(--line); }
+  .section-heading { color: #1a1714; border-color: var(--line); }
+
+  .inp, .sel, .textarea {
+    background: #ffffff;
+    border-color: var(--line);
+    color: var(--text);
+  }
+  .sel {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a7e74' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-color: #ffffff;
+  }
+  .sel option { background: #ffffff; color: var(--text); }
+
+  .type-btn        { color: var(--muted); background: var(--surface); }
+  .type-btn.active { background: #ffffff; color: var(--accent); }
+  .type-btn:hover:not(.active) { color: var(--text); }
+  .type-toggle     { border-color: var(--line); }
+
+  .output-panel    { background: var(--bg); }
+  .output-title    { color: #1a1714; }
+  .code-wrap       { border-color: var(--line); }
+  .code-output     { background: #ffffff; color: var(--text); }
+
+  .btn-dl {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--line);
+  }
+
+  .filename-display { color: var(--accent); }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="site-label">Nathan Clendenin Portfolio</div>
+      <div class="site-title">meta<em>.json</em> Builder</div>
+    </div>
+    <div class="header-right">
+      Fill in the fields →<br>
+      copy the JSON →<br>
+      save as <code style="color:var(--accent)">meta.json</code>
+    </div>
+  </header>
+
+  <!-- FORM -->
+  <section class="form-panel">
+
+    <!-- TYPE TOGGLE -->
+    <div class="form-section">
+      <div class="section-heading"><div class="dot"></div>File Type</div>
+      <div class="type-toggle">
+        <button class="type-btn active" onclick="setType('album')" id="btn-album">📁 Album Folder</button>
+        <button class="type-btn" onclick="setType('hero')" id="btn-hero">🌅 Hero Folder</button>
+      </div>
+    </div>
+
+    <!-- ALBUM FIELDS -->
+    <div class="album-fields show" id="album-fields">
+      <div class="form-section">
+        <div class="section-heading"><div class="dot"></div>Album Info</div>
+
+        <div class="field">
+          <label class="field-label">Title <span class="required">*</span></label>
+          <input class="inp" id="title" type="text"
+            placeholder="A Year in South Africa"
+            oninput="generate()">
+          <div class="field-hint">Displayed on homepage and album page. Overrides auto-title from folder name.</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Folder Name <span class="required">*</span>
+            <span class="optional">— becomes the filename</span>
+          </label>
+          <input class="inp" id="folder" type="text"
+            placeholder="south-africa"
+            oninput="generate()">
+          <div class="field-hint">Lowercase, hyphens only. Must match the exact R2 folder name. File will be saved as <code style="color:var(--accent)">meta.json</code> inside this folder.</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">Year</label>
+            <input class="inp" id="year" type="text"
+              placeholder="2008" oninput="generate()">
+          </div>
+          <div class="field narrow">
+            <label class="field-label">Order</label>
+            <input class="inp" id="order" type="number"
+              placeholder="1" min="1" oninput="generate()">
+            <div class="field-hint">Sort order on homepage. 1 = first.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Location <span class="optional">optional</span></label>
+          <input class="inp" id="location" type="text"
+            placeholder="Johannesburg, South Africa"
+            oninput="generate()">
+        </div>
+
+        <div class="field">
+          <label class="field-label">Description <span class="optional">optional</span></label>
+          <textarea class="textarea" id="description"
+            placeholder="Documentary work from 2008, capturing daily life, community, and resilience."
+            oninput="generate()"></textarea>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Cover Caption <span class="optional">optional</span></label>
+          <input class="inp" id="coverCaption" type="text"
+            placeholder="Johannesburg market, early morning"
+            oninput="generate()">
+          <div class="field-hint">Caption shown on cover.jpg in the lightbox.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO FIELDS -->
+    <div class="hero-fields" id="hero-fields">
+      <div class="form-section">
+        <div class="section-heading"><div class="dot"></div>Hero Image Info</div>
+
+        <div class="field">
+          <label class="field-label">Image Filename <span class="required">*</span></label>
+          <input class="inp" id="heroImage" type="text"
+            placeholder="hero.jpg" oninput="generate()">
+          <div class="field-hint">
+            Exact filename of the hero image inside the <code style="color:var(--accent)">hero/</code> folder.
+            If blank, Worker picks the first image alphabetically.
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Caption <span class="optional">optional</span></label>
+          <input class="inp" id="heroCaption" type="text"
+            placeholder="On a shoot in Manteo, NC"
+            oninput="generate()">
+          <div class="field-hint">Appears bottom-right of the homepage hero.</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- OUTPUT -->
+  <section class="output-panel">
+    <div class="output-header">
+      <div class="output-title"><div class="dot"></div>Output</div>
+      <div class="filename-display">
+        📄 <span class="fname" id="filenameDisplay">meta.json</span>
+      </div>
+    </div>
+
+    <div class="output-actions">
+      <button class="btn btn-copy" id="copyBtn" onclick="copyJSON()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+        </svg>
+        Copy JSON
+      </button>
+      <button class="btn btn-dl" onclick="downloadJSON()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download
+      </button>
+    </div>
+
+    <div class="code-wrap">
+      <textarea class="code-output" id="codeOutput" readonly spellcheck="false"></textarea>
+    </div>
+
+    <div class="validation-bar">
+      <div class="valid-dot" id="validDot"></div>
+      <span class="valid-label">Status:</span>
+      <span class="valid-msg" id="validMsg">Fill in required fields</span>
+    </div>
+  </section>
+
+</div>
+
+<script>
+let currentType = 'album';
+
+function setType(type) {
+  currentType = type;
+  document.getElementById('album-fields').classList.toggle('show', type === 'album');
+  document.getElementById('hero-fields').classList.toggle('show', type === 'hero');
+  document.getElementById('btn-album').classList.toggle('active', type === 'album');
+  document.getElementById('btn-hero').classList.toggle('active', type === 'hero');
+  generate();
+}
+
+function v(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function generate() {
+  let data = {};
+  let valid = true;
+  let msg = '';
+  let filename = 'meta.json';
+
+  if (currentType === 'album') {
+    const title    = v('title');
+    const folder   = v('folder');
+    const year     = v('year');
+    const order    = v('order');
+    const location = v('location');
+    const desc     = v('description');
+    const caption  = v('coverCaption');
+
+    if (!title) { valid = false; msg = 'Title is required'; }
+    else if (!folder) { valid = false; msg = 'Folder name is required'; }
+    else { msg = `Ready — save as  ${folder}/meta.json`; }
+
+    if (title)    data.title       = title;
+    if (year)     data.year        = year;
+    if (order)    data.order       = parseInt(order);
+    if (location) data.location    = location;
+    if (desc)     data.description = desc;
+    if (caption)  data.coverCaption = caption;
+
+    if (folder) filename = `${folder}/meta.json`;
+
+  } else {
+    // HERO
+    const image   = v('heroImage');
+    const caption = v('heroCaption');
+
+    if (!image) { msg = 'Add image filename or leave blank for auto-detect'; }
+    else { msg = 'Ready — save as  hero/meta.json'; }
+
+    if (image)   data.imageKey = image;
+    if (caption) data.caption  = caption;
+
+    filename = 'hero/meta.json';
+  }
+
+  const json = JSON.stringify(data, null, 2);
+  document.getElementById('codeOutput').value = json;
+  document.getElementById('filenameDisplay').textContent = filename;
+  document.getElementById('validDot').classList.toggle('invalid', !valid && currentType === 'album');
+  document.getElementById('validMsg').textContent = msg || 'Fill in required fields';
+}
+
+function copyJSON() {
+  const text = document.getElementById('codeOutput').value;
+  if (!text || text === '{}') return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy JSON`;
+    }, 2000);
+  });
+}
+
+function downloadJSON() {
+  const text = document.getElementById('codeOutput').value;
+  if (!text || text === '{}') return;
+
+  // Filename suggestion
+  const folder = currentType === 'album' ? v('folder') : 'hero';
+  const suggested = folder ? `${folder}__meta.json` : 'meta.json';
+
+  const blob = new Blob([text], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = suggested;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Init
+generate();
+</script>
+</body>
+</html>
