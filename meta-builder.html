@@ -229,9 +229,9 @@ body {
 .type-btn.active { background: var(--surface2); color: var(--accent); }
 .type-btn:hover:not(.active) { color: var(--text); }
 
-/* Hero-specific fields */
-.hero-fields, .album-fields { display: none; }
-.hero-fields.show, .album-fields.show { display: block; }
+/* Hero/Promo-specific fields */
+.hero-fields, .album-fields, .promo-fields { display: none; }
+.hero-fields.show, .album-fields.show, .promo-fields.show { display: block; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 900px) {
@@ -316,6 +316,7 @@ body {
       <div class="type-toggle">
         <button class="type-btn active" onclick="setType('album')" id="btn-album">📁 Album Folder</button>
         <button class="type-btn" onclick="setType('hero')" id="btn-hero">🌅 Hero Folder</button>
+        <button class="type-btn" onclick="setType('promo')" id="btn-promo">🔗 Promo Link</button>
       </div>
     </div>
 
@@ -376,6 +377,60 @@ body {
             placeholder="Johannesburg market, early morning"
             oninput="generate()">
           <div class="field-hint">Caption shown on cover.jpg in the lightbox.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROMO FIELDS -->
+    <div class="promo-fields" id="promo-fields">
+      <div class="form-section">
+        <div class="section-heading"><div class="dot"></div>Promo Link Info</div>
+
+        <div class="field">
+          <label class="field-label">Title <span class="required">*</span></label>
+          <input class="inp" id="promoTitle" type="text"
+            placeholder="Featured in Carolina Journal"
+            oninput="generate()">
+          <div class="field-hint">Displayed on the promo card across all pages.</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Folder Name <span class="required">*</span>
+            <span class="optional">— must match R2 folder inside external-promo/</span>
+          </label>
+          <input class="inp" id="promoFolder" type="text"
+            placeholder="carolina-journal-feature"
+            oninput="generate()">
+          <div class="field-hint">Lowercase, hyphens only. File saved as <code style="color:var(--accent)">external-promo/[folder]/meta.json</code>.</div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Destination URL <span class="required">*</span></label>
+          <input class="inp" id="promoUrl" type="url"
+            placeholder="https://carolinajournal.com/article/..."
+            oninput="generate()">
+          <div class="field-hint">Full URL the card links to. Opens in a new tab.</div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label">Year <span class="optional">optional</span></label>
+            <input class="inp" id="promoYear" type="text"
+              placeholder="2024" oninput="generate()">
+          </div>
+          <div class="field narrow">
+            <label class="field-label">Order</label>
+            <input class="inp" id="promoOrder" type="number"
+              placeholder="1" min="1" oninput="generate()">
+            <div class="field-hint">Sort order in promo row.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Description <span class="optional">optional</span></label>
+          <textarea class="textarea" id="promoDescription"
+            placeholder="Brief context about this feature or external link."
+            oninput="generate()"></textarea>
         </div>
       </div>
     </div>
@@ -450,9 +505,11 @@ let currentType = 'album';
 function setType(type) {
   currentType = type;
   document.getElementById('album-fields').classList.toggle('show', type === 'album');
-  document.getElementById('hero-fields').classList.toggle('show', type === 'hero');
+  document.getElementById('hero-fields').classList.toggle('show',  type === 'hero');
+  document.getElementById('promo-fields').classList.toggle('show', type === 'promo');
   document.getElementById('btn-album').classList.toggle('active', type === 'album');
-  document.getElementById('btn-hero').classList.toggle('active', type === 'hero');
+  document.getElementById('btn-hero').classList.toggle('active',  type === 'hero');
+  document.getElementById('btn-promo').classList.toggle('active', type === 'promo');
   generate();
 }
 
@@ -489,6 +546,27 @@ function generate() {
 
     if (folder) filename = `${folder}/meta.json`;
 
+  } else if (currentType === 'promo') {
+    const title  = v('promoTitle');
+    const folder = v('promoFolder');
+    const url    = v('promoUrl');
+    const year   = v('promoYear');
+    const order  = v('promoOrder');
+    const desc   = v('promoDescription');
+
+    if (!title)  { valid = false; msg = 'Title is required'; }
+    else if (!folder) { valid = false; msg = 'Folder name is required'; }
+    else if (!url)    { valid = false; msg = 'Destination URL is required'; }
+    else { msg = `Ready — save as  external-promo/${folder}/meta.json`; }
+
+    if (title)  data.title       = title;
+    if (url)    data.url         = url;
+    if (year)   data.year        = year;
+    if (order)  data.order       = parseInt(order);
+    if (desc)   data.description = desc;
+
+    if (folder) filename = `external-promo/${folder}/meta.json`;
+
   } else {
     // HERO
     const image   = v('heroImage');
@@ -506,7 +584,7 @@ function generate() {
   const json = JSON.stringify(data, null, 2);
   document.getElementById('codeOutput').value = json;
   document.getElementById('filenameDisplay').textContent = filename;
-  document.getElementById('validDot').classList.toggle('invalid', !valid && currentType === 'album');
+  document.getElementById('validDot').classList.toggle('invalid', !valid && currentType !== 'hero');
   document.getElementById('validMsg').textContent = msg || 'Fill in required fields';
 }
 

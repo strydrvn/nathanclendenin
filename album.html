@@ -120,11 +120,32 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 
 footer{border-top:1px solid var(--line);padding:24px 40px;font-size:10px;color:var(--muted);letter-spacing:.1em;display:flex;justify-content:space-between;align-items:center}
 
+/* ── PROMO SECTION ── */
+.promo-section{padding-bottom:80px}
+.promo-divider{display:flex;align-items:center;gap:20px;padding:48px 40px 36px}
+.promo-divider-line{flex:1;height:1px;background:var(--line)}
+.promo-divider-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.promo-section .albums-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:3px}
+.promo-section .album-card{position:relative;aspect-ratio:4/3;overflow:hidden;cursor:pointer;background:var(--surface);text-decoration:none;display:block}
+.promo-section .album-thumb{width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .6s ease,filter .4s ease;filter:brightness(.85) saturate(.9)}
+.promo-section .album-card:hover .album-thumb{transform:scale(1.05);filter:brightness(.95) saturate(1.05)}
+.promo-section .album-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(9,9,9,.85) 0%,transparent 60%);opacity:0;transition:opacity .4s}
+.promo-section .album-card:hover .album-overlay{opacity:1}
+.promo-section .album-info{position:absolute;bottom:0;left:0;right:0;padding:24px 20px 20px;transform:translateY(8px);opacity:0;transition:transform .4s,opacity .4s}
+.promo-section .album-card:hover .album-info{transform:translateY(0);opacity:1}
+.promo-section .album-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--white);line-height:1.2}
+.promo-section .album-meta{margin-top:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.promo-section .album-placeholder{width:100%;height:100%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:32px}
+
 @media(max-width:768px){
   nav{padding:16px 20px}
   .album-header{padding:88px 20px 36px}
   .photo-grid{grid-template-columns:1fr 1fr;gap:2px;padding:2px}
   footer{padding:20px}
+  .promo-divider{padding:36px 20px 28px}
+  .promo-section .albums-grid{grid-template-columns:1fr 1fr;gap:2px}
+  .promo-section .album-info{opacity:1;transform:none}
+  .promo-section .album-overlay{opacity:1}
 }
 
 /* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
@@ -167,6 +188,14 @@ footer{border-top:1px solid var(--line);padding:24px 40px;font-size:10px;color:v
 
   /* ── LIGHTBOX — stays dark (cinematic) — no change needed ── */
 
+  /* ── PROMO — card text stays light (over dark overlay) ── */
+  .promo-section .album-title { color: #f4ede4; text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+  .promo-section .album-overlay {
+    background: linear-gradient(to top, rgba(10,8,6,.75) 0%, rgba(10,8,6,.1) 60%, transparent 100%);
+  }
+  .promo-section .album-thumb { filter: brightness(.92) saturate(.95); }
+  .promo-section .album-card:hover .album-thumb { filter: brightness(1) saturate(1.05); }
+
   /* ── ERROR ── */
   .error-msg { color: var(--muted); }
 
@@ -200,6 +229,16 @@ footer{border-top:1px solid var(--line);padding:24px 40px;font-size:10px;color:v
     ${Array.from({length:9},()=>'<div class="photo-item skeleton"></div>').join('')}
   </div>
 </div>
+
+<!-- PROMO SECTION -->
+<section class="promo-section" id="promoSection" style="display:none">
+  <div class="promo-divider">
+    <div class="promo-divider-line"></div>
+    <span class="promo-divider-label">More from Nathan Clendenin</span>
+    <div class="promo-divider-line"></div>
+  </div>
+  <div class="albums-grid" id="promoGrid"></div>
+</section>
 
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="handleLbClick(event)">
@@ -489,6 +528,58 @@ document.addEventListener('keydown', e => {
 })();
 
 loadAlbum();
+loadPromo();
+
+// ── PROMO ──────────────────────────────────────────────────────────
+async function loadPromo() {
+  try {
+    const res = await fetch(`${api}/promo`, { cache: 'no-cache' });
+    if (!res.ok) return;
+    const data = await res.json();
+    renderPromo(data.items || []);
+  } catch(e) { /* non-essential — fail silently */ }
+}
+
+function renderPromo(items) {
+  if (!items.length) return;
+  const section = document.getElementById('promoSection');
+  const grid    = document.getElementById('promoGrid');
+
+  items.forEach((item, idx) => {
+    const a = document.createElement('a');
+    a.className = 'album-card';
+    a.href      = item.url || '#';
+    a.target    = '_blank';
+    a.rel       = 'noopener noreferrer';
+
+    let domain = '';
+    try { domain = item.url ? new URL(item.url).hostname.replace(/^www\./, '') : ''; } catch(e) {}
+    const metaLine = domain ? `Visit → ${domain}` : 'Visit →';
+    const loading  = idx < 3 ? 'eager' : 'lazy';
+
+    a.innerHTML = item.cover
+      ? `<img class="album-thumb"
+              src="${item.cover.thumb}"
+              srcset="${item.cover.thumb} 600w, ${item.cover.medium} 1200w"
+              sizes="(max-width:600px) 100vw, 50vw"
+              alt="${item.title}" loading="${loading}">
+         <div class="album-overlay"></div>
+         <div class="album-info">
+           <div class="album-title">${item.title}</div>
+           <div class="album-meta">${metaLine}</div>
+         </div>`
+      : `<div class="album-placeholder">🔗</div>
+         <div class="album-overlay"></div>
+         <div class="album-info">
+           <div class="album-title">${item.title}</div>
+           <div class="album-meta">${metaLine}</div>
+         </div>`;
+
+    grid.appendChild(a);
+  });
+
+  section.style.display = 'block';
+}
 </script>
 </body>
 </html>

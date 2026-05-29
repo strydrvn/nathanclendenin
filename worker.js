@@ -41,7 +41,7 @@ function imgUrl(key, size) {
   return `${R2_DOMAIN}/cdn-cgi/image/${params}/${key}`;
 }
 
-const SKIP      = new Set(['hero', '_archive', '_drafts', '_covers']);
+const SKIP      = new Set(['hero', 'external-promo', '_archive', '_drafts', '_covers']);
 const IMAGE_RE  = /\.(jpg|jpeg|png|webp|gif|avif)$/i;
 const isImage   = key => IMAGE_RE.test(key);
 
@@ -62,6 +62,8 @@ export default {
     try {
       if (!path || path === 'manifest.json') {
         return json(await buildManifest(env.BUCKET));
+      } else if (path === 'promo') {
+        return json(await buildPromo(env.BUCKET));
       } else {
         return json(await buildAlbum(env.BUCKET, path));
       }
@@ -174,6 +176,39 @@ async function loadExif(bucket, albumId, objects) {
   const obj = await bucket.get(exifKey);
   if (!obj) return {};
   try { return await obj.json(); } catch { return {}; }
+}
+
+// ── PROMO (external-promo folder) ────────────────────────────────────
+async function buildPromo(bucket) {
+  const listed  = await bucket.list({ prefix: 'external-promo/', delimiter: '/' });
+  const folders = (listed.delimitedPrefixes || [])
+    .map(p => p.replace(/^external-promo\//, '').replace(/\/$/, ''))
+    .filter(id => id);
+
+  const items = await Promise.all(folders.map(async id => {
+    const fullId = `external-promo/${id}`;
+    const { meta, objects } = await getFolderData(bucket, fullId);
+    const autoTitle = id.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const coverKey  = findCoverKey(objects, fullId);
+
+    return {
+      id,
+      title:       meta.title       || autoTitle,
+      description: meta.description || '',
+      url:         meta.url         || '',
+      year:        meta.year        || '',
+      cover: coverKey ? {
+        thumb:  imgUrl(coverKey, 'thumb'),
+        medium: imgUrl(coverKey, 'medium'),
+      } : null,
+      order: meta.order ?? 999,
+    };
+  }));
+
+  items.sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || a.title.localeCompare(b.title));
+  items.forEach(a => delete a.order);
+
+  return { items };
 }
 
 // ── HERO ──────────────────────────────────────────────────────────────

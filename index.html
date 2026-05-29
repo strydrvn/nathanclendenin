@@ -301,6 +301,18 @@ footer {
 @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
 @keyframes fadeIn { from { opacity:0; } to { opacity:.6; } }
 
+/* ── PROMO SECTION ── */
+.promo-section { padding-bottom: 80px; }
+.promo-divider {
+  display: flex; align-items: center; gap: 20px;
+  padding: 48px 40px 36px;
+}
+.promo-divider-line { flex: 1; height: 1px; background: var(--line); }
+.promo-divider-label {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   nav { padding: 18px 20px; }
@@ -309,11 +321,12 @@ footer {
   .hero-text { padding: 0 20px 44px; }
   .albums-section { padding: 60px 20px 80px; }
   .albums-grid { grid-template-columns: 1fr 1fr; gap: 2px; }
-  
+
   .album-info { opacity: 1; transform: none; }
   .album-overlay { opacity: 1; }
   footer { padding: 24px 20px; }
   .status-banner { margin: 0 20px 32px; }
+  .promo-divider { padding: 36px 20px 28px; }
 }
 
 /* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
@@ -373,6 +386,12 @@ footer {
     background: #fdf8f2;
     border-color: #e8d8c4;
     color: #7a5c2e;
+  }
+
+  /* ── PROMO — light mode card text stays light (over dark overlay) ── */
+  .promo-section .album-title { color: #f4ede4; text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+  .promo-section .album-overlay {
+    background: linear-gradient(to top, rgba(10,8,6,.75) 0%, rgba(10,8,6,.1) 60%, transparent 100%);
   }
 
   /* ── FOOTER ── */
@@ -448,6 +467,16 @@ footer {
   <div class="albums-grid" id="albumsGrid">
     <!-- populated by JS -->
   </div>
+</section>
+
+<!-- PROMO SECTION -->
+<section class="promo-section" id="promoSection" style="display:none">
+  <div class="promo-divider">
+    <div class="promo-divider-line"></div>
+    <span class="promo-divider-label">More from Nathan Clendenin</span>
+    <div class="promo-divider-line"></div>
+  </div>
+  <div class="albums-grid" id="promoGrid"></div>
 </section>
 
 <footer>
@@ -585,8 +614,60 @@ function renderSkeletons(n) {
   }
 }
 
+// ── PROMO ──────────────────────────────────────────────────────────
+async function loadPromo() {
+  try {
+    const res = await fetch(`${getApiUrl()}/promo`, { cache: 'no-cache' });
+    if (!res.ok) return;
+    const data = await res.json();
+    renderPromo(data.items || []);
+  } catch(e) { /* non-essential — fail silently */ }
+}
+
+function renderPromo(items) {
+  if (!items.length) return;
+  const section = document.getElementById('promoSection');
+  const grid    = document.getElementById('promoGrid');
+
+  items.forEach((item, idx) => {
+    const a = document.createElement('a');
+    a.className = 'album-card';
+    a.href      = item.url || '#';
+    a.target    = '_blank';
+    a.rel       = 'noopener noreferrer';
+
+    let domain = '';
+    try { domain = item.url ? new URL(item.url).hostname.replace(/^www\./, '') : ''; } catch(e) {}
+    const metaLine = domain ? `Visit → ${domain}` : 'Visit →';
+    const loading  = idx < 3 ? 'eager' : 'lazy';
+
+    a.innerHTML = item.cover
+      ? `<img class="album-thumb"
+              src="${item.cover.thumb}"
+              srcset="${item.cover.thumb} 600w, ${item.cover.medium} 1200w"
+              sizes="(max-width:600px) 100vw, 50vw"
+              alt="${item.title}" loading="${loading}">
+         <div class="album-overlay"></div>
+         <div class="album-info">
+           <div class="album-title">${item.title}</div>
+           <div class="album-meta">${metaLine}</div>
+         </div>`
+      : `<div class="album-placeholder"><div class="album-placeholder-icon">🔗</div></div>
+         <div class="album-overlay"></div>
+         <div class="album-info">
+           <div class="album-title">${item.title}</div>
+           <div class="album-meta">${metaLine}</div>
+         </div>`;
+
+    grid.appendChild(a);
+  });
+
+  section.style.display = 'block';
+}
+
 // ── INIT ───────────────────────────────────────────────────────────
 loadSite();
+loadPromo();
 </script>
 </body>
 </html>
