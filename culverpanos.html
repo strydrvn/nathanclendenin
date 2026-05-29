@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Limited edition panoramic prints of Culver Academies by Nathan Clendenin, CMA '96. 25 signed prints available in two sizes.">
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://nathanclendenin.com/culverpanos">
+<meta property="og:title"       content="Culver Campus Panorama — Nathan Clendenin">
+<meta property="og:description" content="Limited edition panoramic prints of Culver Academies. 25 signed and framed prints in two sizes.">
+<meta property="og:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<title>Culver Campus Panorama — Nathan Clendenin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #090909;
+  --surface: #111010;
+  --text:    #e2d9ce;
+  --muted:   #6b6258;
+  --accent:  #c8a97e;
+  --line:    #1c1b1a;
+  --white:   #f4ede4;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 40px;
+  background: linear-gradient(to bottom, rgba(9,9,9,.95) 0%, transparent 100%);
+  transition: background .4s;
+}
+nav.scrolled { background: rgba(9,9,9,.97); border-bottom: 1px solid var(--line); }
+.nav-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 300; letter-spacing: .08em;
+  color: var(--white); text-decoration: none;
+}
+.nav-back {
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .2s;
+}
+.nav-back:hover { color: var(--text); }
+
+/* ── HERO ── */
+.hero {
+  position: relative; width: 100%; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, #1a1410 0%, #090909 70%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 80px,
+      rgba(255,255,255,.005) 80px,
+      rgba(255,255,255,.005) 81px
+    );
+}
+.hero-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  transition: transform 10s ease-out;
+}
+.hero:hover .hero-img { transform: scale(1.02); }
+.hero-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(9,9,9,.88) 0%,
+    rgba(9,9,9,.35) 45%,
+    rgba(9,9,9,.15) 75%,
+    transparent 100%
+  );
+}
+.hero-inner {
+  position: relative; z-index: 2;
+  text-align: center;
+  padding: 0 40px;
+  max-width: 860px;
+}
+.hero-eyebrow {
+  font-size: 10px; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 24px;
+  opacity: 0; animation: fadeUp .8s .3s forwards;
+}
+.hero-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(38px, 7vw, 84px);
+  font-weight: 300; line-height: 1;
+  color: var(--white); letter-spacing: -.02em;
+  opacity: 0; animation: fadeUp .8s .5s forwards;
+}
+.hero-name em { font-style: italic; color: var(--accent); }
+.hero-byline {
+  margin-top: 20px;
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0; animation: fadeUp .8s .7s forwards;
+}
+.hero-badge {
+  display: inline-block;
+  margin-top: 32px;
+  padding: 8px 20px;
+  border: 1px solid rgba(200,169,126,.35);
+  font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0; animation: fadeUp .8s .9s forwards;
+}
+.scroll-hint {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  opacity: 0; animation: fadeIn 1s 1.4s forwards;
+}
+.scroll-hint span { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.scroll-line {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, var(--muted), transparent);
+  animation: scrollPulse 2s 1.8s infinite;
+}
+
+/* ── SECTIONS ── */
+.section {
+  padding: 100px 40px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.section + .section { padding-top: 0; }
+.section-divider {
+  width: 1px; height: 60px;
+  background: linear-gradient(to bottom, transparent, var(--line), transparent);
+  margin: 0 auto;
+}
+.section-eyebrow {
+  font-size: 10px; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 20px;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 300; line-height: 1.15;
+  color: var(--white); letter-spacing: -.01em;
+  margin-bottom: 28px;
+}
+.section-title em { font-style: italic; color: var(--accent); }
+.section-body {
+  font-size: 13px; line-height: 2;
+  color: var(--text); max-width: 640px;
+}
+.section-body + .section-body { margin-top: 20px; }
+
+/* ── CENTERED SECTION ── */
+.section-center { text-align: center; }
+.section-center .section-body { margin: 0 auto; }
+
+/* ── PANORAMA INTRO ── */
+.intro-section {
+  padding: 100px 40px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+.intro-label {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 8px;
+}
+.intro-rule {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin-bottom: 40px;
+}
+
+/* ── PRICING ── */
+.pricing-section {
+  padding: 100px 40px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.pricing-inner { max-width: 1080px; margin: 0 auto; }
+.pricing-header { margin-bottom: 16px; }
+.pricing-subhead {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(24px, 3vw, 38px);
+  font-weight: 300; color: var(--white);
+  margin-bottom: 48px; letter-spacing: -.01em;
+}
+.pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  margin-bottom: 32px;
+}
+.price-card {
+  padding: 48px 40px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  position: relative;
+  transition: border-color .3s;
+}
+.price-card:hover { border-color: rgba(200,169,126,.3); }
+.price-card-label {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 24px;
+}
+.price-amount {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(44px, 6vw, 72px);
+  font-weight: 300; color: var(--white);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.price-size {
+  font-size: 11px; letter-spacing: .14em;
+  color: var(--accent); margin-bottom: 28px;
+  text-transform: uppercase;
+}
+.price-divider {
+  border: none; border-top: 1px solid var(--line);
+  margin-bottom: 24px;
+}
+.price-desc {
+  font-size: 12px; line-height: 1.9;
+  color: var(--muted);
+}
+.price-card.featured {
+  border-color: rgba(200,169,126,.2);
+  background: #0f0e0c;
+}
+.price-card.featured .price-card-label { color: var(--accent); }
+.price-featured-tag {
+  display: inline-block;
+  position: absolute; top: 20px; right: 20px;
+  font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+  color: #0a0a0a; background: var(--accent);
+  padding: 4px 10px;
+}
+.pricing-note {
+  font-size: 11px; line-height: 1.9;
+  color: var(--muted);
+  max-width: 540px;
+}
+.pricing-note strong { color: var(--text); font-weight: 400; }
+
+/* ── TWO-COL ABOUT ── */
+.about-section {
+  padding: 100px 40px;
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+.about-col-label {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.about-col-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 300; color: var(--white);
+  margin-bottom: 20px; line-height: 1.2;
+}
+.about-col-body {
+  font-size: 12px; line-height: 2;
+  color: var(--text);
+}
+
+/* ── CTA ── */
+.cta-section {
+  padding: 120px 40px;
+  text-align: center;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+.cta-eyebrow {
+  font-size: 10px; letter-spacing: .28em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 32px;
+}
+.cta-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 300; color: var(--text);
+  margin-bottom: 24px; letter-spacing: .02em;
+}
+.cta-phone {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 300; color: var(--white);
+  letter-spacing: -.02em; line-height: 1;
+  text-decoration: none;
+  margin-bottom: 16px;
+  transition: color .2s;
+}
+.cta-phone:hover { color: var(--accent); }
+.cta-sub {
+  font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 48px;
+}
+.cta-edition {
+  font-size: 11px; color: var(--muted); letter-spacing: .08em;
+  line-height: 2;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 28px 40px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px;
+}
+.footer-copy { font-size: 10px; letter-spacing: .1em; color: var(--muted); }
+.footer-link {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .2s;
+}
+.footer-link:hover { color: var(--accent); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:.6; } }
+@keyframes scrollPulse {
+  0%,100% { opacity: .3; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.2); }
+}
+
+/* ── FADE-IN ON SCROLL ── */
+.fade-in {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.fade-in.visible { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 18px 20px; }
+  .hero-inner { padding: 0 24px; }
+  .section { padding: 72px 24px; }
+  .intro-section { padding: 72px 24px; }
+  .intro-grid { grid-template-columns: 1fr; gap: 48px; }
+  .pricing-section { padding: 72px 24px; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .price-card { padding: 36px 28px; }
+  .about-section { padding: 72px 24px; grid-template-columns: 1fr; gap: 48px; }
+  .cta-section { padding: 80px 24px; }
+  footer { padding: 24px 20px; }
+}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:      #f8f6f2;
+    --surface: #f0ece6;
+    --text:    #1a1714;
+    --muted:   #8a7e74;
+    --line:    #d4ccc4;
+    --white:   #1a1714;
+  }
+
+  nav {
+    background: linear-gradient(to bottom, rgba(240,236,230,.97) 0%, transparent 100%);
+  }
+  nav.scrolled {
+    background: rgba(240,236,230,.98);
+    border-bottom-color: var(--line);
+  }
+  .nav-title { color: #1a1714; }
+
+  /* hero text always readable over dark image */
+  .hero-name { color: #f4ede4; text-shadow: 0 2px 24px rgba(0,0,0,.7); }
+  .hero-name em { color: var(--accent); }
+  .hero-eyebrow { color: var(--accent); }
+  .hero-byline { color: rgba(235,225,210,.8); }
+  .hero-badge { color: var(--accent); border-color: rgba(200,169,126,.4); }
+
+  .hero-bg {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, #2a1f12 0%, #0a0806 70%);
+  }
+
+  .section-title { color: #1a1714; }
+  .price-amount  { color: #1a1714; }
+  .about-col-title { color: #1a1714; }
+  .cta-phone { color: #1a1714; }
+  .cta-phone:hover { color: var(--accent); }
+  .cta-label { color: #1a1714; }
+
+  .price-card { background: #ffffff; border-color: var(--line); }
+  .price-card.featured { background: #fdf9f5; }
+  .pricing-section { background: var(--surface); }
+
+  footer { background: var(--bg); border-top-color: var(--line); }
+  .footer-copy { color: var(--muted); }
+  .footer-link { color: var(--muted); }
+  .footer-link:hover { color: var(--accent); }
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="/" class="nav-title">Nathan Clendenin</a>
+  <a href="/" class="nav-back">← Portfolio</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <!-- Replace src with your R2 panorama image path when ready -->
+  <!-- <img class="hero-img" src="https://images.nathanclendenin.com/cdn-cgi/image/width=2400,quality=90,format=jpeg/culver-panos/panorama.jpg" alt="Culver Academies campus panorama"> -->
+  <div class="hero-gradient"></div>
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Limited Edition · 25 Prints</div>
+    <h1 class="hero-name">Culver Campus <em>Panorama</em></h1>
+    <p class="hero-byline">by Nathan Clendenin, CMA '96</p>
+    <div class="hero-badge">Digitally Signed &amp; Certified</div>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- INTRO -->
+<div class="intro-section fade-in">
+  <p class="intro-label">The Work</p>
+  <hr class="intro-rule">
+  <div class="intro-grid">
+    <div>
+      <h2 class="section-title">Discover the Timeless Beauty of <em>Culver Academies</em></h2>
+    </div>
+    <div>
+      <p class="section-body">
+        Nathan, a 10-time Emmy Award-winning storyteller and CMA graduate ('96), has an exceptional talent for capturing the essence of the places he loves. As a former Bandsman at Culver, he brings a personal connection and deep appreciation to his panoramic photos of the Academy.
+      </p>
+      <p class="section-body">
+        Taken in the stillness of a summer morning in 2023, his latest work reflects the tranquil beauty and historic charm of Culver Academies. Each image, bathed in the soft light of dawn, invites viewers to experience the serene landscapes and quiet moments that Nathan holds dear. His work isn't just about the visuals; it's about the stories and emotions that these places evoke.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="section-divider"></div>
+
+<!-- PRICING -->
+<section class="pricing-section">
+  <div class="pricing-inner">
+    <div class="pricing-header fade-in">
+      <div class="section-eyebrow">Pricing</div>
+      <div class="pricing-subhead">Framed Panorama — Two Sizes</div>
+    </div>
+    <div class="pricing-grid fade-in">
+
+      <div class="price-card">
+        <div class="price-card-label">Local Pickup or Shipped to Your Door</div>
+        <div class="price-amount">$600</div>
+        <div class="price-size">3 ft wide</div>
+        <hr class="price-divider">
+        <p class="price-desc">
+          Printed on high-quality archival eSatin paper for vibrant, lasting color. Mounted on foam core and framed with a sleek black metal frame from American Frame. Ready to hang.
+          <br><br>
+          Local pickup available in South Bend, IN.
+        </p>
+      </div>
+
+      <div class="price-card featured">
+        <div class="price-featured-tag">Most Popular</div>
+        <div class="price-card-label">Local Pickup or Shipped to Your Door</div>
+        <div class="price-amount">$975</div>
+        <div class="price-size">5 ft wide</div>
+        <hr class="price-divider">
+        <p class="price-desc">
+          The statement piece. Same archival eSatin paper, foam-core mounting, and American Frame black metal frame — scaled up for maximum visual impact. Ready to hang.
+          <br><br>
+          Local pickup available in South Bend, IN. Inquire about other delivery options.
+        </p>
+      </div>
+
+    </div>
+    <p class="pricing-note fade-in">
+      <strong>Other options available.</strong> Unframed, unsigned, and uncertified prints are available upon request, as well as digital downloads. Contact Nathan to discuss.
+    </p>
+  </div>
+</section>
+
+<!-- ABOUT + CRAFTSMANSHIP -->
+<section class="about-section">
+  <div class="fade-in">
+    <div class="about-col-label">About the Artist</div>
+    <h3 class="about-col-title">A Storyteller with Deep Roots at Culver</h3>
+    <p class="about-col-body">
+      Nathan's journey as a father and professional has shaped his keen eye for beauty and detail. As the Director of Marketing and Communication at an independent school in North Carolina, he has cultivated a deep appreciation for storytelling.
+      <br><br>
+      Through his agency, StoryDriven, Nathan captures moments that reveal the essence of his subjects. His time as a Bandsman at Culver Academies remains a significant influence, adding layers of nostalgia and connection to his work. Each photograph is a quiet narrative, reflecting his experiences and the enduring spirit of his alma mater.
+    </p>
+  </div>
+  <div class="fade-in">
+    <div class="about-col-label">Craftsmanship</div>
+    <h3 class="about-col-title">Built to Last a Lifetime</h3>
+    <p class="about-col-body">
+      Printed on archival eSatin paper, this piece is designed to last — ensuring the colors remain vibrant for years to come. It is mounted on foam core for durability and framed with a sleek black metal frame from American Frame, making it a sophisticated addition to any space.
+      <br><br>
+      Ready to hang, this framed print allows you to effortlessly bring a piece of Culver's timeless beauty into your home or office. Each print comes with an official signed certification placard as part of this limited edition of 25.
+    </p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="fade-in">
+    <p class="cta-eyebrow">Inquire or Purchase</p>
+    <p class="cta-label">To reserve your print, call or text Nathan directly</p>
+    <a class="cta-phone" href="tel:9199236834">919.923.6834</a>
+    <p class="cta-sub">Call or Text</p>
+    <p class="cta-edition">
+      Limited edition of 25 prints · Each digitally signed &amp; certified<br>
+      Framed prints in two sizes · Unframed and digital options available on request
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p class="footer-copy">© Nathan Clendenin · Culver Campus Panorama</p>
+  <a href="/" class="footer-link">nathanclendenin.com</a>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 80);
+});
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
