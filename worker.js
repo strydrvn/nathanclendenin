@@ -41,7 +41,7 @@ function imgUrl(key, size) {
   return `${R2_DOMAIN}/cdn-cgi/image/${params}/${key}`;
 }
 
-const SKIP      = new Set(['hero', 'external-promo', '_archive', '_drafts', '_covers']);
+const SKIP      = new Set(['hero', 'external-promo', 'assets', '_archive', '_drafts', '_covers']);
 const IMAGE_RE  = /\.(jpg|jpeg|png|webp|gif|avif)$/i;
 const isImage   = key => IMAGE_RE.test(key);
 
