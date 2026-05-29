@@ -94,18 +94,43 @@ async function buildManifest(bucket) {
 // ── ALBUM CARD (homepage grid) ────────────────────────────────────────
 async function buildAlbumCard(bucket, albumId) {
   const { meta, objects } = await getFolderData(bucket, albumId);
-
   const autoTitle = albumId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  const coverKey  = findCoverKey(objects, albumId);
-  const count     = objects.filter(o => isImageInRoot(o.key, albumId)).length;
+
+  // Detect sub-folders → this is a collection, not a plain album
+  const subListed  = await bucket.list({ prefix: `${albumId}/`, delimiter: '/' });
+  const subfolders = (subListed.delimitedPrefixes || [])
+    .map(p => p.replace(/\/$/, '').slice(albumId.length + 1))
+    .filter(id => id && !id.startsWith('_'));
+
+  if (subfolders.length > 0) {
+    // Collection: cover = explicit cover.jpg, else first nested image
+    const coverKey = findCoverKey(objects, albumId) || findNestedCoverKey(objects, albumId);
+    return {
+      id:          albumId,
+      type:        'collection',
+      title:       meta.title       || autoTitle,
+      description: meta.description || '',
+      year:        meta.year        || '',
+      cover: coverKey ? {
+        thumb:  imgUrl(coverKey, 'thumb'),
+        medium: imgUrl(coverKey, 'medium'),
+      } : null,
+      count:       subfolders.length,  // number of sub-albums
+      order:       meta.order ?? 999,
+    };
+  }
+
+  // Plain album
+  const coverKey = findCoverKey(objects, albumId);
+  const count    = objects.filter(o => isImageInRoot(o.key, albumId)).length;
 
   return {
     id:          albumId,
+    type:        'album',
     title:       meta.title       || autoTitle,
     description: meta.description || '',
     year:        meta.year        || '',
     location:    meta.location    || '',
-    // Responsive cover URLs — browser picks the right one
     cover: coverKey ? {
       thumb:  imgUrl(coverKey, 'thumb'),
       medium: imgUrl(coverKey, 'medium'),
@@ -262,6 +287,17 @@ function findCoverKey(objects, albumId) {
     .filter(o => isImageInRoot(o.key, albumId))
     .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }))[0];
 
+  return first ? first.key : null;
+}
+
+// For collections: fall back to the first image anywhere in any sub-folder
+function findNestedCoverKey(objects, albumId) {
+  const first = objects
+    .filter(o => {
+      const rel = o.key.slice(albumId.length + 1);
+      return isImage(rel) && !rel.startsWith('_');
+    })
+    .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }))[0];
   return first ? first.key : null;
 }
 
