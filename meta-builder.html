@@ -607,7 +607,9 @@ function downloadJSON() {
   if (!text || text === '{}') return;
 
   // Filename suggestion
-  const folder = currentType === 'album' ? v('folder') : 'hero';
+  const folder = currentType === 'album' ? v('folder')
+               : currentType === 'promo' ? v('promoFolder')
+               : 'hero';
   const suggested = folder ? `${folder}__meta.json` : 'meta.json';
 
   const blob = new Blob([text], { type: 'application/json' });
