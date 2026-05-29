@@ -11,7 +11,7 @@
 <meta property="og:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
 <title>Culver Campus Panorama — Nathan Clendenin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:      #090909;
@@ -39,100 +39,100 @@ nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
   padding: 22px 40px;
-  background: linear-gradient(to bottom, rgba(9,9,9,.95) 0%, transparent 100%);
-  transition: background .4s;
+  background: transparent;
+  transition: background .4s, border-color .4s;
+}
+nav.over-poster {
+  background: linear-gradient(to bottom, rgba(245,241,236,.92) 0%, transparent 100%);
+}
+nav.over-poster.scrolled {
+  background: rgba(245,241,236,.97);
+  border-bottom: 1px solid #d4ccc4;
 }
 nav.scrolled { background: rgba(9,9,9,.97); border-bottom: 1px solid var(--line); }
+
 .nav-title {
   font-family: 'Cormorant Garamond', serif;
   font-size: 18px; font-weight: 300; letter-spacing: .08em;
   color: var(--white); text-decoration: none;
+  transition: color .3s;
 }
+nav.over-poster .nav-title { color: #1a1714; }
+
 .nav-back {
   font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
   color: var(--muted); text-decoration: none; transition: color .2s;
 }
+nav.over-poster .nav-back { color: #8a7e74; }
 .nav-back:hover { color: var(--text); }
+nav.over-poster .nav-back:hover { color: #1a1714; }
 
-/* ── HERO ── */
-.hero {
-  position: relative; width: 100%; height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-}
-.hero-bg {
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 40%, #1a1410 0%, #090909 70%),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 80px,
-      rgba(255,255,255,.005) 80px,
-      rgba(255,255,255,.005) 81px
-    );
-}
-.hero-img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center;
-  transition: transform 10s ease-out;
-}
-.hero:hover .hero-img { transform: scale(1.02); }
-.hero-gradient {
-  position: absolute; inset: 0;
-  background: linear-gradient(
-    to top,
-    rgba(9,9,9,.88) 0%,
-    rgba(9,9,9,.35) 45%,
-    rgba(9,9,9,.15) 75%,
-    transparent 100%
-  );
-}
-.hero-inner {
-  position: relative; z-index: 2;
+/* ── POSTER HERO ── */
+.poster-hero {
+  background: #f5f1ec;
+  padding: 100px 0 64px;
   text-align: center;
+}
+.poster-head {
   padding: 0 40px;
-  max-width: 860px;
+  margin-bottom: 36px;
+  opacity: 0; animation: fadeUp .8s .2s forwards;
 }
-.hero-eyebrow {
-  font-size: 10px; letter-spacing: .28em; text-transform: uppercase;
-  color: var(--accent); margin-bottom: 24px;
-  opacity: 0; animation: fadeUp .8s .3s forwards;
-}
-.hero-name {
+.poster-title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(38px, 7vw, 84px);
-  font-weight: 300; line-height: 1;
-  color: var(--white); letter-spacing: -.02em;
-  opacity: 0; animation: fadeUp .8s .5s forwards;
+  font-size: clamp(28px, 5.5vw, 72px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: #1a1714;
+  line-height: 1;
 }
-.hero-name em { font-style: italic; color: var(--accent); }
-.hero-byline {
+.poster-edition {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: clamp(13px, 1.6vw, 20px);
+  color: #1a1714;
+  margin-top: 10px;
+  letter-spacing: .06em;
+}
+.poster-img-wrap {
+  opacity: 0; animation: fadeUp .9s .4s forwards;
+}
+.poster-img {
+  width: 100%;
+  max-width: 1100px;
+  display: block;
+  margin: 0 auto;
+}
+.poster-foot {
+  padding: 0 40px;
   margin-top: 20px;
-  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--muted);
-  opacity: 0; animation: fadeUp .8s .7s forwards;
+  opacity: 0; animation: fadeUp .8s .6s forwards;
 }
-.hero-badge {
-  display: inline-block;
-  margin-top: 32px;
-  padding: 8px 20px;
-  border: 1px solid rgba(200,169,126,.35);
-  font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
-  color: var(--accent);
-  opacity: 0; animation: fadeUp .8s .9s forwards;
+.poster-byline {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(15px, 2vw, 22px);
+  color: #3a3330;
+  letter-spacing: .02em;
+}
+.poster-sig {
+  font-family: 'Dancing Script', cursive;
+  font-size: clamp(36px, 5vw, 60px);
+  color: #1a1714;
+  margin-top: 2px;
+  line-height: 1.3;
 }
 .scroll-hint {
-  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  margin-top: 32px;
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  opacity: 0; animation: fadeIn 1s 1.4s forwards;
+  opacity: 0; animation: fadeIn 1s .9s forwards;
 }
-.scroll-hint span { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+.scroll-hint span { font-size: 9px; letter-spacing: .2em; text-transform: uppercase; color: #8a7e74; }
 .scroll-line {
   width: 1px; height: 40px;
-  background: linear-gradient(to bottom, var(--muted), transparent);
-  animation: scrollPulse 2s 1.8s infinite;
+  background: linear-gradient(to bottom, #8a7e74, transparent);
+  animation: scrollPulse 2s 1.2s infinite;
 }
 
 /* ── SECTIONS ── */
@@ -382,26 +382,12 @@ footer {
     --white:   #1a1714;
   }
 
-  nav {
-    background: linear-gradient(to bottom, rgba(240,236,230,.97) 0%, transparent 100%);
-  }
-  nav.scrolled {
+  nav.scrolled:not(.over-poster) {
     background: rgba(240,236,230,.98);
     border-bottom-color: var(--line);
   }
-  .nav-title { color: #1a1714; }
-
-  /* hero text always readable over dark image */
-  .hero-name { color: #f4ede4; text-shadow: 0 2px 24px rgba(0,0,0,.7); }
-  .hero-name em { color: var(--accent); }
-  .hero-eyebrow { color: var(--accent); }
-  .hero-byline { color: rgba(235,225,210,.8); }
-  .hero-badge { color: var(--accent); border-color: rgba(200,169,126,.4); }
-
-  .hero-bg {
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 40%, #2a1f12 0%, #0a0806 70%);
-  }
+  nav.scrolled:not(.over-poster) .nav-title { color: #1a1714; }
+  nav.scrolled:not(.over-poster) .nav-back  { color: var(--muted); }
 
   .section-title { color: #1a1714; }
   .price-amount  { color: #1a1714; }
@@ -428,17 +414,20 @@ footer {
   <a href="/" class="nav-back">← Portfolio</a>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <!-- Replace src with your R2 panorama image path when ready -->
-  <!-- <img class="hero-img" src="https://images.nathanclendenin.com/cdn-cgi/image/width=2400,quality=90,format=jpeg/culver-panos/panorama.jpg" alt="Culver Academies campus panorama"> -->
-  <div class="hero-gradient"></div>
-  <div class="hero-inner">
-    <div class="hero-eyebrow">Limited Edition · 25 Prints</div>
-    <h1 class="hero-name">Culver Campus <em>Panorama</em></h1>
-    <p class="hero-byline">by Nathan Clendenin, CMA '96</p>
-    <div class="hero-badge">Digitally Signed &amp; Certified</div>
+<!-- POSTER HERO -->
+<section class="poster-hero">
+  <div class="poster-head">
+    <h1 class="poster-title">Culver Campus Panorama</h1>
+    <p class="poster-edition">Limited Edition (25 prints)</p>
+  </div>
+  <div class="poster-img-wrap">
+    <img class="poster-img"
+         src="culverpanos/Culver%20Campus%20Panorama.jpg"
+         alt="Culver Campus Panorama framed print displayed in a living room">
+  </div>
+  <div class="poster-foot">
+    <p class="poster-byline">by Nathan Clendenin, CMA &#8217;96</p>
+    <p class="poster-sig">Nathan Clendenin</p>
   </div>
   <div class="scroll-hint">
     <span>Scroll</span>
@@ -551,9 +540,15 @@ footer {
 </footer>
 
 <script>
+const nav = document.getElementById('nav');
+const poster = document.querySelector('.poster-hero');
 window.addEventListener('scroll', () => {
-  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 80);
-});
+  const y = window.scrollY;
+  const overPoster = y < poster.offsetHeight - 60;
+  nav.classList.toggle('scrolled', y > 80);
+  nav.classList.toggle('over-poster', overPoster);
+}, { passive: true });
+nav.classList.add('over-poster');
 
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
