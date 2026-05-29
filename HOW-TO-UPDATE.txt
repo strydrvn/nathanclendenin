@@ -1,0 +1,167 @@
+================================================================================
+  nathanclendenin.com — How to Update Content
+================================================================================
+
+TOOLS YOU'LL USE
+----------------
+  - Cloudflare R2 dashboard  → upload images and JSON files
+  - meta-builder.html        → open locally in browser to generate meta.json
+  - Cloudflare Worker editor → paste updated worker.js when Worker code changes
+
+
+================================================================================
+  ADDING A NEW ALBUM
+================================================================================
+
+1. In R2 (bucket: nathanclendenin-photos), create a new folder.
+   Name it lowercase with hyphens — e.g. "durham-2024"
+
+2. Upload your photos into that folder.
+   Name them numerically: 001.jpg, 002.jpg, etc.
+   Optionally upload a cover.jpg — if missing, first image is used.
+
+3. Open meta-builder.html in your browser.
+   - Select "Album Folder"
+   - Fill in Title, Folder Name (must match R2 folder exactly), Year, etc.
+   - Copy or download the JSON
+
+4. In R2, upload that JSON as "meta.json" inside the album folder.
+
+5. The homepage will show the new album automatically on next page load.
+   (No code deploy needed — Worker reads R2 live.)
+
+
+================================================================================
+  ADDING A NEW COLLECTION (folder of albums)
+================================================================================
+
+A collection is just a folder that contains other folders instead of images.
+
+1. In R2, create a parent folder — e.g. "travel"
+
+2. Inside it, create sub-folders for each album — e.g. "travel/north-carolina"
+
+3. Upload photos into each sub-folder (same as a regular album).
+
+4. Optionally add a meta.json to the parent folder (travel/meta.json)
+   using meta-builder → Album Folder type, with the collection's title.
+
+5. Optionally add a meta.json to each sub-folder with its own title/year.
+
+6. Add a cover.jpg to the parent folder (travel/cover.jpg) for the
+   homepage thumbnail. If missing, Worker uses first image found inside.
+
+The Worker detects sub-folders automatically and links to collection.html.
+No code changes needed.
+
+
+================================================================================
+  ADDING A PROMO CARD
+================================================================================
+
+Promo cards appear at the bottom of every page under
+"More from Nathan Clendenin". Each card links to an external URL.
+
+1. In R2 (same bucket), open the "external-promo" folder.
+   (Create it if it doesn't exist yet.)
+
+2. Inside "external-promo", create a sub-folder for the promo item.
+   e.g. "external-promo/carolina-journal-feature"
+
+3. Upload a cover image into that folder (used as the card thumbnail).
+
+4. Open meta-builder.html → select "Promo Link"
+   - Fill in Title, Folder Name, Destination URL, Year (optional)
+   - The folder name must match "external-promo/[folder-name]"
+   - Copy or download the JSON
+
+5. Upload the JSON as "meta.json" inside the promo folder.
+
+The promo section appears automatically once items exist. If the
+external-promo folder is empty, the section stays hidden.
+
+To REMOVE a promo: delete its folder from R2.
+To REORDER promos: add an "order" field (1, 2, 3...) in each meta.json.
+
+
+================================================================================
+  UPDATING THE HERO IMAGE
+================================================================================
+
+1. Upload the new image to R2 → hero/hero.jpg (or any filename)
+
+2. If you want a caption or to specify a filename other than hero.jpg:
+   - Open meta-builder.html → select "Hero Folder"
+   - Fill in Image Filename and Caption
+   - Upload as hero/meta.json
+
+The homepage picks it up automatically.
+
+
+================================================================================
+  META.JSON FIELD REFERENCE
+================================================================================
+
+Album / Collection:
+  title        — display name (overrides auto-title from folder name)
+  year         — shown on card and album page
+  location     — shown on album page (albums only)
+  description  — shown on album/collection page
+  order        — sort order on homepage (1 = first, lower = higher)
+  coverCaption — caption shown on cover.jpg in the lightbox
+
+Promo:
+  title        — card display name
+  url          — destination URL (required, opens in new tab)
+  year         — optional, shown in meta line
+  description  — optional
+  order        — sort order in the promo row
+
+Hero:
+  imageKey     — filename inside hero/ folder (e.g. "hero.jpg")
+  caption      — shown bottom-right of homepage
+
+
+================================================================================
+  DEPLOYING CODE CHANGES
+================================================================================
+
+HTML files (index, album, collection pages):
+  → Just run: git push
+  → Cloudflare Pages auto-deploys in ~30 seconds
+
+Worker (worker.js):
+  → Copy the full contents of worker.js
+  → Go to Cloudflare Dashboard → Workers & Pages → nc-manifest → Edit Code
+  → Select all, paste, click Deploy
+  (wrangler CLI works too once the API token issue is sorted)
+
+
+================================================================================
+  FOLDER STRUCTURE CHEAT SHEET
+================================================================================
+
+nathanclendenin-photos/
+  hero/
+    hero.jpg
+    meta.json           ← optional
+
+  [album-name]/
+    cover.jpg           ← optional
+    meta.json           ← optional but recommended
+    001.jpg, 002.jpg ...
+
+  [collection-name]/    ← a folder containing folders = collection
+    cover.jpg           ← optional
+    meta.json           ← optional
+    [sub-album]/
+      cover.jpg
+      meta.json
+      001.jpg ...
+
+  external-promo/
+    [promo-name]/
+      cover.jpg
+      meta.json         ← required (needs "url" field)
+
+================================================================================
