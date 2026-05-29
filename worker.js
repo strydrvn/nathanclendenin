@@ -140,10 +140,20 @@ async function buildAlbumCard(bucket, albumId) {
   };
 }
 
-// ── ALBUM DETAIL (album.html) ─────────────────────────────────────────
+// ── ALBUM or COLLECTION DETAIL ────────────────────────────────────────
 async function buildAlbum(bucket, albumId) {
-  const { meta, objects } = await getFolderData(bucket, albumId);
+  // Check for sub-folders first — if found, return collection detail
+  const subListed  = await bucket.list({ prefix: `${albumId}/`, delimiter: '/' });
+  const subfolders = (subListed.delimitedPrefixes || [])
+    .map(p => p.replace(/\/$/, '').slice(albumId.length + 1))
+    .filter(id => id && !id.startsWith('_'));
 
+  if (subfolders.length > 0) {
+    return buildCollectionDetail(bucket, albumId, subfolders);
+  }
+
+  // ── Plain album ──────────────────────────────────────────────────
+  const { meta, objects } = await getFolderData(bucket, albumId);
   const autoTitle = albumId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   // Load exif.json if present
@@ -160,16 +170,14 @@ async function buildAlbum(bucket, albumId) {
     : rest.map(o => ({ key: o.key, iscover: false }));
 
   const images = allKeys.map(({ key, iscover }) => {
-    const file     = key.slice(albumId.length + 1);
-    const exif     = exifMap[file] || {};
-    // Caption: exif.caption wins, then cover caption from meta, then empty
-    const caption  = exif.caption || (iscover && meta.coverCaption ? meta.coverCaption : '');
+    const file    = key.slice(albumId.length + 1);
+    const exif    = exifMap[file] || {};
+    const caption = exif.caption || (iscover && meta.coverCaption ? meta.coverCaption : '');
 
     return {
       file,
       caption,
       portrait: false,
-      // EXIF data — only included if present
       ...(exif.camera    && { camera:   exif.camera }),
       ...(exif.lens      && { lens:     exif.lens }),
       ...(exif.aperture  && { aperture: exif.aperture }),
@@ -185,12 +193,38 @@ async function buildAlbum(bucket, albumId) {
     };
   });
 
+  // If nested inside a collection, include parent id for the back button
+  const parentId = albumId.includes('/')
+    ? albumId.split('/').slice(0, -1).join('/')
+    : null;
+
   return {
     title:       meta.title       || autoTitle,
     description: meta.description || '',
     year:        meta.year        || '',
     location:    meta.location    || '',
+    ...(parentId && { parent: parentId }),
     images,
+  };
+}
+
+// ── COLLECTION DETAIL (collection.html) ──────────────────────────────
+async function buildCollectionDetail(bucket, collectionId, subfolderIds) {
+  const { meta } = await getFolderData(bucket, collectionId);
+  const autoTitle = collectionId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+  const albums = (await Promise.all(
+    subfolderIds.map(id => buildAlbumCard(bucket, `${collectionId}/${id}`))
+  )).filter(a => a.count > 0);
+
+  albums.sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || a.title.localeCompare(b.title));
+  albums.forEach(a => delete a.order);
+
+  return {
+    title:       meta.title       || autoTitle,
+    description: meta.description || '',
+    year:        meta.year        || '',
+    albums,
   };
 }
 
