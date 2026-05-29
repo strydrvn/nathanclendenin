@@ -47,6 +47,23 @@ nathanclendenin-photos/
       001.jpg ...
 ```
 
+## Google Analytics
+All public pages must include the GA4 snippet (G-V9JSZFP90Z) in `<head>`.
+Paste it just before the `<link rel="preconnect">` font line.
+
+```html
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-V9JSZFP90Z"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-V9JSZFP90Z');
+</script>
+```
+
+Skip for local tools (meta-builder.html, gallery-builder.html, etc.).
+
 ## What's done
 - [x] GitHub repo created and connected to Cloudflare Pages
 - [x] `wrangler.toml` added for Worker deploys
