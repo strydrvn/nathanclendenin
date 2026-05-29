@@ -630,9 +630,10 @@ function renderPromo(items) {
   const grid    = document.getElementById('promoGrid');
 
   items.forEach((item, idx) => {
+    if (!item.url) return; // skip promo items with no destination URL
     const a = document.createElement('a');
     a.className = 'album-card';
-    a.href      = item.url || '#';
+    a.href      = item.url;
     a.target    = '_blank';
     a.rel       = 'noopener noreferrer';
 
