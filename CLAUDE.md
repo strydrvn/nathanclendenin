@@ -6,7 +6,7 @@ Personal photography portfolio. Dark editorial design with light mode support vi
 ## Stack
 - **Cloudflare Pages** → serves HTML files, connected to GitHub (auto-deploys on push)
 - **Cloudflare Worker** (`nc-manifest`) → reads R2 bucket, returns album/image manifests as JSON
-- **Cloudflare R2** (`nathanclendenin-photos`) → stores all images (copied from original `nclendenin-photos` bucket)
+- **Cloudflare R2** (`nclendenin-photos`) → the ONE bucket for everything: Worker reads it, `images.nathanclendenin.com` serves it. `nathanclendenin-photos` is an old/unused bucket — never use it.
 - **Cloudflare Image Resizing** → enabled on zone; Worker generates sized URLs
 
 ## URLs
