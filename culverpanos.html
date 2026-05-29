@@ -262,15 +262,21 @@ nav.over-poster .nav-back:hover { color: #1a1714; }
 }
 .pricing-note strong { color: var(--text); font-weight: 400; }
 
-/* ── TWO-COL ABOUT ── */
+/* ── ABOUT ── */
 .about-section {
-  padding: 100px 40px;
-  max-width: 1080px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  align-items: start;
+  padding: 100px 80px;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 72px;
+  align-items: center;
+}
+.about-family-img {
+  width: 260px;
+  height: 260px;
+  flex-shrink: 0;
+  object-fit: cover;
 }
 .about-col-label {
   font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
@@ -285,6 +291,24 @@ nav.over-poster .nav-back:hover { color: #1a1714; }
   margin-bottom: 20px; line-height: 1.2;
 }
 .about-col-body {
+  font-size: 12px; line-height: 2;
+  color: var(--text);
+}
+
+/* ── CTA CRAFT ── */
+.cta-craft {
+  max-width: 600px;
+  margin: 0 auto 64px;
+  padding-bottom: 64px;
+  border-bottom: 1px solid var(--line);
+}
+.cta-craft-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 300; color: var(--white);
+  margin-bottom: 20px; line-height: 1.2;
+}
+.cta-craft-body {
   font-size: 12px; line-height: 2;
   color: var(--text);
 }
@@ -365,7 +389,8 @@ footer {
   .pricing-section { padding: 72px 24px; }
   .pricing-grid { grid-template-columns: 1fr; }
   .price-card { padding: 36px 28px; }
-  .about-section { padding: 72px 24px; grid-template-columns: 1fr; gap: 48px; }
+  .about-section { padding: 72px 24px; flex-direction: column; gap: 40px; }
+  .about-family-img { width: 180px; height: 180px; }
   .cta-section { padding: 80px 24px; }
   footer { padding: 24px 20px; }
 }
@@ -391,6 +416,7 @@ footer {
   .section-title { color: #1a1714; }
   .price-amount  { color: #1a1714; }
   .about-col-title { color: #1a1714; }
+  .cta-craft-title { color: #1a1714; }
   .cta-phone { color: #1a1714; }
   .cta-phone:hover { color: var(--accent); }
   .cta-label { color: #1a1714; }
@@ -497,8 +523,11 @@ footer {
   </div>
 </section>
 
-<!-- ABOUT + CRAFTSMANSHIP -->
+<!-- ABOUT -->
 <section class="about-section">
+  <img class="about-family-img fade-in"
+       src="culverpanos/Clendenin%20Family.png"
+       alt="The Clendenin Family">
   <div class="fade-in">
     <div class="about-col-label">About the Artist</div>
     <h3 class="about-col-title">A Storyteller with Deep Roots at Culver</h3>
@@ -508,19 +537,19 @@ footer {
       Through his agency, StoryDriven, Nathan captures moments that reveal the essence of his subjects. His time as a Bandsman at Culver Academies remains a significant influence, adding layers of nostalgia and connection to his work. Each photograph is a quiet narrative, reflecting his experiences and the enduring spirit of his alma mater.
     </p>
   </div>
-  <div class="fade-in">
-    <div class="about-col-label">Craftsmanship</div>
-    <h3 class="about-col-title">Built to Last a Lifetime</h3>
-    <p class="about-col-body">
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-craft fade-in">
+    <div class="cta-eyebrow">Craftsmanship</div>
+    <h3 class="cta-craft-title">Built to Last a Lifetime</h3>
+    <p class="cta-craft-body">
       Printed on archival eSatin paper, this piece is designed to last — ensuring the colors remain vibrant for years to come. It is mounted on foam core for durability and framed with a sleek black metal frame from American Frame, making it a sophisticated addition to any space.
       <br><br>
       Ready to hang, this framed print allows you to effortlessly bring a piece of Culver's timeless beauty into your home or office. Each print comes with an official signed certification placard as part of this limited edition of 25.
     </p>
   </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section">
   <div class="fade-in">
     <p class="cta-eyebrow">Inquire or Purchase</p>
     <p class="cta-label">To reserve your print, call or text Nathan directly</p>
