@@ -69,6 +69,7 @@ footer{border-top:1px solid var(--line);padding:24px 40px;display:flex;justify-c
 .promo-divider{display:flex;align-items:center;gap:20px;padding:48px 40px 36px}
 .promo-divider-line{flex:1;height:1px;background:var(--line)}
 .promo-divider-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.promo-desc{margin-top:5px;font-size:10px;color:rgba(255,255,255,.65);line-height:1.55;letter-spacing:.02em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
 @media(max-width:768px){
   nav{padding:16px 20px}
@@ -313,6 +314,7 @@ function renderPromo(items) {
     const metaLine = domain ? `Visit → ${domain}` : 'Visit →';
     const loading  = idx < 3 ? 'eager' : 'lazy';
 
+    const descHtml = item.description ? `<div class="promo-desc">${item.description}</div>` : '';
     a.innerHTML = item.cover
       ? `<img class="album-thumb"
               src="${item.cover.thumb}"
@@ -322,12 +324,14 @@ function renderPromo(items) {
          <div class="album-overlay"></div>
          <div class="album-info">
            <div class="album-title">${item.title}</div>
+           ${descHtml}
            <div class="album-meta">${metaLine}</div>
          </div>`
       : `<div class="album-placeholder">🔗</div>
          <div class="album-overlay"></div>
          <div class="album-info">
            <div class="album-title">${item.title}</div>
+           ${descHtml}
            <div class="album-meta">${metaLine}</div>
          </div>`;
 

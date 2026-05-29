@@ -135,6 +135,7 @@ footer{border-top:1px solid var(--line);padding:24px 40px;font-size:10px;color:v
 .promo-section .album-card:hover .album-info{transform:translateY(0);opacity:1}
 .promo-section .album-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;color:var(--white);line-height:1.2}
 .promo-section .album-meta{margin-top:6px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.promo-desc{margin-top:5px;font-size:10px;color:rgba(255,255,255,.65);line-height:1.55;letter-spacing:.02em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .promo-section .album-placeholder{width:100%;height:100%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:32px}
 
 @media(max-width:768px){
@@ -558,6 +559,7 @@ function renderPromo(items) {
     const metaLine = domain ? `Visit → ${domain}` : 'Visit →';
     const loading  = idx < 3 ? 'eager' : 'lazy';
 
+    const descHtml = item.description ? `<div class="promo-desc">${item.description}</div>` : '';
     a.innerHTML = item.cover
       ? `<img class="album-thumb"
               src="${item.cover.thumb}"
@@ -567,12 +569,14 @@ function renderPromo(items) {
          <div class="album-overlay"></div>
          <div class="album-info">
            <div class="album-title">${item.title}</div>
+           ${descHtml}
            <div class="album-meta">${metaLine}</div>
          </div>`
       : `<div class="album-placeholder">🔗</div>
          <div class="album-overlay"></div>
          <div class="album-info">
            <div class="album-title">${item.title}</div>
+           ${descHtml}
            <div class="album-meta">${metaLine}</div>
          </div>`;
 
