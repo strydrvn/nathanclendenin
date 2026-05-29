@@ -276,20 +276,29 @@ async function buildHero(bucket) {
   const mObj = await bucket.get('hero/meta.json');
   if (mObj) { try { heroMeta = await mObj.json(); } catch {} }
 
-  let heroKey = heroMeta.imageKey || null;
+  const listed = await bucket.list({ prefix: 'hero/' });
+  let keys = listed.objects
+    .filter(o => isImage(o.key) && !o.key.endsWith('/'))
+    .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }))
+    .map(o => o.key);
 
-  if (!heroKey) {
-    const listed = await bucket.list({ prefix: 'hero/' });
-    const first  = listed.objects
-      .filter(o => isImage(o.key) && !o.key.endsWith('/'))
-      .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }))[0];
-    if (first) heroKey = first.key;
+  // If a specific imageKey is set, put it first
+  if (heroMeta.imageKey) {
+    const pinned = `hero/${heroMeta.imageKey}`;
+    keys = [pinned, ...keys.filter(k => k !== pinned)];
   }
 
+  if (!keys.length) return { url: null, caption: '', slides: [] };
+
+  const slides = keys.map((key, i) => ({
+    url:     imgUrl(key, 'hero'),
+    caption: i === 0 ? (heroMeta.caption || '') : '',
+  }));
+
   return {
-    // Full-bleed hero — serve at max width
-    url:     heroKey ? imgUrl(heroKey, 'hero') : null,
-    caption: heroMeta.caption || '',
+    url:     slides[0].url,      // backward compat
+    caption: slides[0].caption,  // backward compat
+    slides,
   };
 }
 

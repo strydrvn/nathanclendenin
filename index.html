@@ -91,9 +91,24 @@ nav.scrolled { background: rgba(9,9,9,.97); border-bottom: 1px solid var(--line)
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover; object-position: center;
-  transition: transform 8s ease-out;
+  transition: opacity 1.2s ease, transform 8s ease-out;
+  opacity: 0;
 }
 .hero:hover .hero-img { transform: scale(1.03); }
+
+/* ── HERO ARROWS ── */
+.hero-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  z-index: 10; background: rgba(0,0,0,.25);
+  border: 1px solid rgba(255,255,255,.15); border-radius: 50%;
+  width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: rgba(255,255,255,.75);
+  transition: background .2s, border-color .2s, color .2s;
+}
+.hero-arrow:hover { background: rgba(0,0,0,.5); color: #fff; border-color: rgba(255,255,255,.4); }
+.hero-arrow svg { width: 20px; height: 20px; }
+.hero-arrow-prev { left: 24px; }
+.hero-arrow-next { right: 24px; }
 .hero-gradient {
   position: absolute; inset: 0;
   background: linear-gradient(
@@ -333,6 +348,9 @@ footer {
   .nav-links { gap: 16px; }
   .nav-links a:not(:last-child) { display: none; }
   .hero-text { padding: 0 20px 44px; }
+  .hero-arrow { width: 40px; height: 40px; }
+  .hero-arrow-prev { left: 12px; }
+  .hero-arrow-next { right: 12px; }
   .albums-section { padding: 60px 20px 80px; }
   .albums-grid { grid-template-columns: 1fr 1fr; gap: 2px; }
 
@@ -452,7 +470,14 @@ footer {
       Add your R2 URL in Settings ⚙<br>to load your hero image
     </div>
   </div>
-  <img class="hero-img" id="heroImg" alt="" style="display:none">
+  <img class="hero-img" id="heroImg0" alt="">
+  <img class="hero-img" id="heroImg1" alt="">
+  <button class="hero-arrow hero-arrow-prev" id="heroPrev" onclick="heroNav(-1)" aria-label="Previous photo" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button class="hero-arrow hero-arrow-next" id="heroNext" onclick="heroNav(1)" aria-label="Next photo" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
   <div class="hero-gradient"></div>
   <div class="hero-text">
     <div class="hero-eyebrow">Portfolio</div>
@@ -545,17 +570,8 @@ function showStatus(msg) {
 function renderSite(r2, data) {
   document.getElementById('statusBanner').style.display = 'none';
 
-  // HERO — pre-sized by Worker via Cloudflare Image Resizing
-  if (data.hero && data.hero.url) {
-    const img = document.getElementById('heroImg');
-    img.src = data.hero.url;
-    img.alt = data.hero.caption || '';
-    img.style.display = 'block';
-    document.getElementById('heroPlaceholder').style.display = 'none';
-    if (data.hero.caption) {
-      document.getElementById('heroCaption').textContent = data.hero.caption;
-    }
-  }
+  // HERO
+  if (data.hero) renderHero(data.hero);
 
   // SITE META
   if (data.site) {
@@ -627,6 +643,86 @@ function renderSkeletons(n) {
     grid.appendChild(div);
   }
 }
+
+// ── HERO SLIDESHOW ─────────────────────────────────────────────────
+let heroSlides = [], heroIdx = 0, heroTimer = null, heroActive = 0;
+
+function renderHero(heroData) {
+  heroSlides = heroData.slides || (heroData.url ? [{ url: heroData.url, caption: heroData.caption }] : []);
+  if (!heroSlides.length) return;
+
+  document.getElementById('heroPlaceholder').style.display = 'none';
+
+  // Show arrows only when there are multiple slides
+  if (heroSlides.length > 1) {
+    document.getElementById('heroPrev').style.display = 'flex';
+    document.getElementById('heroNext').style.display = 'flex';
+    heroPreload(1);
+    heroStartTimer();
+  }
+
+  heroShowSlide(0, true);
+}
+
+function heroShowSlide(idx, instant) {
+  heroIdx = ((idx % heroSlides.length) + heroSlides.length) % heroSlides.length;
+  const slide  = heroSlides[heroIdx];
+  const next   = 1 - heroActive;
+  const nextEl = document.getElementById(`heroImg${next}`);
+  const currEl = document.getElementById(`heroImg${heroActive}`);
+
+  nextEl.alt = slide.caption || '';
+
+  const swap = () => {
+    if (instant) {
+      // First load: skip fade transition
+      nextEl.style.transition = 'none';
+      currEl.style.transition = 'none';
+    }
+    nextEl.style.opacity = '1';
+    currEl.style.opacity = '0';
+    heroActive = next;
+    document.getElementById('heroCaption').textContent = slide.caption || '';
+    if (instant) {
+      // Re-enable transitions after browser paints
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        nextEl.style.transition = '';
+        currEl.style.transition = '';
+      }));
+    } else {
+      heroPreload(heroIdx + 1);
+    }
+  };
+
+  nextEl.onload = swap;
+  nextEl.src = slide.url;
+  if (nextEl.complete) { nextEl.onload = null; swap(); }
+}
+
+function heroNav(dir) {
+  clearInterval(heroTimer);
+  heroShowSlide(heroIdx + dir, false);
+  heroStartTimer();
+}
+
+function heroStartTimer() {
+  clearInterval(heroTimer);
+  heroTimer = setInterval(() => heroShowSlide(heroIdx + 1, false), 5000);
+}
+
+function heroPreload(idx) {
+  const slide = heroSlides[((idx % heroSlides.length) + heroSlides.length) % heroSlides.length];
+  if (!slide) return;
+  const img = new Image();
+  img.src = slide.url;
+}
+
+// Keyboard navigation for hero slideshow
+document.addEventListener('keydown', e => {
+  if (heroSlides.length < 2) return;
+  if (e.key === 'ArrowLeft')  heroNav(-1);
+  if (e.key === 'ArrowRight') heroNav(1);
+});
 
 // ── PROMO ──────────────────────────────────────────────────────────
 async function loadPromo() {
