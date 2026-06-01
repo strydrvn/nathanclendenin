@@ -271,6 +271,8 @@ function autoAssignStore(normalName,entries){
   return Object.entries(byStore).sort((a,b)=>a[1].price-b[1].price)[0]?.[0]||null;
 }
 
+function defaultStore(normalName,entries){return autoAssignStore(normalName,entries)||'Aldi';}
+
 function defaultPantry(){
   const p={};DEFAULT_PANTRY_NAMES.forEach(n=>{p[norm(n)]={name:n,inStock:true};});return p;
 }
@@ -313,13 +315,21 @@ async function callClaude(prompt,imageData){
 // ══════════════════════════════════════════════════════════════════════
 // STORE PICKER
 // ══════════════════════════════════════════════════════════════════════
-function StorePicker({current,onSelect,onClose}){
+function StorePicker({current,onSelect,onClose,customStores=[],onAddStore}){
+  const [newStore,setNewStore]=useState('');
+  const allStores=[...STORES,...customStores];
+  function addStore(){
+    const s=newStore.trim();
+    if(!s)return;
+    if(!allStores.includes(s))onAddStore&&onAddStore(s);
+    onSelect(s);onClose();
+  }
   return(
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="sheet" style={{paddingBottom:40}}>
         <div className="sheet-handle"/>
         <div className="sheet-title">Where to buy?</div>
-        {[...STORES,null].map(s=>(
+        {[...allStores,null].map(s=>(
           <button key={s||'__none'} onClick={()=>{onSelect(s);onClose();}}
             style={{display:'flex',alignItems:'center',gap:12,width:'100%',padding:'12px 4px',background:'none',border:'none',borderBottom:'1px solid var(--line)',cursor:'pointer',fontFamily:"'DM Mono',monospace"}}>
             {s
@@ -329,6 +339,10 @@ function StorePicker({current,onSelect,onClose}){
             {current===s&&<span style={{color:'var(--green)',fontSize:13}}>✓</span>}
           </button>
         ))}
+        <div style={{display:'flex',gap:6,marginTop:14}}>
+          <input className="inp" placeholder="Add a store…" value={newStore} onChange={e=>setNewStore(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addStore()} style={{flex:1}}/>
+          <button className="btn btn-primary btn-sm" onClick={addStore} disabled={!newStore.trim()}>Add</button>
+        </div>
       </div>
     </div>
   );
@@ -505,7 +519,7 @@ function ScanView({entries,setEntries}){
 // ══════════════════════════════════════════════════════════════════════
 // SHOP VIEW
 // ══════════════════════════════════════════════════════════════════════
-function ShopView({shoppingList,setShoppingList,pantry,setPantry,entries}){
+function ShopView({shoppingList,setShoppingList,pantry,setPantry,entries,customStores,setCustomStores}){
   const [newItem,setNewItem]=useState('');
   const [newQty,setNewQty]=useState('');
   const [pickerItem,setPickerItem]=useState(null);
@@ -513,7 +527,7 @@ function ShopView({shoppingList,setShoppingList,pantry,setPantry,entries}){
   function addItem(){
     if(!newItem.trim())return;
     const normalName=norm(newItem.trim());
-    const assignedStore=autoAssignStore(normalName,entries);
+    const assignedStore=defaultStore(normalName,entries);
     setShoppingList(prev=>[...prev,{id:uid(),name:newItem.trim(),normalName,amount:newQty,unit:'',fromRecipe:null,checked:false,assignedStore}]);
     setNewItem('');setNewQty('');
   }
@@ -620,7 +634,7 @@ function ShopView({shoppingList,setShoppingList,pantry,setPantry,entries}){
         </div>
       )}
 
-      {pickerItem&&<StorePicker current={pickerItem.assignedStore} onSelect={store=>assignStore(pickerItem.id,store)} onClose={()=>setPickerItem(null)}/>}
+      {pickerItem&&<StorePicker current={pickerItem.assignedStore} onSelect={store=>assignStore(pickerItem.id,store)} onClose={()=>setPickerItem(null)} customStores={customStores} onAddStore={s=>setCustomStores(prev=>[...prev,s])}/>}
     </div>
   );
 }
@@ -739,7 +753,7 @@ function RecipeDetailSheet({recipe,pantry,shoppingList,setShoppingList,entries,o
   const haveCount=ingredientsWithStatus.filter(i=>i.status==='have').length;
   function addToCart(){
     const inList=new Set(shoppingList.map(i=>i.normalName));
-    const newItems=toAdd.filter(i=>!inList.has(i.normalName)).map(i=>({id:uid(),name:i.name,normalName:i.normalName,amount:i.amount,unit:i.unit,fromRecipe:recipe.name,checked:false,assignedStore:autoAssignStore(i.normalName,entries)}));
+    const newItems=toAdd.filter(i=>!inList.has(i.normalName)).map(i=>({id:uid(),name:i.name,normalName:i.normalName,amount:i.amount,unit:i.unit,fromRecipe:recipe.name,checked:false,assignedStore:defaultStore(i.normalName,entries)}));
     setShoppingList(prev=>[...prev,...newItems]);
     setAdded({count:newItems.length,skipped:toAdd.length-newItems.length,stocked:haveCount});
   }
@@ -818,7 +832,7 @@ function RecipesView({recipes,setRecipes,pantry,shoppingList,setShoppingList,ent
         if(pantryStatus(ingr.normalName,pantry)==='have')return;
         if(inList.has(ingr.normalName))return;
         seen.add(ingr.normalName);
-        toAdd.push({id:uid(),name:ingr.name,normalName:ingr.normalName,amount:ingr.amount,unit:ingr.unit,fromRecipe:selRecipes.length===1?recipe.name:`${selRecipes.length} recipes`,checked:false,assignedStore:autoAssignStore(ingr.normalName,entries)});
+        toAdd.push({id:uid(),name:ingr.name,normalName:ingr.normalName,amount:ingr.amount,unit:ingr.unit,fromRecipe:selRecipes.length===1?recipe.name:`${selRecipes.length} recipes`,checked:false,assignedStore:defaultStore(ingr.normalName,entries)});
       });
     });
     setShoppingList(prev=>[...prev,...toAdd]);
@@ -1083,6 +1097,7 @@ function App(){
   const [recipes,setRecipes]=useState([]);
   const [pantry,setPantry]=useState(defaultPantry);
   const [shoppingList,setShoppingList]=useState([]);
+  const [customStores,setCustomStores]=useState([]);
   const [showSettings,setShowSettings]=useState(false);
   const [syncStatus,setSyncStatus]=useState('saved');
   const saveTimer=useRef(null);
@@ -1095,10 +1110,11 @@ function App(){
       if(data.recipes)setRecipes(data.recipes);
       if(data.pantry)setPantry(data.pantry);
       if(data.shoppingList)setShoppingList(data.shoppingList);
+      if(data.customStores)setCustomStores(data.customStores);
       lc.set('pw_cache',data);setSyncStatus('saved');
     }catch{
       const cached=lc.get('pw_cache',null);
-      if(cached){if(cached.entries)setEntries(cached.entries);if(cached.recipes)setRecipes(cached.recipes);if(cached.pantry)setPantry(cached.pantry);if(cached.shoppingList)setShoppingList(cached.shoppingList);}
+      if(cached){if(cached.entries)setEntries(cached.entries);if(cached.recipes)setRecipes(cached.recipes);if(cached.pantry)setPantry(cached.pantry);if(cached.shoppingList)setShoppingList(cached.shoppingList);if(cached.customStores)setCustomStores(cached.customStores);}
       setSyncStatus('offline');
     }finally{setLoading(false);}
   }
@@ -1109,13 +1125,13 @@ function App(){
     setSyncStatus('saving');
     if(saveTimer.current)clearTimeout(saveTimer.current);
     saveTimer.current=setTimeout(async()=>{
-      const data={entries,recipes,pantry,shoppingList};
+      const data={entries,recipes,pantry,shoppingList,customStores};
       lc.set('pw_cache',data);
       try{await apiSave(data);setSyncStatus('saved');}
       catch{setSyncStatus('error');}
     },1500);
     return()=>{if(saveTimer.current)clearTimeout(saveTimer.current);};
-  },[entries,recipes,pantry,shoppingList]);
+  },[entries,recipes,pantry,shoppingList,customStores]);
 
   const syncLabel={saved:'Saved',saving:'Saving…',error:'Sync error',offline:'Offline'}[syncStatus];
   const uncheckedCount=shoppingList.filter(i=>!i.checked).length;
@@ -1161,7 +1177,7 @@ function App(){
       </div>
       <div className="main">
         {tab==='scan'    &&<ScanView entries={entries} setEntries={setEntries}/>}
-        {tab==='shop'    &&<ShopView shoppingList={shoppingList} setShoppingList={setShoppingList} pantry={pantry} setPantry={setPantry} entries={entries}/>}
+        {tab==='shop'    &&<ShopView shoppingList={shoppingList} setShoppingList={setShoppingList} pantry={pantry} setPantry={setPantry} entries={entries} customStores={customStores} setCustomStores={setCustomStores}/>}
         {tab==='recipes' &&<RecipesView recipes={recipes} setRecipes={setRecipes} pantry={pantry} shoppingList={shoppingList} setShoppingList={setShoppingList} entries={entries}/>}
         {tab==='pantry'  &&<PantryView pantry={pantry} setPantry={setPantry}/>}
         {tab==='prices'  &&<PricesView entries={entries}/>}
