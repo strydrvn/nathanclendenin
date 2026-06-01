@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0e17">
+<title>Meal Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+:root{
+  --ink:#0f0e17;--paper:#faf8f4;--accent:#e8572a;--green:#2d6a4f;
+  --muted:#948f8a;--line:#e5e0da;--card:#ffffff;
+  --green-bg:#d8f3dc;--red-bg:#ffe0d6;--amber-bg:#fff3cd;--amber:#856404;
+  --blue-bg:#e8f4fd;--blue:#1a6fa0;
+  --shadow:0 1px 3px rgba(15,14,23,.07),0 4px 16px rgba(15,14,23,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--paper);font-family:'DM Mono',monospace;overscroll-behavior:none}
+#root{height:100%;display:flex;flex-direction:column}
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;position:relative}
+.hdr{background:var(--ink);color:var(--paper);padding:14px 16px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-title{font-family:'Fraunces',serif;font-size:21px;font-weight:600;letter-spacing:-.5px}
+.hdr-title span{color:var(--accent)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.sync-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.sync-dot.saved{background:#4ade80}
+.sync-dot.saving{background:#fbbf24;animation:pulse .8s infinite}
+.sync-dot.error{background:#f87171}
+.sync-dot.offline{background:#6b7280}
+.sync-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.gear-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:2px;display:flex;align-items:center}
+.nav{display:flex;background:var(--ink);border-top:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.nav-btn{flex:1;padding:8px 2px 9px;background:none;border:none;cursor:pointer;color:#5a5560;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.4px;display:flex;flex-direction:column;align-items:center;gap:3px;transition:color .15s;position:relative}
+.nav-btn.active{color:var(--paper)}
+.nav-btn.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:20px;height:2px;background:var(--accent);border-radius:1px}
+.nav-btn svg{width:15px;height:15px;flex-shrink:0}
+.tally{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:var(--accent);color:#fff;font-size:9px;font-weight:500;padding:0 4px;margin-left:3px}
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 28px}
+.card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--line);margin-bottom:10px;overflow:hidden}
+.card-hdr{padding:12px 14px 10px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.card-title{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--ink)}
+.card-body{padding:12px 14px}
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 18px;border-radius:10px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;transition:all .15s;width:100%;letter-spacing:.3px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:active{background:#c94420;transform:scale(.98)}
+.btn-primary:disabled{background:var(--line);color:var(--muted);transform:none;cursor:default}
+.btn-dark{background:var(--ink);color:var(--paper);margin-top:8px}
+.btn-dark:active{transform:scale(.98)}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);margin-top:8px}
+.btn-ghost:active{background:var(--line)}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:active{background:#1f4d39}
+.btn-sm{padding:7px 12px;font-size:11px;border-radius:8px;width:auto;margin-top:0}
+.status{display:flex;align-items:center;gap:9px;padding:10px 14px;border-radius:10px;font-size:11px;margin-bottom:10px;line-height:1.4}
+.status.loading{background:#fff9e6;color:#7a5c00;border:1px solid #ffe58f}
+.status.error{background:var(--red-bg);color:#8b0000;border:1px solid #f5b7b1}
+.status.success{background:var(--green-bg);color:var(--green);border:1px solid #b7e4c7}
+.status.warn{background:var(--amber-bg);color:var(--amber);border:1px solid #ffd666}
+.spinner{width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.inp{font-family:'DM Mono',monospace;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:var(--paper);color:var(--ink);width:100%}
+.inp:focus{outline:none;border-color:var(--accent)}
+.inp-label{font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+.meta-row{display:flex;gap:8px;margin-bottom:8px}
+.upload-zone{border:2px dashed var(--line);border-radius:12px;padding:28px 16px;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:10px}
+.upload-zone:active,.upload-zone.drag{border-color:var(--accent);background:var(--red-bg)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
+.upload-icon{font-size:30px;margin-bottom:8px}
+.upload-label{font-size:13px;color:var(--ink);font-weight:500;margin-bottom:3px}
+.upload-sub{font-size:11px;color:var(--muted)}
+.preview-img{width:100%;max-height:180px;object-fit:contain;border-radius:8px;margin-bottom:10px;border:1px solid var(--line)}
+.parsed-item{padding:9px 0;border-bottom:1px solid var(--line)}
+.parsed-item:last-child{border-bottom:none}
+.parsed-item-row{display:flex;align-items:center;gap:9px}
+.parsed-chk{width:16px;height:16px;flex-shrink:0;accent-color:var(--accent)}
+.parsed-name{flex:1;font-size:12px;color:var(--ink)}
+.parsed-price{font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap}
+.size-row{display:flex;align-items:center;gap:6px;margin-top:5px;margin-left:25px}
+.size-tag{font-size:10px;background:var(--green-bg);color:var(--green);border-radius:5px;padding:2px 7px;cursor:pointer;border:none;font-family:'DM Mono',monospace}
+.size-missing{font-size:10px;background:var(--amber-bg);color:var(--amber);border-radius:5px;padding:2px 7px;cursor:pointer;border:none;font-family:'DM Mono',monospace}
+.size-edit-row{display:flex;align-items:center;gap:5px;margin-top:5px;margin-left:25px}
+.size-num{width:60px;font-family:'DM Mono',monospace;font-size:11px;border:1px solid var(--accent);border-radius:6px;padding:4px 6px;background:var(--paper);color:var(--ink)}
+.size-sel{font-family:'DM Mono',monospace;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:var(--paper);color:var(--ink)}
+.size-confirm{background:var(--green);color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace}
+.inline-edit{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:3px 7px;font-family:'DM Mono',monospace;background:var(--paper);color:var(--ink)}
+.store-row{display:flex;align-items:center;padding:9px 14px;border-top:1px solid var(--line);gap:10px}
+.store-name{font-size:11px;color:var(--muted);flex:1}
+.store-price-block{text-align:right}
+.store-unit-price{font-size:15px;font-weight:500}
+.store-unit-price.best{color:var(--green)}
+.store-unit-price.worst{color:var(--accent)}
+.store-total-price{font-size:10px;color:var(--muted)}
+.best-badge{font-size:8px;background:var(--green-bg);color:var(--green);border-radius:4px;padding:1px 5px;margin-left:6px;text-transform:uppercase;letter-spacing:.3px}
+.no-size-badge{font-size:8px;background:var(--amber-bg);color:var(--amber);border-radius:4px;padding:1px 5px;margin-left:6px}
+.savings-pill{font-size:10px;color:var(--green);background:var(--green-bg);border-radius:20px;padding:4px 10px;margin:3px 14px 9px;display:inline-block}
+.unit-price-warning{font-size:10px;color:var(--amber)}
+/* SHOP */
+.shop-item{display:flex;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);gap:8px}
+.shop-item:last-child{border-bottom:none}
+.chk-btn{background:none;border:none;cursor:pointer;padding:2px;flex-shrink:0;display:flex;align-items:center;color:var(--line)}
+.chk-btn.done{color:var(--green)}
+.shop-name{font-size:13px;color:var(--ink);line-height:1.3}
+.shop-name.done{text-decoration:line-through;color:var(--muted)}
+.shop-meta{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.shop-qty{font-size:10px;color:var(--muted)}
+.recipe-tag{font-size:9px;background:var(--blue-bg);color:var(--blue);border-radius:4px;padding:1px 5px;text-transform:uppercase;letter-spacing:.3px}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--line);padding:4px;font-size:16px;line-height:1;flex-shrink:0}
+.del-btn:active{color:var(--accent)}
+.chip-btn{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;color:var(--ink);text-transform:uppercase;letter-spacing:.3px}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:10px 4px 6px;display:flex;justify-content:space-between;align-items:center}
+/* COST SUMMARY */
+.cost-card{background:var(--ink);border-radius:12px;padding:14px;margin-bottom:10px}
+.cost-total{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--paper);margin-bottom:10px}
+.cost-total span{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;margin-left:6px}
+.cost-store-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid rgba(255,255,255,.08)}
+.cost-store-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cost-store-name{font-size:11px;color:rgba(255,255,255,.7);flex:1}
+.cost-store-amt{font-size:13px;font-weight:500;color:var(--paper)}
+.cost-store-count{font-size:10px;color:var(--muted)}
+/* STORE BADGE */
+.store-badge{border-radius:20px;padding:2px 9px;font-size:10px;cursor:pointer;font-family:'DM Mono',monospace;white-space:nowrap;flex-shrink:0;border:1px solid transparent;transition:opacity .15s}
+.store-badge:active{opacity:.7}
+/* RECIPES */
+.recipe-card{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;gap:10px;transition:background .1s}
+.recipe-card:last-child{border-bottom:none}
+.recipe-card:active{background:var(--paper)}
+.recipe-card-icon{width:38px;height:38px;border-radius:10px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid var(--line)}
+.recipe-card-info{flex:1;min-width:0}
+.recipe-card-name{font-family:'Fraunces',serif;font-size:14px;font-weight:600;color:var(--ink)}
+.recipe-card-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.sel-circle{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;transition:all .15s}
+.sel-circle.on{border-color:var(--green);background:var(--green);color:#fff}
+.sticky-bar{position:fixed;bottom:64px;left:0;right:0;display:flex;justify-content:center;z-index:60;padding:0 14px}
+.sticky-bar-inner{width:100%;max-width:452px}
+/* PANTRY */
+.pantry-item{display:flex;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);gap:10px}
+.pantry-item:last-child{border-bottom:none}
+.pantry-name{flex:1;font-size:12px;color:var(--ink)}
+.pantry-name.out{color:var(--muted)}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--line);border-radius:20px;cursor:pointer;transition:background .2s}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.toggle-slider{background:var(--green)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(16px)}
+/* PRICES */
+.compare-name{font-family:'Fraunces',serif;font-size:13px;font-weight:600;color:var(--ink);padding:10px 14px 8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.chevron{transition:transform .2s;color:var(--muted);flex-shrink:0}
+.chevron.open{transform:rotate(180deg)}
+/* OVERLAY / SHEETS */
+.overlay{position:fixed;inset:0;background:rgba(15,14,23,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:18px 16px 32px;max-height:92vh;overflow-y:auto;animation:slideUp .25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;background:var(--line);border-radius:2px;margin:0 auto 14px}
+.sheet-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:14px;color:var(--ink)}
+.sheet-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:22px;line-height:1;padding:2px}
+.ingr-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);gap:8px}
+.ingr-row:last-child{border-bottom:none}
+.ingr-status{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.ingr-status.have{background:var(--green-bg);color:var(--green)}
+.ingr-status.need{background:var(--line);color:var(--muted)}
+.ingr-status.out{background:var(--amber-bg);color:var(--amber)}
+.ingr-name{flex:1;font-size:12px}
+.ingr-name.have{color:var(--muted)}
+.ingr-qty{font-size:11px;color:var(--muted);text-align:right}
+.add-ingr-row{display:flex;gap:6px;align-items:flex-end;margin-bottom:6px}
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.empty-text{font-family:'Fraunces',serif;font-size:16px;font-style:italic;margin-bottom:6px;color:var(--ink)}
+.empty-sub{font-size:11px;line-height:1.6}
+.search-bar{width:100%;font-family:'DM Mono',monospace;font-size:12px;border:1px solid var(--line);border-radius:10px;padding:9px 13px;background:var(--card);color:var(--ink);margin-bottom:10px}
+.search-bar:focus{outline:none;border-color:var(--accent)}
+.filter-row{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:4px;-ms-overflow-style:none;scrollbar-width:none}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-chip{white-space:nowrap;padding:5px 12px;border-radius:20px;font-size:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;color:var(--ink);text-transform:uppercase;letter-spacing:.3px}
+.filter-chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.settings-note{font-size:11px;color:var(--muted);line-height:1.7;margin-top:6px}
+.stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.stat-label{font-size:12px;color:var(--muted)}
+.stat-val{font-size:12px;font-weight:500;color:var(--ink)}
+.splash{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+.splash-title{font-family:'Fraunces',serif;font-size:28px;color:var(--paper);font-weight:600}
+.splash-title span{color:var(--accent)}
+.splash-sub{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────
+const STORES=['Costco','Aldi','Trader Joe\'s','Harris Teeter','Whole Foods','Walmart','Kroger','Target','Lidl','Other'];
+const EMOJIS=['🍝','🥗','🍲','🥘','🍛','🥩','🫕','🍜','🍕','🌮','🍣','🥞','🍗','🥧','🫙','🐟','🌯','🫘','🦐','🍔','🌶️','🧅','🍄','🥐','🥩','🍰','🎂','🍹','☕'];
+const VOL_UNITS=['fl oz','ml','L','gal','qt','pt'];
+const WT_UNITS=['oz','lb','g','kg'];
+const CT_UNITS=['ct','pk','each'];
+const VOL_TO_FLOZ={'fl oz':1,'ml':0.033814,'L':33.814,'gal':128,'qt':32,'pt':16};
+const WT_TO_OZ={'oz':1,'lb':16,'g':0.035274,'kg':35.274};
+
+const CATEGORIES=[
+  {id:'all',      label:'All Recipes', emoji:'🍽️'},
+  {id:'main_dish',label:'Main Dishes', emoji:'🍖'},
+  {id:'breakfast',label:'Breakfast',   emoji:'🥞'},
+  {id:'appetizer',label:'Appetizers',  emoji:'🥗'},
+  {id:'dessert',  label:'Desserts',    emoji:'🍰'},
+  {id:'drink',    label:'Drinks',      emoji:'🥤'},
+];
+
+const STORE_COLORS={
+  'Aldi':'#1a6fa0','Costco':'#c0392b','Harris Teeter':'#2d6a4f',
+  'Walmart':'#0050aa','Trader Joe\'s':'#e8572a','Whole Foods':'#00674b',
+  'Kroger':'#004990','Target':'#cc0000','Lidl':'#0050aa',
+};
+function storeColor(s){return STORE_COLORS[s]||'#6b7280';}
+
+const DEFAULT_PANTRY_NAMES=[
+  'butter','all purpose flour','whole milk','eggs','salt','black pepper','olive oil',
+  'vegetable oil','canola oil','white sugar','brown sugar','powdered sugar','baking powder',
+  'baking soda','vanilla extract','garlic','yellow onion','chicken broth','beef broth',
+  'soy sauce','white vinegar','apple cider vinegar','hot sauce','mayonnaise','yellow mustard',
+  'ketchup','worcestershire sauce','pasta','white rice','rolled oats','bread crumbs',
+  'canned diced tomatoes','tomato paste','lemon','lime','honey','maple syrup',
+  'dried oregano','dried basil','cumin','paprika','garlic powder','onion powder',
+  'red pepper flakes','chili powder','cinnamon','cornstarch','vegetable broth','water'
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────
+const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ').trim();
+const fmt=n=>'$'+parseFloat(n||0).toFixed(2);
+const fmtD=d=>{if(!d)return'';const dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+
+function calcUnitPrice(price,size,sizeUnit){
+  if(!price||!size||!sizeUnit||isNaN(parseFloat(size)))return null;
+  const p=parseFloat(price),s=parseFloat(size);
+  if(VOL_TO_FLOZ[sizeUnit])return{value:p/(s*VOL_TO_FLOZ[sizeUnit]),displayUnit:'fl oz'};
+  if(WT_TO_OZ[sizeUnit])return{value:p/(s*WT_TO_OZ[sizeUnit]),displayUnit:'oz'};
+  if(CT_UNITS.includes(sizeUnit))return{value:p/s,displayUnit:'ct'};
+  return null;
+}
+const fmtUP=up=>up?`${fmt(up.value)}/${up.displayUnit}`:null;
+
+function pantryStatus(ingredNorm,pantry){
+  const match=Object.entries(pantry).find(([k])=>k===ingredNorm||ingredNorm.includes(k)||k.includes(ingredNorm));
+  if(!match)return'none';
+  return match[1].inStock?'have':'out';
+}
+
+function getLastPrice(normalName,store,entries){
+  const rel=entries.filter(e=>{
+    const nm=e.normalName===normalName||normalName.includes(e.normalName)||e.normalName.includes(normalName);
+    return nm&&(!store||e.store===store);
+  });
+  if(!rel.length)return null;
+  return rel.sort((a,b)=>new Date(b.date)-new Date(a.date))[0].price;
+}
+
+function autoAssignStore(normalName,entries){
+  const rel=entries.filter(e=>e.normalName===normalName||normalName.includes(e.normalName)||e.normalName.includes(normalName));
+  if(!rel.length)return null;
+  const byStore={};
+  rel.forEach(e=>{if(!byStore[e.store]||new Date(e.date)>new Date(byStore[e.store].date))byStore[e.store]=e;});
+  return Object.entries(byStore).sort((a,b)=>a[1].price-b[1].price)[0]?.[0]||null;
+}
+
+function defaultPantry(){
+  const p={};DEFAULT_PANTRY_NAMES.forEach(n=>{p[norm(n)]={name:n,inStock:true};});return p;
+}
+
+// ── STORAGE ───────────────────────────────────────────────────────────
+const lc={
+  get:(k,def)=>{try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):def;}catch{return def;}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+};
+function getApiUrl(){return lc.get('pw_apiurl','/api');}
+function getToken(){return lc.get('pw_apikey','');}
+
+async function apiLoad(){
+  const res=await fetch(getApiUrl(),{headers:{'X-PriceWatch-Token':getToken(),'Cache-Control':'no-cache'}});
+  if(!res.ok)throw new Error(`Server returned ${res.status}`);
+  return await res.json();
+}
+async function apiSave(data){
+  const res=await fetch(getApiUrl(),{method:'POST',headers:{'Content-Type':'application/json','X-PriceWatch-Token':getToken()},body:JSON.stringify(data)});
+  if(!res.ok){const t=await res.text();throw new Error(t);}
+  return await res.json();
+}
+async function callClaude(prompt,imageData){
+  const payload={prompt};
+  if(imageData){
+    payload.image=imageData.split(',')[1];
+    payload.mediaType=imageData.split(';')[0].split(':')[1];
+  }
+  const res=await fetch(getApiUrl()+'?action=claude',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-PriceWatch-Token':getToken()},
+    body:JSON.stringify(payload)
+  });
+  if(!res.ok){let t='';try{const d=await res.json();t=d.error||res.statusText;}catch{t=res.statusText;}throw new Error(t);}
+  const data=await res.json();
+  if(data.error)throw new Error(typeof data.error==='string'?data.error:data.error.message||'Anthropic error');
+  return data.content?.find(b=>b.type==='text')?.text||'';
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// STORE PICKER
+// ══════════════════════════════════════════════════════════════════════
+function StorePicker({current,onSelect,onClose}){
+  return(
+    <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="sheet" style={{paddingBottom:40}}>
+        <div className="sheet-handle"/>
+        <div className="sheet-title">Where to buy?</div>
+        {[...STORES,null].map(s=>(
+          <button key={s||'__none'} onClick={()=>{onSelect(s);onClose();}}
+            style={{display:'flex',alignItems:'center',gap:12,width:'100%',padding:'12px 4px',background:'none',border:'none',borderBottom:'1px solid var(--line)',cursor:'pointer',fontFamily:"'DM Mono',monospace"}}>
+            {s
+              ?<div style={{width:10,height:10,borderRadius:'50%',background:storeColor(s),flexShrink:0}}/>
+              :<div style={{width:10,height:10,borderRadius:'50%',background:'var(--line)',flexShrink:0}}/>}
+            <span style={{flex:1,fontSize:13,textAlign:'left',color:'var(--ink)'}}>{s||'Unassigned'}</span>
+            {current===s&&<span style={{color:'var(--green)',fontSize:13}}>✓</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// COST SUMMARY
+// ══════════════════════════════════════════════════════════════════════
+function CostSummary({shoppingList,entries}){
+  const unchecked=shoppingList.filter(i=>!i.checked);
+  if(!unchecked.length)return null;
+  const byStore={};
+  let unknown=0;
+  unchecked.forEach(item=>{
+    const price=getLastPrice(item.normalName,item.assignedStore,entries);
+    if(price!==null){
+      const key=item.assignedStore||'__unassigned';
+      if(!byStore[key])byStore[key]={total:0,count:0};
+      byStore[key].total+=price;byStore[key].count++;
+    }else{unknown++;}
+  });
+  const grandTotal=Object.values(byStore).reduce((s,v)=>s+v.total,0);
+  const assigned=Object.entries(byStore).filter(([k])=>k!=='__unassigned').sort((a,b)=>b[1].total-a[1].total);
+  const unassigned=byStore['__unassigned'];
+  if(!grandTotal&&!unknown)return null;
+  return(
+    <div className="cost-card">
+      <div className="cost-total">
+        ~{fmt(grandTotal)}<span>estimated total</span>
+      </div>
+      {assigned.map(([store,data])=>(
+        <div key={store} className="cost-store-row">
+          <div className="cost-store-dot" style={{background:storeColor(store)}}/>
+          <span className="cost-store-name">{store}</span>
+          <span className="cost-store-count" style={{marginRight:8}}>{data.count} item{data.count!==1?'s':''}</span>
+          <span className="cost-store-amt">{fmt(data.total)}</span>
+        </div>
+      ))}
+      {unassigned&&(
+        <div className="cost-store-row">
+          <div className="cost-store-dot" style={{background:'var(--amber)'}}/>
+          <span className="cost-store-name">Unassigned</span>
+          <span className="cost-store-count" style={{marginRight:8}}>{unassigned.count} item{unassigned.count!==1?'s':''}</span>
+          <span className="cost-store-amt" style={{color:'var(--amber)'}}>{fmt(unassigned.total)}</span>
+        </div>
+      )}
+      {unknown>0&&<div style={{fontSize:10,color:'var(--muted)',marginTop:8,borderTop:'1px solid rgba(255,255,255,.08)',paddingTop:8}}>{unknown} item{unknown!==1?'s':''} without price data not included</div>}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// PARSED ITEM ROW
+// ══════════════════════════════════════════════════════════════════════
+function ParsedItemRow({item,onToggle,onUpdate}){
+  const [editName,setEditName]=useState(false);
+  const [editPrice,setEditPrice]=useState(false);
+  const [editSize,setEditSize]=useState(!item.size);
+  const [tempName,setTempName]=useState(item.name);
+  const [tempPrice,setTempPrice]=useState(item.price);
+  const [tempSize,setTempSize]=useState(item.size||'');
+  const [tempUnit,setTempUnit]=useState(item.sizeUnit||'fl oz');
+  function commitName(){onUpdate({name:tempName,normalName:norm(tempName)});setEditName(false);}
+  function commitPrice(){onUpdate({price:parseFloat(tempPrice)||item.price});setEditPrice(false);}
+  function commitSize(){onUpdate({size:parseFloat(tempSize)||null,sizeUnit:tempUnit});setEditSize(false);}
+  const up=calcUnitPrice(item.price,item.size,item.sizeUnit);
+  return(
+    <div className="parsed-item">
+      <div className="parsed-item-row">
+        <input type="checkbox" className="parsed-chk" checked={item.selected} onChange={onToggle}/>
+        {editName?<input className="inline-edit" style={{flex:1}} value={tempName} onChange={e=>setTempName(e.target.value)} onBlur={commitName} autoFocus/>
+          :<span className="parsed-name" onClick={()=>setEditName(true)}>{item.name}</span>}
+        {editPrice?<input className="inline-edit" style={{width:64}} value={tempPrice} onChange={e=>setTempPrice(e.target.value)} onBlur={commitPrice}/>
+          :<span className="parsed-price" onClick={()=>setEditPrice(true)}>{fmt(item.price)}</span>}
+      </div>
+      {editSize?(
+        <div className="size-edit-row">
+          <input className="size-num" type="number" min="0" step="any" placeholder="Size" value={tempSize} onChange={e=>setTempSize(e.target.value)} onKeyDown={e=>e.key==='Enter'&&commitSize()} autoFocus/>
+          <select className="size-sel" value={tempUnit} onChange={e=>setTempUnit(e.target.value)}>
+            <optgroup label="Volume">{VOL_UNITS.map(u=><option key={u}>{u}</option>)}</optgroup>
+            <optgroup label="Weight">{WT_UNITS.map(u=><option key={u}>{u}</option>)}</optgroup>
+            <optgroup label="Count">{CT_UNITS.map(u=><option key={u}>{u}</option>)}</optgroup>
+          </select>
+          <button className="size-confirm" onClick={commitSize}>✓</button>
+          <button className="size-confirm" style={{background:'var(--muted)'}} onClick={()=>setEditSize(false)}>skip</button>
+        </div>
+      ):(
+        <div className="size-row">
+          {item.size?<><button className="size-tag" onClick={()=>setEditSize(true)}>{item.size} {item.sizeUnit}</button>{up&&<span style={{fontSize:10,color:'var(--green)'}}>{fmtUP(up)}</span>}</>
+            :<button className="size-missing" onClick={()=>setEditSize(true)}>⚠ Add size for unit pricing</button>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SCAN VIEW
+// ══════════════════════════════════════════════════════════════════════
+function ScanView({entries,setEntries}){
+  const [img,setImg]=useState(null);
+  const [status,setStatus]=useState(null);
+  const [parsed,setParsed]=useState(null);
+  const [store,setStore]=useState('');
+  const [date,setDate]=useState(new Date().toISOString().slice(0,10));
+  const [drag,setDrag]=useState(false);
+  function handleFile(f){if(!f)return;const r=new FileReader();r.onload=e=>{setImg(e.target.result);setParsed(null);setStatus(null);};r.readAsDataURL(f);}
+  async function parseReceipt(){
+    setStatus({type:'loading',msg:'Reading receipt…'});
+    try{
+      const text=await callClaude(`Extract all grocery/product line items from this receipt. Return ONLY valid JSON, no markdown. Format: {"items":[{"name":"Product Name","price":1.99,"size":32,"sizeUnit":"fl oz"}]}. price=number post-discount. size=package qty as number, sizeUnit one of: fl oz,ml,L,gal,qt,pt,oz,lb,g,kg,ct,pk,each. If size not on receipt set both null. Exclude tax/subtotal/total/fees.`,img);
+      const data=JSON.parse(text.replace(/```json|```/g,'').trim());
+      setParsed(data.items.map(i=>({...i,id:uid(),selected:true,normalName:norm(i.name)})));
+      const miss=data.items.filter(i=>!i.size).length;
+      setStatus({type:miss?'warn':'success',msg:miss?`Found ${data.items.length} items · ${miss} need sizes`:`Found ${data.items.length} items`});
+    }catch(e){setStatus({type:'error',msg:e.message});}
+  }
+  function updateItem(id,changes){setParsed(p=>p.map(x=>x.id===id?{...x,...changes}:x));}
+  function saveItems(){
+    if(!store){setStatus({type:'error',msg:'Select a store.'});return;}
+    const sel=parsed.filter(i=>i.selected);
+    if(!sel.length){setStatus({type:'error',msg:'Select at least one item.'});return;}
+    const added=sel.map(i=>({id:uid(),name:i.name,normalName:i.normalName,price:parseFloat(i.price),size:i.size||null,sizeUnit:i.sizeUnit||null,store,date}));
+    setEntries(prev=>[...prev,...added]);
+    setParsed(null);setImg(null);
+    setStatus({type:'success',msg:`Saved ${added.length} items from ${store}`});
+  }
+  return(
+    <div>
+      {!parsed&&(
+        <div className={`upload-zone ${drag?'drag':''}`} onDragOver={e=>{e.preventDefault();setDrag(true);}} onDragLeave={()=>setDrag(false)} onDrop={e=>{e.preventDefault();setDrag(false);handleFile(e.dataTransfer.files[0]);}}>
+          <input type="file" accept="image/*" capture="environment" onChange={e=>handleFile(e.target.files[0])}/>
+          <div className="upload-icon">🧾</div>
+          <div className="upload-label">Photograph a receipt</div>
+          <div className="upload-sub">or tap to upload from camera roll</div>
+        </div>
+      )}
+      {img&&!parsed&&(
+        <div className="card"><div className="card-body">
+          <img src={img} className="preview-img" alt="receipt"/>
+          <button className="btn btn-primary" onClick={parseReceipt} disabled={status?.type==='loading'}>{status?.type==='loading'?<><span className="spinner"/>Reading…</>:'✦ Parse Receipt'}</button>
+          <button className="btn btn-ghost" onClick={()=>{setImg(null);setStatus(null);}}>Clear</button>
+        </div></div>
+      )}
+      {status&&<div className={`status ${status.type}`}>{status.type==='loading'&&<span className="spinner"/>}{status.type!=='loading'&&(status.type==='error'?'⚠ ':'✓ ')}{status.msg}</div>}
+      {parsed&&(
+        <div>
+          <div className="card">
+            <div className="card-hdr"><span className="card-title">Review Items</span><span style={{fontSize:10,color:'var(--muted)'}}>{parsed.filter(i=>i.selected).length}/{parsed.length} · {parsed.filter(i=>!i.size&&i.selected).length} need sizes</span></div>
+            <div style={{padding:'4px 14px'}}>{parsed.map(item=><ParsedItemRow key={item.id} item={item} onToggle={()=>updateItem(item.id,{selected:!item.selected})} onUpdate={c=>updateItem(item.id,c)}/>)}</div>
+          </div>
+          <div className="card"><div className="card-body" style={{paddingTop:12}}>
+            <div className="meta-row">
+              <div style={{flex:1}}><div className="inp-label">Store</div><select className="inp" value={store} onChange={e=>setStore(e.target.value)}><option value="">Select…</option>{STORES.map(s=><option key={s}>{s}</option>)}</select></div>
+              <div style={{flex:1}}><div className="inp-label">Date</div><input type="date" className="inp" value={date} onChange={e=>setDate(e.target.value)}/></div>
+            </div>
+            <button className="btn btn-primary" onClick={saveItems}>Save to Price History</button>
+            <button className="btn btn-ghost" onClick={()=>{setParsed(null);setImg(null);}}>← Retake</button>
+          </div></div>
+        </div>
+      )}
+      {!img&&!status&&(
+        <div className="card"><div className="card-body">
+          <div style={{fontSize:11,color:'var(--muted)',lineHeight:1.9}}>
+            <div style={{fontWeight:500,color:'var(--ink)',marginBottom:6,fontSize:12}}>How it works</div>
+            1. Photograph or upload a receipt<br/>2. AI reads every item, price, and size<br/>3. Missing sizes get an amber prompt<br/>4. Prices compare per-oz / per-fl-oz
+          </div>
+        </div></div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SHOP VIEW
+// ══════════════════════════════════════════════════════════════════════
+function ShopView({shoppingList,setShoppingList,pantry,setPantry,entries}){
+  const [newItem,setNewItem]=useState('');
+  const [newQty,setNewQty]=useState('');
+  const [pickerItem,setPickerItem]=useState(null);
+
+  function addItem(){
+    if(!newItem.trim())return;
+    const normalName=norm(newItem.trim());
+    const assignedStore=autoAssignStore(normalName,entries);
+    setShoppingList(prev=>[...prev,{id:uid(),name:newItem.trim(),normalName,amount:newQty,unit:'',fromRecipe:null,checked:false,assignedStore}]);
+    setNewItem('');setNewQty('');
+  }
+  function toggle(id){setShoppingList(p=>p.map(i=>i.id===id?{...i,checked:!i.checked}:i));}
+  function remove(id){setShoppingList(p=>p.filter(i=>i.id!==id));}
+  function clearChecked(){setShoppingList(p=>p.filter(i=>!i.checked));}
+  function assignStore(id,store){setShoppingList(p=>p.map(i=>i.id===id?{...i,assignedStore:store}:i));}
+  function moveCheckedToPantry(){
+    const checked=shoppingList.filter(i=>i.checked);
+    const newP={...pantry};
+    checked.forEach(item=>{newP[item.normalName]={name:item.name,inStock:true};});
+    setPantry(newP);setShoppingList(p=>p.filter(i=>!i.checked));
+  }
+
+  const unchecked=shoppingList.filter(i=>!i.checked);
+  const checked=shoppingList.filter(i=>i.checked);
+
+  const storeGroups={};
+  unchecked.forEach(item=>{
+    const key=item.assignedStore||'__unassigned';
+    if(!storeGroups[key])storeGroups[key]=[];
+    storeGroups[key].push(item);
+  });
+  const groupOrder=Object.keys(storeGroups).sort((a,b)=>{
+    if(a==='__unassigned')return 1;if(b==='__unassigned')return-1;
+    return storeGroups[b].length-storeGroups[a].length;
+  });
+
+  return(
+    <div style={{paddingBottom:checked.length?0:0}}>
+      <CostSummary shoppingList={shoppingList} entries={entries}/>
+
+      <div className="card" style={{marginBottom:10}}><div className="card-body" style={{paddingTop:12}}>
+        <div className="meta-row">
+          <input className="inp" placeholder="Add item…" value={newItem} onChange={e=>setNewItem(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addItem()} style={{flex:2}}/>
+          <input className="inp" placeholder="Qty" value={newQty} onChange={e=>setNewQty(e.target.value)} style={{flex:1}}/>
+        </div>
+        <button className="btn btn-primary" onClick={addItem} disabled={!newItem.trim()}>+ Add to List</button>
+      </div></div>
+
+      {!shoppingList.length&&<div className="empty"><div className="empty-icon">🛒</div><div className="empty-text">List is empty</div><div className="empty-sub">Add items above or select recipes to add missing ingredients.</div></div>}
+
+      {groupOrder.map(storeKey=>{
+        const storeName=storeKey==='__unassigned'?null:storeKey;
+        const items=storeGroups[storeKey];
+        const groupTotal=items.reduce((s,item)=>{const p=getLastPrice(item.normalName,storeName,entries);return s+(p||0);},0);
+        const hasAnyPrice=items.some(i=>getLastPrice(i.normalName,storeName,entries)!==null);
+        const color=storeName?storeColor(storeName):'var(--amber)';
+        return(
+          <div key={storeKey}>
+            <div className="section-label" style={{color,paddingLeft:10,borderLeft:`3px solid ${color}`,marginBottom:2}}>
+              <span style={{fontWeight:500}}>{storeName||'⚠ Unassigned'}</span>
+              <span style={{color:'var(--muted)'}}>{items.length} item{items.length!==1?'s':''}{hasAnyPrice?` · ~${fmt(groupTotal)}`:''}</span>
+            </div>
+            <div className="card">
+              {items.map(item=>{
+                const price=getLastPrice(item.normalName,storeName,entries);
+                const sc=storeName?storeColor(storeName):null;
+                return(
+                  <div key={item.id} className="shop-item">
+                    <button className={`chk-btn ${item.checked?'done':''}`} onClick={()=>toggle(item.id)}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="22" height="22"><circle cx="12" cy="12" r="9"/>{item.checked&&<polyline points="8.5 12 11 14.5 15.5 9.5"/>}</svg>
+                    </button>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div className={`shop-name ${item.checked?'done':''}`}>{item.name}</div>
+                      <div className="shop-meta">
+                        {item.amount&&<span className="shop-qty">{item.amount}</span>}
+                        {item.fromRecipe&&<span className="recipe-tag">{item.fromRecipe.slice(0,22)}</span>}
+                      </div>
+                    </div>
+                    {price&&<span style={{fontSize:11,color:'var(--muted)',flexShrink:0,marginRight:4}}>{fmt(price)}</span>}
+                    <button className="store-badge" onClick={()=>setPickerItem(item)}
+                      style={{background:sc?sc+'18':'var(--amber-bg)',color:sc||'var(--amber)',border:`1px solid ${sc?sc+'40':'#ffd666'}`}}>
+                      {storeName||'? Store'} ▾
+                    </button>
+                    <button className="del-btn" onClick={()=>remove(item.id)}>×</button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+
+      {checked.length>0&&(
+        <div>
+          <div className="section-label"><span>{checked.length} checked off</span>
+            <div style={{display:'flex',gap:6}}>
+              <button className="chip-btn" onClick={moveCheckedToPantry}>→ Stock Pantry</button>
+              <button className="chip-btn" onClick={clearChecked}>Clear</button>
+            </div>
+          </div>
+          <div className="card">
+            {checked.map(item=>(
+              <div key={item.id} className="shop-item">
+                <button className="chk-btn done" onClick={()=>toggle(item.id)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="22" height="22"><circle cx="12" cy="12" r="9"/><polyline points="8.5 12 11 14.5 15.5 9.5"/></svg>
+                </button>
+                <div className="shop-name done" style={{flex:1}}>{item.name}</div>
+                <button className="del-btn" onClick={()=>remove(item.id)}>×</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {pickerItem&&<StorePicker current={pickerItem.assignedStore} onSelect={store=>assignStore(pickerItem.id,store)} onClose={()=>setPickerItem(null)}/>}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ADD / EDIT RECIPE SHEET
+// ══════════════════════════════════════════════════════════════════════
+function AddRecipeSheet({onClose,onSave,existing}){
+  const [name,setName]=useState(existing?.name||'');
+  const [emoji,setEmoji]=useState(existing?.emoji||'🍝');
+  const [category,setCategory]=useState(existing?.category||'main_dish');
+  const [ingredients,setIngredients]=useState(existing?.ingredients||[]);
+  const [ingrName,setIngrName]=useState('');
+  const [ingrAmt,setIngrAmt]=useState('');
+  const [ingrUnit,setIngrUnit]=useState('');
+  const [pasteText,setPasteText]=useState('');
+  const [status,setStatus]=useState(null);
+  const [mode,setMode]=useState('manual');
+
+  function addIngredient(){
+    if(!ingrName.trim())return;
+    setIngredients(prev=>[...prev,{id:uid(),name:ingrName.trim(),normalName:norm(ingrName.trim()),amount:ingrAmt,unit:ingrUnit}]);
+    setIngrName('');setIngrAmt('');setIngrUnit('');
+  }
+  async function parseText(){
+    setStatus({type:'loading',msg:'Extracting ingredients…'});
+    try{
+      const text=await callClaude(`Extract recipe name and all ingredients. Return ONLY valid JSON, no markdown: {"name":"Recipe Name","ingredients":[{"name":"ingredient","amount":"1","unit":"cup"}]}. Core ingredient names only. Recipe:\n\n${pasteText}`);
+      const data=JSON.parse(text.replace(/```json|```/g,'').trim());
+      if(data.name&&!name)setName(data.name);
+      setIngredients(data.ingredients.map(i=>({id:uid(),name:i.name,normalName:norm(i.name),amount:i.amount||'',unit:i.unit||''})));
+      setStatus({type:'success',msg:`Extracted ${data.ingredients.length} ingredients`});
+      setMode('manual');
+    }catch{setStatus({type:'error',msg:'Could not parse. Try pasting just the ingredients list.'});}
+  }
+  function save(){
+    if(!name.trim()||!ingredients.length){setStatus({type:'error',msg:!name.trim()?'Add a name.':'Add at least one ingredient.'});return;}
+    onSave({id:existing?.id||uid(),name:name.trim(),emoji,category,ingredients});
+  }
+  const catLabels={main_dish:'Main Dish',breakfast:'Breakfast',appetizer:'Appetizer',dessert:'Dessert',drink:'Drink'};
+  return(
+    <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="sheet" style={{maxHeight:'95vh'}}>
+        <div className="sheet-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+          <div className="sheet-title" style={{marginBottom:0}}>{existing?'Edit Recipe':'New Recipe'}</div>
+          <button className="sheet-close" onClick={onClose}>×</button>
+        </div>
+        <div className="meta-row" style={{marginBottom:10}}>
+          <div style={{flex:'0 0 auto'}}><div className="inp-label">Icon</div>
+            <select className="inp" value={emoji} onChange={e=>setEmoji(e.target.value)} style={{width:58,textAlign:'center',fontSize:17,padding:'7px 2px'}}>{EMOJIS.map(e=><option key={e}>{e}</option>)}</select>
+          </div>
+          <div style={{flex:1}}><div className="inp-label">Recipe Name</div><input className="inp" placeholder="e.g. Chicken Alfredo" value={name} onChange={e=>setName(e.target.value)}/></div>
+        </div>
+        <div style={{marginBottom:12}}>
+          <div className="inp-label">Category</div>
+          <div className="filter-row" style={{marginBottom:0}}>
+            {Object.entries(catLabels).map(([id,label])=>(
+              <button key={id} className={`filter-chip ${category===id?'active':''}`} onClick={()=>setCategory(id)}>{label}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:6,marginBottom:12}}>
+          <button className={`filter-chip ${mode==='manual'?'active':''}`} onClick={()=>setMode('manual')}>Manual</button>
+          <button className={`filter-chip ${mode==='ai'?'active':''}`} onClick={()=>setMode('ai')}>✦ Paste &amp; Parse</button>
+        </div>
+        {mode==='ai'&&(
+          <div>
+            <div className="inp-label">Paste recipe text</div>
+            <textarea className="inp" rows={5} placeholder="Paste a full recipe or ingredients list from any website…" value={pasteText} onChange={e=>setPasteText(e.target.value)} style={{resize:'none',marginBottom:8,lineHeight:1.5}}/>
+            <button className="btn btn-primary" onClick={parseText} disabled={status?.type==='loading'}>{status?.type==='loading'?<><span className="spinner"/>Parsing…</>:'✦ Extract Ingredients'}</button>
+          </div>
+        )}
+        {status&&<div className={`status ${status.type}`} style={{marginTop:8}}>{status.type==='loading'&&<span className="spinner"/>}{status.type!=='loading'&&(status.type==='error'?'⚠ ':'✓ ')}{status.msg}</div>}
+        {(mode==='manual'||ingredients.length>0)&&(
+          <div style={{marginTop:12}}>
+            {ingredients.length>0&&(
+              <div className="card" style={{marginBottom:10}}>
+                <div style={{padding:'4px 14px'}}>
+                  {ingredients.map(i=>(
+                    <div key={i.id} className="ingr-row">
+                      <span style={{flex:1,fontSize:12}}>{i.name}</span>
+                      <span className="ingr-qty">{i.amount} {i.unit}</span>
+                      <button className="del-btn" onClick={()=>setIngredients(p=>p.filter(x=>x.id!==i.id))}>×</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {mode==='manual'&&(
+              <div>
+                <div className="inp-label">Add Ingredient</div>
+                <div className="add-ingr-row">
+                  <input className="inp" placeholder="Ingredient" value={ingrName} onChange={e=>setIngrName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addIngredient()} style={{flex:2}}/>
+                  <input className="inp" placeholder="Amt" value={ingrAmt} onChange={e=>setIngrAmt(e.target.value)} style={{flex:1}}/>
+                  <input className="inp" placeholder="Unit" value={ingrUnit} onChange={e=>setIngrUnit(e.target.value)} style={{flex:1}}/>
+                </div>
+                <button className="btn btn-ghost" onClick={addIngredient} style={{marginTop:0}}>+ Add Ingredient</button>
+              </div>
+            )}
+          </div>
+        )}
+        <button className="btn btn-dark" onClick={save} style={{marginTop:14}}>{existing?'Update Recipe':'Save Recipe'}</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// RECIPE DETAIL SHEET
+// ══════════════════════════════════════════════════════════════════════
+function RecipeDetailSheet({recipe,pantry,shoppingList,setShoppingList,entries,onClose,onDelete,onEdit}){
+  const [added,setAdded]=useState(null);
+  const ingredientsWithStatus=recipe.ingredients.map(i=>({...i,status:pantryStatus(i.normalName,pantry)}));
+  const toAdd=ingredientsWithStatus.filter(i=>i.status!=='have');
+  const haveCount=ingredientsWithStatus.filter(i=>i.status==='have').length;
+  function addToCart(){
+    const inList=new Set(shoppingList.map(i=>i.normalName));
+    const newItems=toAdd.filter(i=>!inList.has(i.normalName)).map(i=>({id:uid(),name:i.name,normalName:i.normalName,amount:i.amount,unit:i.unit,fromRecipe:recipe.name,checked:false,assignedStore:autoAssignStore(i.normalName,entries)}));
+    setShoppingList(prev=>[...prev,...newItems]);
+    setAdded({count:newItems.length,skipped:toAdd.length-newItems.length,stocked:haveCount});
+  }
+  const cat=CATEGORIES.find(c=>c.id===(recipe.category||'main_dish'));
+  return(
+    <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="sheet">
+        <div className="sheet-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
+          <div>
+            <div style={{fontSize:28,marginBottom:2}}>{recipe.emoji}</div>
+            <div className="sheet-title" style={{marginBottom:0}}>{recipe.name}</div>
+            <div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>{cat?.emoji} {cat?.label} · {recipe.ingredients.length} ingredients · {haveCount} stocked</div>
+          </div>
+          <button className="sheet-close" onClick={onClose}>×</button>
+        </div>
+        {added
+          ?<div className="status success" style={{marginTop:12}}>✓ Added {added.count} item{added.count!==1?'s':''}{added.stocked>0?` · ${added.stocked} stocked`:''}{added.skipped>0?` · ${added.skipped} already in list`:''}</div>
+          :<div style={{marginTop:12}}>
+            {haveCount>0&&<div style={{fontSize:11,color:'var(--green)',background:'var(--green-bg)',borderRadius:8,padding:'6px 10px',marginBottom:8}}>✓ You have {haveCount} of {recipe.ingredients.length} ingredients stocked</div>}
+            <button className="btn btn-green" onClick={addToCart} disabled={!toAdd.length}>{toAdd.length?`Add ${toAdd.length} item${toAdd.length!==1?'s':''} to Shopping List`:'✓ You have everything!'}</button>
+          </div>
+        }
+        <div className="card" style={{marginTop:12}}>
+          <div style={{padding:'4px 14px'}}>
+            {ingredientsWithStatus.map(i=>(
+              <div key={i.id} className="ingr-row">
+                <div className={`ingr-status ${i.status==='have'?'have':i.status==='out'?'out':'need'}`}>{i.status==='have'?'✓':i.status==='out'?'!':'·'}</div>
+                <span className={`ingr-name ${i.status==='have'?'have':''}`}>{i.name}</span>
+                <span className="ingr-qty">{i.amount} {i.unit}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{marginTop:10,display:'flex',gap:8}}>
+          <button className="btn btn-ghost" onClick={onEdit} style={{fontSize:11}}>✎ Edit</button>
+          <button className="btn btn-ghost" onClick={onDelete} style={{color:'var(--accent)',borderColor:'#f5c6b8',fontSize:11}}>Delete</button>
+          <button className="btn btn-ghost" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// RECIPES VIEW
+// ══════════════════════════════════════════════════════════════════════
+function RecipesView({recipes,setRecipes,pantry,shoppingList,setShoppingList,entries}){
+  const [category,setCategory]=useState('all');
+  const [selectMode,setSelectMode]=useState(false);
+  const [selected,setSelected]=useState(new Set());
+  const [detail,setDetail]=useState(null);
+  const [showAdd,setShowAdd]=useState(false);
+  const [editing,setEditing]=useState(null);
+  const [search,setSearch]=useState('');
+  const [addStatus,setAddStatus]=useState(null);
+
+  const filtered=recipes.filter(r=>{
+    if(category!=='all'&&(r.category||'main_dish')!==category)return false;
+    if(search&&!r.name.toLowerCase().includes(search.toLowerCase()))return false;
+    return true;
+  });
+
+  function toggleSelect(id){
+    setSelected(prev=>{const n=new Set(prev);n.has(id)?n.delete(id):n.add(id);return n;});
+  }
+
+  function addSelectedToList(){
+    const selRecipes=recipes.filter(r=>selected.has(r.id));
+    const inList=new Set(shoppingList.map(i=>i.normalName));
+    const seen=new Set();
+    const toAdd=[];
+    selRecipes.forEach(recipe=>{
+      recipe.ingredients.forEach(ingr=>{
+        if(seen.has(ingr.normalName))return;
+        if(pantryStatus(ingr.normalName,pantry)==='have')return;
+        if(inList.has(ingr.normalName))return;
+        seen.add(ingr.normalName);
+        toAdd.push({id:uid(),name:ingr.name,normalName:ingr.normalName,amount:ingr.amount,unit:ingr.unit,fromRecipe:selRecipes.length===1?recipe.name:`${selRecipes.length} recipes`,checked:false,assignedStore:autoAssignStore(ingr.normalName,entries)});
+      });
+    });
+    setShoppingList(prev=>[...prev,...toAdd]);
+    setAddStatus({count:toAdd.length,recipes:selRecipes.length,stocked:0});
+    setSelected(new Set());setSelectMode(false);
+    setTimeout(()=>setAddStatus(null),3500);
+  }
+
+  function saveRecipe(r){setRecipes(prev=>{const e=prev.find(x=>x.id===r.id);return e?prev.map(x=>x.id===r.id?r:x):[...prev,r];});setShowAdd(false);setEditing(null);setDetail(null);}
+  function deleteRecipe(id){setRecipes(prev=>prev.filter(r=>r.id!==id));setDetail(null);}
+
+  const counts={};
+  recipes.forEach(r=>{const c=r.category||'main_dish';counts[c]=(counts[c]||0)+1;});
+
+  return(
+    <div style={{paddingBottom:selectMode&&selected.size>0?80:0}}>
+      {addStatus&&<div className="status success">✓ Added {addStatus.count} item{addStatus.count!==1?'s':''} from {addStatus.recipes} recipe{addStatus.recipes!==1?'s':''} to your shopping list</div>}
+
+      <input className="search-bar" placeholder="Search recipes…" value={search} onChange={e=>setSearch(e.target.value)}/>
+
+      <div className="filter-row">
+        {CATEGORIES.map(cat=>(
+          <button key={cat.id} className={`filter-chip ${category===cat.id?'active':''}`} onClick={()=>setCategory(cat.id)}>
+            {cat.emoji} {cat.label}{cat.id!=='all'&&counts[cat.id]?` (${counts[cat.id]})` :''}
+          </button>
+        ))}
+      </div>
+
+      <div style={{display:'flex',justifyContent:'flex-end',marginBottom:8}}>
+        <button className={`filter-chip ${selectMode?'active':''}`} onClick={()=>{setSelectMode(!selectMode);setSelected(new Set());}}>
+          {selectMode?'✕ Cancel':'✓ Select Multiple'}
+        </button>
+      </div>
+
+      {!filtered.length&&<div className="empty"><div className="empty-icon">🍳</div><div className="empty-text">No recipes here</div><div className="empty-sub">Add a recipe or try a different category.</div></div>}
+
+      {filtered.length>0&&(
+        <div className="card">
+          {filtered.map(r=>{
+            const haveCount=r.ingredients.filter(i=>pantryStatus(i.normalName,pantry)==='have').length;
+            const needCount=r.ingredients.length-haveCount;
+            const isSel=selected.has(r.id);
+            const cat=CATEGORIES.find(c=>c.id===(r.category||'main_dish'));
+            return(
+              <div key={r.id} className="recipe-card" onClick={()=>selectMode?toggleSelect(r.id):setDetail(r)}
+                style={{background:isSel?'var(--green-bg)':''}}>
+                {selectMode&&<div className={`sel-circle ${isSel?'on':''}`}>{isSel&&'✓'}</div>}
+                <div className="recipe-card-icon">{r.emoji}</div>
+                <div className="recipe-card-info">
+                  <div className="recipe-card-name">{r.name}</div>
+                  <div className="recipe-card-sub">
+                    <span style={{marginRight:6}}>{cat?.emoji} {cat?.label}</span>
+                    {haveCount>0&&<span style={{color:'var(--green)'}}>✓ {haveCount}</span>}
+                    {haveCount>0&&needCount>0&&<span style={{color:'var(--muted)'}}> · </span>}
+                    {needCount>0&&<span style={{color:'var(--muted)'}}>{needCount} needed</span>}
+                  </div>
+                </div>
+                {!selectMode&&<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{color:'var(--line)',flexShrink:0}}><path d="M9 18l6-6-6-6"/></svg>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <button className="btn btn-primary" onClick={()=>setShowAdd(true)} style={{marginTop:4}}>+ Add Recipe</button>
+
+      {selectMode&&selected.size>0&&(
+        <div className="sticky-bar">
+          <div className="sticky-bar-inner">
+            <button className="btn btn-green" style={{boxShadow:'0 4px 20px rgba(45,106,79,.4)'}} onClick={addSelectedToList}>
+              Add {selected.size} recipe{selected.size!==1?'s':''} to Shopping List →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {(showAdd||editing)&&<AddRecipeSheet existing={editing} onClose={()=>{setShowAdd(false);setEditing(null);}} onSave={saveRecipe}/>}
+      {detail&&!editing&&<RecipeDetailSheet recipe={detail} pantry={pantry} shoppingList={shoppingList} setShoppingList={setShoppingList} entries={entries} onClose={()=>setDetail(null)} onDelete={()=>deleteRecipe(detail.id)} onEdit={()=>{setEditing(detail);setDetail(null);}}/>}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// PANTRY VIEW
+// ══════════════════════════════════════════════════════════════════════
+function PantryView({pantry,setPantry}){
+  const [search,setSearch]=useState('');
+  const [newItem,setNewItem]=useState('');
+  const [filter,setFilter]=useState('all');
+  function toggle(key){setPantry(prev=>({...prev,[key]:{...prev[key],inStock:!prev[key].inStock}}));}
+  function addItem(){if(!newItem.trim())return;const key=norm(newItem.trim());setPantry(prev=>({...prev,[key]:{name:newItem.trim(),inStock:true}}));setNewItem('');}
+  function removeItem(key){setPantry(prev=>{const n={...prev};delete n[key];return n;});}
+  const items=Object.entries(pantry).filter(([k,v])=>{
+    if(search&&!v.name.toLowerCase().includes(search.toLowerCase()))return false;
+    if(filter==='in'&&!v.inStock)return false;
+    if(filter==='out'&&v.inStock)return false;
+    return true;
+  }).sort((a,b)=>a[1].name.localeCompare(b[1].name));
+  const inCount=Object.values(pantry).filter(v=>v.inStock).length;
+  return(
+    <div>
+      <div className="card" style={{marginBottom:10}}><div className="card-body" style={{paddingTop:12}}>
+        <div className="meta-row" style={{marginBottom:0}}>
+          <input className="inp" placeholder="Add pantry item…" value={newItem} onChange={e=>setNewItem(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addItem()} style={{flex:1}}/>
+          <button className="btn btn-primary btn-sm" onClick={addItem}>Add</button>
+        </div>
+      </div></div>
+      <input className="search-bar" placeholder="Search pantry…" value={search} onChange={e=>setSearch(e.target.value)}/>
+      <div className="filter-row">
+        <button className={`filter-chip ${filter==='all'?'active':''}`} onClick={()=>setFilter('all')}>All ({Object.keys(pantry).length})</button>
+        <button className={`filter-chip ${filter==='in'?'active':''}`} onClick={()=>setFilter('in')}>In Stock ({inCount})</button>
+        <button className={`filter-chip ${filter==='out'?'active':''}`} onClick={()=>setFilter('out')}>Out ({Object.keys(pantry).length-inCount})</button>
+      </div>
+      <div className="card">
+        {items.length===0&&<div style={{padding:20,textAlign:'center',fontSize:12,color:'var(--muted)'}}>No items match</div>}
+        {items.map(([key,item])=>(
+          <div key={key} className="pantry-item">
+            <span className={`pantry-name ${!item.inStock?'out':''}`}>{item.name}</span>
+            <label className="toggle"><input type="checkbox" checked={item.inStock} onChange={()=>toggle(key)}/><span className="toggle-slider"/></label>
+            <button className="del-btn" onClick={()=>removeItem(key)}>×</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// PRICES VIEW
+// ══════════════════════════════════════════════════════════════════════
+function PricesView({entries}){
+  const [search,setSearch]=useState('');
+  const [open,setOpen]=useState(null);
+  const [sortBy,setSortBy]=useState('name');
+  const grouped={};
+  entries.forEach(e=>{
+    const key=e.normalName;
+    if(!grouped[key])grouped[key]={displayName:e.name,stores:{}};
+    const ex=grouped[key].stores[e.store];
+    if(!ex||new Date(e.date)>new Date(ex.date))grouped[key].stores[e.store]={price:e.price,size:e.size,sizeUnit:e.sizeUnit,date:e.date};
+  });
+  Object.values(grouped).forEach(item=>{
+    Object.values(item.stores).forEach(s=>{s.up=calcUnitPrice(s.price,s.size,s.sizeUnit);});
+    const withUnit=Object.values(item.stores).filter(s=>s.up);
+    item.hasUnitPrices=withUnit.length>0;
+    item.bestUP=withUnit.length?Math.min(...withUnit.map(s=>s.up.value)):null;
+    item.worstUP=withUnit.length>1?Math.max(...withUnit.map(s=>s.up.value)):null;
+    item.savings=item.bestUP&&item.worstUP?item.worstUP-item.bestUP:0;
+    item.bestTotal=Math.min(...Object.values(item.stores).map(s=>s.price));
+    item.displayUnit=withUnit[0]?.up?.displayUnit||'';
+  });
+  let items=Object.entries(grouped).filter(([,v])=>!search||v.displayName.toLowerCase().includes(search.toLowerCase()));
+  if(sortBy==='savings')items=items.sort((a,b)=>b[1].savings-a[1].savings);
+  else items=items.sort((a,b)=>a[1].displayName.localeCompare(b[1].displayName));
+  if(!entries.length)return<div className="empty"><div className="empty-icon">📊</div><div className="empty-text">No price data yet</div><div className="empty-sub">Scan receipts to start comparing prices.</div></div>;
+  return(
+    <div>
+      <input className="search-bar" placeholder="Search items…" value={search} onChange={e=>setSearch(e.target.value)}/>
+      <div className="filter-row">
+        <button className={`filter-chip ${sortBy==='name'?'active':''}`} onClick={()=>setSortBy('name')}>A–Z</button>
+        <button className={`filter-chip ${sortBy==='savings'?'active':''}`} onClick={()=>setSortBy('savings')}>Most Savings</button>
+      </div>
+      {items.map(([key,item])=>{
+        const sorted=Object.entries(item.stores).map(([name,data])=>({name,data})).sort((a,b)=>{
+          if(a.data.up&&b.data.up)return a.data.up.value-b.data.up.value;
+          if(a.data.up)return-1;if(b.data.up)return 1;
+          return a.data.price-b.data.price;
+        });
+        const isOpen=open===key;
+        const headline=item.hasUnitPrices&&item.bestUP?fmtUP({value:item.bestUP,displayUnit:item.displayUnit}):fmt(item.bestTotal);
+        return(
+          <div key={key} className="card">
+            <div className="compare-name" onClick={()=>setOpen(isOpen?null:key)}>
+              <span style={{flex:1,marginRight:8,lineHeight:1.3}}>{item.displayName}</span>
+              <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
+                <span style={{fontSize:13,fontWeight:500,color:'var(--green)',fontFamily:"'Fraunces',serif"}}>{headline}</span>
+                {!item.hasUnitPrices&&<span className="no-size-badge">total only</span>}
+                <svg className={`chevron ${isOpen?'open':''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+            </div>
+            {isOpen&&(
+              <div>
+                {sorted.map(({name:sn,data},idx)=>{
+                  const isBest=idx===0,isWorst=idx===sorted.length-1&&sorted.length>1;
+                  return(
+                    <div key={sn} className="store-row">
+                      <span className="store-name">{sn}</span>
+                      <div className="store-price-block">
+                        {data.up?<><span className={`store-unit-price ${isBest?'best':isWorst?'worst':''}`}>{fmtUP(data.up)}</span>{isBest&&sorted.length>1&&<span className="best-badge">Best</span>}<div className="store-total-price">{fmt(data.price)} · {data.size} {data.sizeUnit}</div></>:<><span className="store-unit-price" style={{color:'var(--muted)'}}>{fmt(data.price)}</span><div style={{fontSize:10,color:'var(--amber)'}}>⚠ no size</div></>}
+                      </div>
+                      <span style={{fontSize:10,color:'var(--muted)',width:52,textAlign:'right',marginLeft:10,flexShrink:0}}>{fmtD(data.date)}</span>
+                    </div>
+                  );
+                })}
+                {item.savings>0.001&&<span className="savings-pill">Save {fmtUP({value:item.savings,displayUnit:item.displayUnit})} buying at {sorted[0].name}</span>}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════════════════════
+function SettingsModal({onClose,entries,setEntries,pantry,setPantry,shoppingList,setShoppingList,recipes,setRecipes,onReload}){
+  const [pwToken,setPwToken]=useState(lc.get('pw_apikey',''));
+  const [apiUrl,setApiUrl]=useState(lc.get('pw_apiurl','/api'));
+  const [saved,setSaved]=useState(false);
+  function saveSettings(){lc.set('pw_apikey',pwToken);lc.set('pw_apiurl',apiUrl);setSaved(true);setTimeout(()=>setSaved(false),2000);}
+  function clearAll(){
+    if(!confirm('Delete ALL data? Cannot be undone.'))return;
+    setEntries([]);setShoppingList([]);setRecipes([]);
+    const p={};DEFAULT_PANTRY_NAMES.forEach(n=>{p[norm(n)]={name:n,inStock:true};});setPantry(p);
+  }
+  const withUnit=entries.filter(e=>e.size).length;
+  return(
+    <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="sheet">
+        <div className="sheet-handle"/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+          <div className="sheet-title" style={{marginBottom:0}}>Settings</div>
+          <button className="sheet-close" onClick={onClose}>×</button>
+        </div>
+        <div className="card" style={{marginBottom:10}}>
+          <div className="card-hdr"><span className="card-title">Server Connection</span></div>
+          <div className="card-body">
+            <div className="inp-label">API URL</div>
+            <input className="inp" value={apiUrl} onChange={e=>setApiUrl(e.target.value)} style={{marginBottom:8}} placeholder="/api"/>
+            <div className="inp-label">Access Token</div>
+            <input className="inp" type="password" placeholder="Must match PW_TOKEN secret in Cloudflare" value={pwToken} onChange={e=>setPwToken(e.target.value)} style={{marginBottom:8}}/>
+            <p className="settings-note">Set PW_TOKEN and ANTHROPIC_KEY as secrets in your Cloudflare Pages project. The Anthropic key stays server-side and is never exposed to the browser.</p>
+          </div>
+        </div>
+        <button className="btn btn-primary" onClick={saveSettings} style={{marginBottom:8}}>{saved?'✓ Saved':'Save Settings'}</button>
+        <button className="btn btn-dark" onClick={()=>{onReload();onClose();}} style={{marginBottom:8}}>↻ Reload from Server</button>
+        <div className="card" style={{marginBottom:10,marginTop:4}}>
+          <div className="card-hdr"><span className="card-title">Data</span></div>
+          <div className="card-body" style={{paddingTop:8,paddingBottom:8}}>
+            <div className="stat-row"><span className="stat-label">Price entries</span><span className="stat-val">{entries.length}</span></div>
+            <div className="stat-row"><span className="stat-label">With unit sizes</span><span className="stat-val">{withUnit} ({entries.length?Math.round(withUnit/entries.length*100):0}%)</span></div>
+            <div className="stat-row"><span className="stat-label">Recipes</span><span className="stat-val">{recipes.length}</span></div>
+            <div className="stat-row"><span className="stat-label">Shopping list</span><span className="stat-val">{shoppingList.length} items</span></div>
+            <div className="stat-row" style={{borderBottom:'none'}}><span className="stat-label">Pantry stocked</span><span className="stat-val">{Object.values(pantry).filter(v=>v.inStock).length}</span></div>
+          </div>
+        </div>
+        <button className="btn btn-ghost" onClick={clearAll} style={{color:'var(--accent)',borderColor:'#f5c6b8',fontSize:11,marginTop:0}}>Reset All Data</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// APP
+// ══════════════════════════════════════════════════════════════════════
+function App(){
+  const [loading,setLoading]=useState(true);
+  const [tab,setTab]=useState('shop');
+  const [entries,setEntries]=useState([]);
+  const [recipes,setRecipes]=useState([]);
+  const [pantry,setPantry]=useState(defaultPantry);
+  const [shoppingList,setShoppingList]=useState([]);
+  const [showSettings,setShowSettings]=useState(false);
+  const [syncStatus,setSyncStatus]=useState('saved');
+  const saveTimer=useRef(null);
+  const isFirst=useRef(true);
+
+  async function loadData(){
+    try{
+      const data=await apiLoad();
+      if(data.entries)setEntries(data.entries);
+      if(data.recipes)setRecipes(data.recipes);
+      if(data.pantry)setPantry(data.pantry);
+      if(data.shoppingList)setShoppingList(data.shoppingList);
+      lc.set('pw_cache',data);setSyncStatus('saved');
+    }catch{
+      const cached=lc.get('pw_cache',null);
+      if(cached){if(cached.entries)setEntries(cached.entries);if(cached.recipes)setRecipes(cached.recipes);if(cached.pantry)setPantry(cached.pantry);if(cached.shoppingList)setShoppingList(cached.shoppingList);}
+      setSyncStatus('offline');
+    }finally{setLoading(false);}
+  }
+  useEffect(()=>{loadData();},[]);
+
+  useEffect(()=>{
+    if(isFirst.current){isFirst.current=false;return;}
+    setSyncStatus('saving');
+    if(saveTimer.current)clearTimeout(saveTimer.current);
+    saveTimer.current=setTimeout(async()=>{
+      const data={entries,recipes,pantry,shoppingList};
+      lc.set('pw_cache',data);
+      try{await apiSave(data);setSyncStatus('saved');}
+      catch{setSyncStatus('error');}
+    },1500);
+    return()=>{if(saveTimer.current)clearTimeout(saveTimer.current);};
+  },[entries,recipes,pantry,shoppingList]);
+
+  const syncLabel={saved:'Saved',saving:'Saving…',error:'Sync error',offline:'Offline'}[syncStatus];
+  const uncheckedCount=shoppingList.filter(i=>!i.checked).length;
+
+  const tabs=[
+    {id:'scan',label:'Scan',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>},
+    {id:'shop',label:'Shop',badge:uncheckedCount,icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>},
+    {id:'recipes',label:'Recipes',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zM2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>},
+    {id:'pantry',label:'Pantry',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="2" width="18" height="20" rx="2"/><line x1="3" y1="8" x2="21" y2="8"/><line x1="3" y1="14" x2="21" y2="14"/></svg>},
+    {id:'prices',label:'Prices',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>},
+  ];
+
+  if(loading)return(
+    <div className="splash">
+      <div className="splash-title">Meal<span>Planner</span></div>
+      <span className="spinner" style={{width:20,height:20,borderColor:'rgba(255,255,255,.3)',borderTopColor:'var(--accent)'}}/>
+      <div className="splash-sub">Loading…</div>
+    </div>
+  );
+
+  return(
+    <div className="app">
+      <div className="hdr">
+        <span className="hdr-title">Meal<span>Planner</span></span>
+        <div className="hdr-right">
+          <div className={`sync-dot ${syncStatus}`}/>
+          <span className="sync-label">{syncLabel}</span>
+          <button className="gear-btn" onClick={()=>setShowSettings(true)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div className="nav">
+        {tabs.map(t=>(
+          <button key={t.id} className={`nav-btn ${tab===t.id?'active':''}`} onClick={()=>setTab(t.id)}>
+            {t.icon}
+            <span style={{position:'relative'}}>{t.label}{t.badge>0&&<span className="tally">{t.badge}</span>}</span>
+          </button>
+        ))}
+      </div>
+      <div className="main">
+        {tab==='scan'    &&<ScanView entries={entries} setEntries={setEntries}/>}
+        {tab==='shop'    &&<ShopView shoppingList={shoppingList} setShoppingList={setShoppingList} pantry={pantry} setPantry={setPantry} entries={entries}/>}
+        {tab==='recipes' &&<RecipesView recipes={recipes} setRecipes={setRecipes} pantry={pantry} shoppingList={shoppingList} setShoppingList={setShoppingList} entries={entries}/>}
+        {tab==='pantry'  &&<PantryView pantry={pantry} setPantry={setPantry}/>}
+        {tab==='prices'  &&<PricesView entries={entries}/>}
+      </div>
+      {showSettings&&<SettingsModal onClose={()=>setShowSettings(false)} entries={entries} setEntries={setEntries} pantry={pantry} setPantry={setPantry} shoppingList={shoppingList} setShoppingList={setShoppingList} recipes={recipes} setRecipes={setRecipes} onReload={loadData}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
