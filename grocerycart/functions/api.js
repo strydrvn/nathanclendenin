@@ -85,12 +85,20 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ error: 'ANTHROPIC_KEY not configured on server' }), { status: 500, headers: JSON_HEADERS });
     }
     const body = await request.json();
-    const content = body.image
-      ? [
-          { type: 'image', source: { type: 'base64', media_type: body.mediaType, data: body.image } },
-          { type: 'text', text: body.prompt },
-        ]
-      : [{ type: 'text', text: body.prompt }];
+    let content;
+    if (body.image) {
+      content = [
+        { type: 'image', source: { type: 'base64', media_type: body.mediaType, data: body.image } },
+        { type: 'text', text: body.prompt },
+      ];
+    } else if (body.pdf) {
+      content = [
+        { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: body.pdf } },
+        { type: 'text', text: body.prompt },
+      ];
+    } else {
+      content = [{ type: 'text', text: body.prompt }];
+    }
 
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

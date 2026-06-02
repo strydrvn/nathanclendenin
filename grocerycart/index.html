@@ -294,11 +294,14 @@ async function apiSave(data){
   if(!res.ok){const t=await res.text();throw new Error(t);}
   return await res.json();
 }
-async function callClaude(prompt,imageData){
+async function callClaude(prompt,imageData,pdfData){
   const payload={prompt};
   if(imageData){
     payload.image=imageData.split(',')[1];
     payload.mediaType=imageData.split(';')[0].split(':')[1];
+  }
+  if(pdfData){
+    payload.pdf=pdfData.split(',')[1];
   }
   const res=await fetch(getApiUrl()+'?action=claude',{
     method:'POST',
@@ -652,11 +655,39 @@ function AddRecipeSheet({onClose,onSave,existing}){
   const [pasteText,setPasteText]=useState('');
   const [status,setStatus]=useState(null);
   const [mode,setMode]=useState('manual');
+  const [uploadPreview,setUploadPreview]=useState(null);
+  const [uploadType,setUploadType]=useState('image');
+  const [uploadName,setUploadName]=useState('');
 
   function addIngredient(){
     if(!ingrName.trim())return;
     setIngredients(prev=>[...prev,{id:uid(),name:ingrName.trim(),normalName:norm(ingrName.trim()),amount:ingrAmt,unit:ingrUnit}]);
     setIngrName('');setIngrAmt('');setIngrUnit('');
+  }
+  function handleUploadFile(e){
+    const f=e.target.files[0];if(!f)return;
+    const isPdf=f.type==='application/pdf';
+    setUploadType(isPdf?'pdf':'image');
+    setUploadName(f.name);
+    const r=new FileReader();
+    r.onload=ev=>setUploadPreview(ev.target.result);
+    r.readAsDataURL(f);
+  }
+  async function parseUpload(){
+    setStatus({type:'loading',msg:'Extracting recipe…'});
+    try{
+      const prompt=`Extract the recipe name and all ingredients. Return ONLY valid JSON, no markdown: {"name":"Recipe Name","ingredients":[{"name":"ingredient","amount":"1","unit":"cup"}]}. Core ingredient names only, no instructions.`;
+      const text=await callClaude(
+        prompt,
+        uploadType==='image'?uploadPreview:null,
+        uploadType==='pdf'?uploadPreview:null
+      );
+      const data=JSON.parse(text.replace(/```json|```/g,'').trim());
+      if(data.name&&!name)setName(data.name);
+      setIngredients(data.ingredients.map(i=>({id:uid(),name:i.name,normalName:norm(i.name),amount:i.amount||'',unit:i.unit||''})));
+      setStatus({type:'success',msg:`Extracted ${data.ingredients.length} ingredients`});
+      setMode('manual');setUploadPreview(null);setUploadName('');
+    }catch{setStatus({type:'error',msg:'Could not parse — try a clearer photo or different file.'});}
   }
   async function parseText(){
     setStatus({type:'loading',msg:'Extracting ingredients…'});
@@ -699,7 +730,31 @@ function AddRecipeSheet({onClose,onSave,existing}){
         <div style={{display:'flex',gap:6,marginBottom:12}}>
           <button className={`filter-chip ${mode==='manual'?'active':''}`} onClick={()=>setMode('manual')}>Manual</button>
           <button className={`filter-chip ${mode==='ai'?'active':''}`} onClick={()=>setMode('ai')}>✦ Paste &amp; Parse</button>
+          <button className={`filter-chip ${mode==='upload'?'active':''}`} onClick={()=>setMode('upload')}>📷 Upload</button>
         </div>
+        {mode==='upload'&&(
+          <div>
+            {!uploadPreview?(
+              <div className="upload-zone">
+                <input type="file" accept="image/*,.pdf,application/pdf" onChange={handleUploadFile}/>
+                <div className="upload-icon">📄</div>
+                <div className="upload-label">Upload recipe image or PDF</div>
+                <div className="upload-sub">Photo, screenshot, or PDF cookbook page</div>
+              </div>
+            ):(
+              <div>
+                {uploadType==='image'
+                  ?<img src={uploadPreview} className="preview-img" alt="recipe"/>
+                  :<div style={{padding:'10px 14px',background:'var(--green-bg)',borderRadius:2,marginBottom:10,fontSize:12,color:'var(--green)',fontWeight:600,fontFamily:"'Libre Franklin',sans-serif"}}>📄 {uploadName}</div>
+                }
+                <button className="btn btn-primary" onClick={parseUpload} disabled={status?.type==='loading'}>
+                  {status?.type==='loading'?<><span className="spinner"/>Extracting…</>:'✦ Extract Recipe'}
+                </button>
+                <button className="btn btn-ghost" onClick={()=>{setUploadPreview(null);setUploadName('');setStatus(null);}}>Clear</button>
+              </div>
+            )}
+          </div>
+        )}
         {mode==='ai'&&(
           <div>
             <div className="inp-label">Paste recipe text</div>
