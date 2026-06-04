@@ -57,7 +57,9 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { headers: CORS });
     if (request.method !== 'GET')     return json({ error: 'Method not allowed' }, 405);
 
-    const path = decodeURIComponent(new URL(request.url).pathname.replace(/^\/|\/$/g, ''));
+    const rawPath = new URL(request.url).pathname.replace(/^\/|\/$/g, '');
+    let path = rawPath;
+    try { path = decodeURIComponent(rawPath); } catch(e) { /* use raw path if malformed */ }
 
     try {
       if (!path || path === 'manifest.json') {
