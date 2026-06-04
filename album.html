@@ -285,7 +285,7 @@ async function loadAlbum() {
   if (!r2) { showError('R2 URL not configured. Return to home and open Settings.'); return; }
   if (!albumId) { showError('No album specified.'); return; }
   try {
-    const res = await fetch(`${api}/${albumId}`, { cache: 'no-cache' });
+    const res = await fetch(`${api}/${encodeURIComponent(albumId)}`, { cache: 'no-cache' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     renderAlbum(data);
