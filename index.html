@@ -325,7 +325,7 @@ footer {
 @keyframes fadeIn { from { opacity:0; } to { opacity:.6; } }
 
 /* ── PROMO SECTION ── */
-.promo-section { padding-bottom: 80px; }
+.promo-section { padding-bottom: 80px; background: var(--surface); margin-top: 80px; }
 .promo-divider {
   display: flex; align-items: center; gap: 20px;
   padding: 52px 40px 40px;
@@ -338,9 +338,9 @@ footer {
 .promo-list { display: flex; flex-direction: column; gap: 2px; padding: 0 40px; }
 .promo-card {
   display: flex; align-items: stretch; text-decoration: none; color: inherit;
-  background: var(--surface); min-height: 180px; transition: background .25s;
+  background: #181614; min-height: 180px; transition: background .25s;
 }
-.promo-card:hover { background: #161514; }
+.promo-card:hover { background: #1e1c1a; }
 .promo-image { flex: 0 0 28%; position: relative; overflow: hidden; }
 .promo-image img {
   width: 100%; height: 100%; object-fit: cover; display: block;
@@ -466,7 +466,9 @@ footer {
   }
 
   /* ── PROMO — horizontal card light mode ── */
-  .promo-card:hover { background: #e8e2db; }
+  .promo-section { background: var(--surface); }
+  .promo-card { background: #ffffff; }
+  .promo-card:hover { background: var(--bg); }
   .promo-title { color: #1a1714; }
   .promo-image img { filter: brightness(.95) saturate(.95); }
   .promo-card:hover .promo-image img { filter: brightness(1) saturate(1.05); }

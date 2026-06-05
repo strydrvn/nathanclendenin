@@ -73,13 +73,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 footer{border-top:1px solid var(--line);padding:24px 40px;display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:.1em}
 
 /* ── PROMO SECTION ── */
-.promo-section{padding-bottom:80px}
+.promo-section{padding-bottom:80px;background:var(--surface);margin-top:80px}
 .promo-divider{display:flex;align-items:center;gap:20px;padding:52px 40px 40px}
 .promo-divider-line{flex:1;height:1px;background:var(--line)}
 .promo-divider-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .promo-list{display:flex;flex-direction:column;gap:2px;padding:0 40px}
-.promo-card{display:flex;align-items:stretch;text-decoration:none;color:inherit;background:var(--surface);min-height:180px;transition:background .25s}
-.promo-card:hover{background:#161514}
+.promo-card{display:flex;align-items:stretch;text-decoration:none;color:inherit;background:#181614;min-height:180px;transition:background .25s}
+.promo-card:hover{background:#1e1c1a}
 .promo-image{flex:0 0 28%;position:relative;overflow:hidden}
 .promo-image img{width:100%;height:100%;object-fit:cover;display:block;object-position:var(--cover-position,center);transition:transform .6s ease;filter:brightness(.9) saturate(.9)}
 .promo-card:hover .promo-image img{transform:scale(1.04);filter:brightness(.95) saturate(1)}
@@ -149,7 +149,9 @@ footer{border-top:1px solid var(--line);padding:24px 40px;display:flex;justify-c
   .album-card:hover .album-thumb { filter: brightness(1) saturate(1.05); }
 
   /* ── PROMO — horizontal card light mode ── */
-  .promo-card:hover { background: #e8e2db; }
+  .promo-section { background: var(--surface); }
+  .promo-card { background: #ffffff; }
+  .promo-card:hover { background: var(--bg); }
   .promo-title { color: #1a1714; }
   .promo-image img { filter: brightness(.95) saturate(.95); }
   .promo-card:hover .promo-image img { filter: brightness(1) saturate(1.05); }
