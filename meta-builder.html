@@ -432,6 +432,13 @@ body {
             placeholder="Brief context about this feature or external link."
             oninput="generate()"></textarea>
         </div>
+
+        <div class="field">
+          <label class="field-label">Cover Position <span class="optional">optional</span></label>
+          <input class="inp" id="promoCoverPosition" type="text"
+            placeholder="center" oninput="generate()">
+          <div class="field-hint">CSS <code style="color:var(--accent)">object-position</code> value for the cover image crop. E.g. <code style="color:var(--accent)">top</code>, <code style="color:var(--accent)">bottom</code>, <code style="color:var(--accent)">center 20%</code>. Defaults to <code style="color:var(--accent)">center</code>.</div>
+        </div>
       </div>
     </div>
 
@@ -559,11 +566,14 @@ function generate() {
     else if (!url)    { valid = false; msg = 'Destination URL is required'; }
     else { msg = `Ready — save as  external-promo/${folder}/meta.json`; }
 
-    if (title)  data.title       = title;
-    if (url)    data.url         = url;
-    if (year)   data.year        = year;
-    if (order)  data.order       = parseInt(order);
-    if (desc)   data.description = desc;
+    const coverPos = v('promoCoverPosition');
+
+    if (title)    data.title         = title;
+    if (url)      data.url           = url;
+    if (year)     data.year          = year;
+    if (order)    data.order         = parseInt(order);
+    if (desc)     data.description   = desc;
+    if (coverPos) data.coverPosition = coverPos;
 
     if (folder) filename = `external-promo/${folder}/meta.json`;
 

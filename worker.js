@@ -256,8 +256,9 @@ async function buildPromo(bucket) {
       id,
       title:       meta.title       || autoTitle,
       description: meta.description || '',
-      url:         meta.url         || '',
-      year:        meta.year        || '',
+      url:           meta.url           || '',
+      year:          meta.year          || '',
+      coverPosition: meta.coverPosition || '',
       cover: coverKey ? {
         thumb:  imgUrl(coverKey, 'thumb'),
         medium: imgUrl(coverKey, 'medium'),
