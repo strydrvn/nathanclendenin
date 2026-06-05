@@ -16,7 +16,6 @@ const SITE_META = {
   bio: 'Soli Deo Gloria.',
   social: {
     instagram: 'nathanclendenin',
-    twitter:   'nathanclendenin',
     linkedin:  'nathanclendenin'
   }
 };

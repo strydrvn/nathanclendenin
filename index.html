@@ -633,7 +633,6 @@ function renderSite(r2, data) {
     if (data.site.social) {
       const links = [];
       if (data.site.social.instagram) links.push(`<a href="https://instagram.com/${data.site.social.instagram}" target="_blank" rel="noopener">Instagram</a>`);
-      if (data.site.social.twitter)   links.push(`<a href="https://twitter.com/${data.site.social.twitter}" target="_blank" rel="noopener">Twitter</a>`);
       if (data.site.social.linkedin)  links.push(`<a href="https://linkedin.com/in/${data.site.social.linkedin}" target="_blank" rel="noopener">LinkedIn</a>`);
       document.getElementById('socialLinks').innerHTML = links.join('');
     }
