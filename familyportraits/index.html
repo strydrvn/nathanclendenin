@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Portraits — Nathan Clendenin</title>
+  <meta name="description" content="Family portrait sessions with Nathan Clendenin. 15–20 minute sessions at Solterra Co-Housing Community. $225 includes 20–25 edited images.">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-V9JSZFP90Z"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-V9JSZFP90Z');
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --olive:       #6B6740;
+      --olive-dark:  #4A4828;
+      --olive-light: #9A9666;
+      --black:       #111111;
+      --gray-dark:   #333333;
+      --gray-mid:    #888888;
+      --off-white:   #F8F7F4;
+      --white:       #FFFFFF;
+      --rule:        #E5E2DB;
+      --photo-bg:    #D4CFC5;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      color: var(--black);
+      background: var(--white);
+      line-height: 1.6;
+    }
+
+    /* ─── NAV ─────────────────────────────────────────── */
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2.5rem;
+      background: rgba(255, 255, 255, 0.93);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+
+    nav.scrolled { border-bottom-color: var(--rule); }
+
+    .nav-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-size: 1.05rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--black);
+      text-decoration: none;
+    }
+
+    .nav-cta {
+      font-family: 'Jost', sans-serif;
+      font-weight: 400;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--olive);
+      padding: 0.6rem 1.5rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover { background: var(--olive-dark); }
+
+    /* ─── HERO ────────────────────────────────────────── */
+
+    .hero {
+      height: 100vh;
+      min-height: 600px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .hero-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 100%);
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: var(--white);
+      padding: 2rem;
+      max-width: 680px;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(3.5rem, 9vw, 6.5rem);
+      line-height: 1;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-byline {
+      font-size: 0.75rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 3rem;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      padding: 0.9rem 2.75rem;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .hero-cta:hover {
+      border-color: var(--white);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* ─── SHARED TYPOGRAPHY ───────────────────────────── */
+
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--olive);
+      margin-bottom: 1rem;
+    }
+
+    .section-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 400;
+      font-size: clamp(1.9rem, 4vw, 2.6rem);
+      line-height: 1.2;
+      color: var(--black);
+    }
+
+    /* ─── GALLERY ─────────────────────────────────────── */
+
+    .gallery {
+      padding: 5rem 2rem 4rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .gallery .section-label { margin-bottom: 2.5rem; }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 0.6rem;
+    }
+
+    /*
+      GALLERY PHOTOS — replace each .photo-block with an <img>:
+
+        <img src="https://images.nathanclendenin.com/portraits/[filename].jpg"
+             alt="Family portrait by Nathan Clendenin" loading="lazy"
+             style="width:100%;height:100%;object-fit:cover;display:block;">
+
+      Keep the same nth-child grid positioning below.
+    */
+    .photo-block {
+      display: block;
+      width: 100%;
+      object-fit: cover;
+    }
+
+    .gallery-grid .photo-block:nth-child(1) { grid-column: 1; grid-row: 1; aspect-ratio: 3/2; }
+    .gallery-grid .photo-block:nth-child(2) { grid-column: 2; grid-row: 1 / 3; aspect-ratio: 2/3; }
+    .gallery-grid .photo-block:nth-child(3) { grid-column: 3; grid-row: 1; aspect-ratio: 3/2; }
+    .gallery-grid .photo-block:nth-child(4) { grid-column: 1; grid-row: 2; aspect-ratio: 3/2; }
+    .gallery-grid .photo-block:nth-child(5) { grid-column: 3; grid-row: 2; aspect-ratio: 3/2; }
+
+    /* ─── ABOUT ───────────────────────────────────────── */
+
+    .about {
+      background: var(--off-white);
+      padding: 6rem 2rem;
+    }
+
+    .about-inner {
+      max-width: 920px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 5rem;
+      align-items: center;
+    }
+
+    /*
+      ABOUT PHOTO — replace .about-photo with:
+
+        <img src="https://images.nathanclendenin.com/portraits/nathan.jpg"
+             alt="Nathan Clendenin"
+             style="width:100%;aspect-ratio:4/5;object-fit:cover;display:block;">
+    */
+    .about-photo {
+      background: var(--photo-bg);
+      aspect-ratio: 4/5;
+      width: 100%;
+    }
+
+    .about-text .section-label { text-align: left; }
+
+    .about-text .section-heading { margin: 0.75rem 0 1.5rem; }
+
+    .about-body {
+      font-size: 0.95rem;
+      color: var(--gray-dark);
+      line-height: 1.85;
+    }
+
+    .about-body p + p { margin-top: 1rem; }
+
+    /* ─── PROCESS ─────────────────────────────────────── */
+
+    .process {
+      padding: 6rem 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .process .section-heading { margin: 0.75rem 0 3.5rem; }
+
+    .steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 3rem;
+      text-align: left;
+    }
+
+    .step-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 3.5rem;
+      color: var(--olive-light);
+      line-height: 1;
+      margin-bottom: 0.75rem;
+    }
+
+    .step-title {
+      font-weight: 500;
+      font-size: 0.82rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--black);
+      margin-bottom: 0.6rem;
+    }
+
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--gray-mid);
+      line-height: 1.75;
+    }
+
+    /* ─── PRICING ─────────────────────────────────────── */
+
+    .pricing {
+      background: var(--off-white);
+      padding: 6rem 2rem;
+      text-align: center;
+    }
+
+    .pricing .section-heading { margin: 0.75rem 0 3rem; }
+
+    .pricing-card {
+      display: inline-block;
+      text-align: left;
+      background: var(--white);
+      padding: 3.5rem 4rem;
+      max-width: 460px;
+      width: 100%;
+    }
+
+    .pricing-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 5rem;
+      line-height: 1;
+      color: var(--black);
+      margin-bottom: 0.15rem;
+    }
+
+    .pricing-per {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      margin-bottom: 2rem;
+    }
+
+    .pricing-rule { height: 1px; background: var(--rule); margin-bottom: 1.75rem; }
+
+    .pricing-includes-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+      margin-bottom: 1rem;
+    }
+
+    .pricing-list {
+      list-style: none;
+      margin-bottom: 2.5rem;
+    }
+
+    .pricing-list li {
+      font-size: 0.92rem;
+      color: var(--gray-dark);
+      padding: 0.35rem 0;
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+    }
+
+    .pricing-list li::before {
+      content: '—';
+      color: var(--olive-light);
+      font-size: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .pricing-btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--olive);
+      padding: 1rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .pricing-btn:hover { background: var(--olive-dark); }
+
+    /* ─── FINAL CTA ───────────────────────────────────── */
+
+    .cta {
+      padding: 8rem 2rem;
+      text-align: center;
+    }
+
+    .cta-heading {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2.2rem, 5.5vw, 4rem);
+      line-height: 1.15;
+      color: var(--black);
+      max-width: 620px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .cta-sub {
+      font-size: 0.9rem;
+      color: var(--gray-mid);
+      max-width: 480px;
+      margin: 0 auto 2.75rem;
+      line-height: 1.75;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--olive);
+      padding: 1rem 3.25rem;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .cta-btn:hover { background: var(--olive-dark); }
+
+    /* ─── FOOTER ──────────────────────────────────────── */
+
+    footer {
+      border-top: 1px solid var(--rule);
+      padding: 1.75rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.92rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-mid);
+    }
+
+    .footer-link {
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      color: var(--gray-mid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-link:hover { color: var(--black); }
+
+    /* ─── RESPONSIVE ──────────────────────────────────── */
+
+    @media (max-width: 900px) {
+      .about-inner { gap: 3rem; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.25rem; }
+
+      .gallery-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+      }
+
+      .gallery-grid .photo-block:nth-child(1) { grid-column: 1; grid-row: 1; aspect-ratio: 3/2; }
+      .gallery-grid .photo-block:nth-child(2) { grid-column: 2; grid-row: 1 / 3; aspect-ratio: 2/3; }
+      .gallery-grid .photo-block:nth-child(3) { grid-column: 1; grid-row: 2; aspect-ratio: 3/2; }
+      .gallery-grid .photo-block:nth-child(4) { display: none; }
+      .gallery-grid .photo-block:nth-child(5) { display: none; }
+
+      .about-inner { grid-template-columns: 1fr; gap: 2.5rem; }
+
+      .steps { grid-template-columns: 1fr; gap: 2.25rem; }
+
+      .pricing-card { padding: 2.5rem 2rem; }
+
+      footer { flex-direction: column; gap: 0.75rem; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      .gallery-grid { grid-template-columns: 1fr; }
+      .gallery-grid .photo-block:nth-child(n) {
+        grid-column: 1; grid-row: auto; aspect-ratio: 3/2;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <a class="nav-name" href="#">Nathan Clendenin</a>
+    <a class="nav-cta" href="mailto:nathan.clendenin@tsdch.org?subject=Family Portrait Session Inquiry">Book a Session</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <img class="hero-img"
+         src="https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg"
+         srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 800w,
+                 https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 1200w,
+                 https://families.nathanclendenin.com/cdn-cgi/image/width=1600,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 1600w,
+                 https://families.nathanclendenin.com/cdn-cgi/image/width=2400,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 2400w"
+         sizes="100vw"
+         alt=""
+         fetchpriority="high">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">Solterra Co-Housing Community</p>
+      <h1 class="hero-title">Family<br>Portraits</h1>
+      <p class="hero-byline">with Nathan Clendenin</p>
+      <a class="hero-cta" href="mailto:nathan.clendenin@tsdch.org?subject=Family Portrait Session Inquiry">Book Your Session — $225</a>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="gallery">
+    <p class="section-label">Portfolio</p>
+    <div class="gallery-grid">
+      <img class="photo-block"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-10-02_Miller_1006.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-10-02_Miller_1006.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-10-02_Miller_1006.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-10-02_Miller_1006.jpg 1200w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
+           alt="Family portrait by Nathan Clendenin" loading="lazy">
+      <img class="photo-block"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-10-04_Garrison_1642.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-10-04_Garrison_1642.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-10-04_Garrison_1642.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-10-04_Garrison_1642.jpg 1200w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
+           alt="Family portrait by Nathan Clendenin" loading="lazy">
+      <img class="photo-block"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-10_McDonald_6653.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-11-10_McDonald_6653.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-10_McDonald_6653.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-11-10_McDonald_6653.jpg 1200w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
+           alt="Family portrait by Nathan Clendenin" loading="lazy">
+      <img class="photo-block"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-12-06_Walters_0603.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-12-06_Walters_0603.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-12-06_Walters_0603.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-12-06_Walters_0603.jpg 1200w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
+           alt="Family portrait by Nathan Clendenin" loading="lazy">
+      <img class="photo-block"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 1200w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
+           alt="Family portrait by Nathan Clendenin" loading="lazy">
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about">
+    <div class="about-inner">
+      <div class="about-photo"></div>
+      <div class="about-text">
+        <p class="section-label">About</p>
+        <h2 class="section-heading">Portraits that feel like your family</h2>
+        <div class="about-body">
+          <p>I'm Nathan Clendenin, a photographer based in the Triangle area. I specialize in candid, documentary-style family portraits that capture real moments — the laughter, the chaos, the closeness.</p>
+          <p>Sessions take place at Solterra Co-Housing Community, a beautiful natural setting with mature trees and warm evening light. Every session is relaxed, low-key, and genuinely fun for everyone — including the kids.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section class="process">
+    <p class="section-label">How it works</p>
+    <h2 class="section-heading">Simple from start to finish</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <p class="step-title">Book your time</p>
+        <p class="step-desc">Send me an email to reserve your 15–20 minute session slot. Sessions are offered in seasonal batches at Solterra — spots fill quickly.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <p class="step-title">Show up &amp; have fun</p>
+        <p class="step-desc">Come as you are. I'll guide you through a few natural moments and let the rest unfold. Kids, dogs, and extended family are all welcome.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <p class="step-title">Receive your gallery</p>
+        <p class="step-desc">Within two weeks, you'll have a private online gallery with 20–25 professionally edited images, ready to download and share.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-heading">One simple rate</h2>
+    <div class="pricing-card">
+      <div class="pricing-amount">$225</div>
+      <p class="pricing-per">Per Family Session</p>
+      <div class="pricing-rule"></div>
+      <p class="pricing-includes-label">Includes</p>
+      <ul class="pricing-list">
+        <li>15–20 minute portrait session</li>
+        <li>20–25 professionally edited images</li>
+        <li>Private online gallery for easy download</li>
+        <li>Beautiful outdoor setting at Solterra Co-Housing Community</li>
+      </ul>
+      <a class="pricing-btn" href="mailto:nathan.clendenin@tsdch.org?subject=Family Portrait Session Inquiry">Book Your Session</a>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="cta">
+    <h2 class="cta-heading">Let's make something<br>beautiful together.</h2>
+    <p class="cta-sub">Sessions are offered seasonally at Solterra Co-Housing Community. Reach out to reserve your spot — availability is limited.</p>
+    <a class="cta-btn" href="mailto:nathan.clendenin@tsdch.org?subject=Family Portrait Session Inquiry">Get in Touch</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-name">Nathan Clendenin</span>
+    <a class="footer-link" href="https://nathanclendenin.com">Main Portfolio →</a>
+  </footer>
+
+  <script>
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+  </script>
+
+</body>
+</html>
