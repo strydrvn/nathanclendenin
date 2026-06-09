@@ -55,14 +55,17 @@
       align-items: center;
       justify-content: space-between;
       padding: 1.25rem 2.5rem;
+      background: transparent;
+      border-bottom: 1px solid transparent;
+      transition: background 0.4s, border-color 0.4s;
+    }
+
+    nav.scrolled {
       background: rgba(255, 255, 255, 0.93);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s;
+      border-bottom-color: var(--rule);
     }
-
-    nav.scrolled { border-bottom-color: var(--rule); }
 
     .nav-name {
       font-family: 'Cormorant Garamond', serif;
@@ -70,9 +73,12 @@
       font-size: 1.05rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--black);
+      color: var(--white);
       text-decoration: none;
+      transition: color 0.4s;
     }
+
+    nav.scrolled .nav-name { color: var(--black); }
 
     .nav-cta {
       font-family: 'Jost', sans-serif;
@@ -81,13 +87,20 @@
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--white);
-      background: var(--olive);
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.55);
       padding: 0.6rem 1.5rem;
       text-decoration: none;
-      transition: background 0.2s;
+      transition: background 0.4s, border-color 0.4s, color 0.4s;
     }
 
-    .nav-cta:hover { background: var(--olive-dark); }
+    nav.scrolled .nav-cta {
+      background: var(--olive);
+      border-color: var(--olive);
+    }
+
+    .nav-cta:hover { background: rgba(255, 255, 255, 0.28); }
+    nav.scrolled .nav-cta:hover { background: var(--olive-dark); border-color: var(--olive-dark); }
 
     /* ─── HERO ────────────────────────────────────────── */
 
@@ -198,7 +211,7 @@
     .gallery-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      grid-template-rows: auto auto;
+      grid-template-rows: auto auto auto;
       gap: 0.6rem;
     }
 
@@ -222,6 +235,9 @@
     .gallery-grid .photo-block:nth-child(3) { grid-column: 3; grid-row: 1; aspect-ratio: 3/2; }
     .gallery-grid .photo-block:nth-child(4) { grid-column: 1; grid-row: 2; aspect-ratio: 3/2; }
     .gallery-grid .photo-block:nth-child(5) { grid-column: 3; grid-row: 2; aspect-ratio: 3/2; }
+    .gallery-grid .photo-block:nth-child(6) { grid-column: 1; grid-row: 3; aspect-ratio: 3/2; }
+    .gallery-grid .photo-block:nth-child(7) { grid-column: 2; grid-row: 3; aspect-ratio: 3/2; }
+    .gallery-grid .photo-block:nth-child(8) { grid-column: 3; grid-row: 3; aspect-ratio: 3/2; }
 
     /* ─── ABOUT ───────────────────────────────────────── */
 
@@ -467,14 +483,17 @@
 
       .gallery-grid {
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto auto;
+        grid-template-rows: auto auto auto auto auto;
       }
 
       .gallery-grid .photo-block:nth-child(1) { grid-column: 1; grid-row: 1; aspect-ratio: 3/2; }
       .gallery-grid .photo-block:nth-child(2) { grid-column: 2; grid-row: 1 / 3; aspect-ratio: 2/3; }
       .gallery-grid .photo-block:nth-child(3) { grid-column: 1; grid-row: 2; aspect-ratio: 3/2; }
-      .gallery-grid .photo-block:nth-child(4) { display: none; }
-      .gallery-grid .photo-block:nth-child(5) { display: none; }
+      .gallery-grid .photo-block:nth-child(4) { grid-column: 1; grid-row: 3; aspect-ratio: 3/2; }
+      .gallery-grid .photo-block:nth-child(5) { grid-column: 2; grid-row: 3; aspect-ratio: 3/2; }
+      .gallery-grid .photo-block:nth-child(6) { grid-column: 1; grid-row: 4; aspect-ratio: 3/2; }
+      .gallery-grid .photo-block:nth-child(7) { grid-column: 2; grid-row: 4; aspect-ratio: 3/2; }
+      .gallery-grid .photo-block:nth-child(8) { grid-column: 1; grid-row: 5; aspect-ratio: 3/2; display: block; }
 
       .about-inner { grid-template-columns: 1fr; gap: 2.5rem; }
 
@@ -540,10 +559,10 @@
            sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
            alt="Family portrait by Nathan Clendenin" loading="lazy">
       <img class="photo-block"
-           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-10_McDonald_6653.jpg"
-           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-11-10_McDonald_6653.jpg 400w,
-                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-10_McDonald_6653.jpg 800w,
-                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-11-10_McDonald_6653.jpg 1200w"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-14-Johnston_7927.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-11-14-Johnston_7927.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-14-Johnston_7927.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-11-14-Johnston_7927.jpg 1200w"
            sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
            alt="Family portrait by Nathan Clendenin" loading="lazy">
       <img class="photo-block"
@@ -558,6 +577,27 @@
            srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 400w,
                    https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 800w,
                    https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-10-17_Santoso_2047.jpg 1200w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
+           alt="Family portrait by Nathan Clendenin" loading="lazy">
+      <img class="photo-block"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-12_Thomas_.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-11-12_Thomas_.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-12_Thomas_.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-11-12_Thomas_.jpg 1200w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
+           alt="Family portrait by Nathan Clendenin" loading="lazy">
+      <img class="photo-block"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-04_Johnson_5913.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-11-04_Johnson_5913.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-04_Johnson_5913.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-11-04_Johnson_5913.jpg 1200w"
+           sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
+           alt="Family portrait by Nathan Clendenin" loading="lazy">
+      <img class="photo-block"
+           src="https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-08_Thompson_6620.jpg"
+           srcset="https://families.nathanclendenin.com/cdn-cgi/image/width=400,format=auto,quality=85/family-portraits_2025-11-08_Thompson_6620.jpg 400w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=800,format=auto,quality=85/family-portraits_2025-11-08_Thompson_6620.jpg 800w,
+                   https://families.nathanclendenin.com/cdn-cgi/image/width=1200,format=auto,quality=85/family-portraits_2025-11-08_Thompson_6620.jpg 1200w"
            sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px"
            alt="Family portrait by Nathan Clendenin" loading="lazy">
     </div>
