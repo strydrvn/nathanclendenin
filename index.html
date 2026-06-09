@@ -335,7 +335,7 @@ footer {
   font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
   color: var(--muted); white-space: nowrap;
 }
-.promo-list { display: flex; flex-direction: column; gap: 2px; padding: 0 40px; }
+.promo-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 0 40px; }
 .promo-card {
   display: flex; align-items: stretch; text-decoration: none; color: inherit;
   background: #181614; min-height: 180px; transition: background .25s;
@@ -397,7 +397,7 @@ footer {
   .album-overlay { opacity: 1; }
   footer { padding: 24px 20px; }
   .status-banner { margin: 0 20px 32px; }
-  .promo-list { padding: 0 20px; }
+  .promo-list { padding: 0 20px; grid-template-columns: 1fr; }
   .promo-divider { padding: 40px 20px 32px; }
   .promo-card { flex-direction: column; min-height: auto; }
   .promo-image { flex: 0 0 auto; height: 180px; }
