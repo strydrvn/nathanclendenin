@@ -335,7 +335,15 @@ footer {
   font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
   color: var(--muted); white-space: nowrap;
 }
-.promo-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 0 40px; }
+.promo-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 0 40px; align-items: start; }
+.promo-desc.expanded { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.promo-read-more {
+  display: inline-block; margin-top: 8px;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); cursor: pointer; transition: color .2s;
+  user-select: none;
+}
+.promo-read-more:hover { color: var(--white); }
 .promo-card {
   display: flex; align-items: stretch; text-decoration: none; color: inherit;
   background: #181614; min-height: 180px; transition: background .25s;
@@ -808,7 +816,7 @@ function renderPromo(items) {
         <div>
           ${item.year ? `<div class="promo-eyebrow">${item.year}</div>` : ''}
           <div class="promo-title">${item.title}</div>
-          ${item.description ? `<p class="promo-desc">${item.description}</p>` : ''}
+          ${item.description ? `<p class="promo-desc">${item.description}</p><span class="promo-read-more" onclick="event.preventDefault();event.stopPropagation();var d=this.previousElementSibling;d.classList.toggle('expanded');this.textContent=d.classList.contains('expanded')?'Read less ↑':'Read more ↓'">Read more ↓</span>` : ''}
         </div>
         <div class="promo-link">
           Visit${domain ? ` → ${domain}` : ''}
@@ -822,6 +830,13 @@ function renderPromo(items) {
   });
 
   section.style.display = 'block';
+  // Hide "Read more" on cards whose description isn't actually clamped
+  requestAnimationFrame(() => {
+    section.querySelectorAll('.promo-read-more').forEach(btn => {
+      const desc = btn.previousElementSibling;
+      if (desc && desc.scrollHeight <= desc.clientHeight + 2) btn.style.display = 'none';
+    });
+  });
 }
 
 // ── INIT ───────────────────────────────────────────────────────────
