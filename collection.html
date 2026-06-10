@@ -78,7 +78,7 @@ footer{border-top:1px solid var(--line);padding:24px 40px;display:flex;justify-c
 .promo-divider-line{flex:1;height:1px;background:var(--line)}
 .promo-divider-label{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .promo-list{display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:0 40px}
-.promo-desc.expanded{display:block;-webkit-line-clamp:unset;overflow:visible}
+.promo-desc.expanded{display:block;-webkit-line-clamp:unset;overflow:hidden;transition:max-height .35s ease}
 .promo-read-more{display:inline-block;margin-top:8px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);cursor:pointer;transition:color .2s;user-select:none}
 .promo-read-more:hover{color:var(--white)}
 .promo-card{display:flex;align-items:stretch;text-decoration:none;color:inherit;background:#181614;min-height:180px;transition:background .25s}
@@ -360,7 +360,7 @@ function renderPromo(items) {
         <div>
           ${item.year ? `<div class="promo-eyebrow">${item.year}</div>` : ''}
           <div class="promo-title">${item.title}</div>
-          ${item.description ? `<p class="promo-desc">${item.description}</p><span class="promo-read-more" onclick="event.preventDefault();event.stopPropagation();var d=this.previousElementSibling;d.classList.toggle('expanded');this.textContent=d.classList.contains('expanded')?'Read less ↑':'Read more ↓'">Read more ↓</span>` : ''}
+          ${item.description ? `<p class="promo-desc">${item.description}</p><span class="promo-read-more" onclick="event.preventDefault();event.stopPropagation();togglePromoDesc(this)">Read more ↓</span>` : ''}
         </div>
         <div class="promo-link">
           Visit${domain ? ` → ${domain}` : ''}
@@ -378,9 +378,36 @@ function renderPromo(items) {
   requestAnimationFrame(() => {
     section.querySelectorAll('.promo-read-more').forEach(btn => {
       const desc = btn.previousElementSibling;
-      if (desc && desc.scrollHeight <= desc.clientHeight + 2) btn.style.display = 'none';
+      if (!desc) return;
+      if (desc.scrollHeight <= desc.clientHeight + 2) {
+        btn.style.display = 'none';
+      } else {
+        desc.dataset.collapsedHeight = desc.clientHeight;
+      }
     });
   });
+}
+
+function togglePromoDesc(btn) {
+  const desc = btn.previousElementSibling;
+  clearTimeout(desc._collapseTimer);
+  if (!desc.classList.contains('expanded')) {
+    const collapsed = desc.dataset.collapsedHeight || desc.clientHeight;
+    desc.style.maxHeight = collapsed + 'px';
+    desc.classList.add('expanded');
+    void desc.offsetHeight; // force reflow so the transition fires
+    desc.style.maxHeight = desc.scrollHeight + 'px';
+    btn.textContent = 'Read less ↑';
+  } else {
+    desc.style.maxHeight = desc.scrollHeight + 'px';
+    void desc.offsetHeight;
+    desc.style.maxHeight = (desc.dataset.collapsedHeight || 0) + 'px';
+    btn.textContent = 'Read more ↓';
+    desc._collapseTimer = setTimeout(() => {
+      desc.classList.remove('expanded');
+      desc.style.maxHeight = '';
+    }, 350);
+  }
 }
 </script>
 </body>
