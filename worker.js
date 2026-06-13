@@ -40,7 +40,9 @@ function imgUrl(key, size) {
   return `${R2_DOMAIN}/cdn-cgi/image/${params}/${key}`;
 }
 
-const SKIP      = new Set(['hero', 'external-promo', 'assets', '_archive', '_drafts', '_covers']);
+// Albums/collections live under this R2 prefix — anything else at bucket
+// root (hero/, external-promo/, bio/, assets/, etc.) is ignored entirely.
+const ALBUMS_PREFIX = 'albums/';
 const IMAGE_RE  = /\.(jpg|jpeg|png|webp|gif|avif)$/i;
 const isImage   = key => IMAGE_RE.test(key);
 
@@ -76,10 +78,10 @@ export default {
 
 // ── MANIFEST ──────────────────────────────────────────────────────────
 async function buildManifest(bucket) {
-  const listed  = await bucket.list({ delimiter: '/' });
+  const listed  = await bucket.list({ prefix: ALBUMS_PREFIX, delimiter: '/' });
   const folders = (listed.delimitedPrefixes || [])
-    .map(p => p.replace(/\/$/, ''))
-    .filter(id => !SKIP.has(id) && !id.startsWith('_'));
+    .map(p => p.slice(ALBUMS_PREFIX.length).replace(/\/$/, ''))
+    .filter(id => id && !id.startsWith('_'));
 
   const albums = (
     await Promise.all(folders.map(id => buildAlbumCard(bucket, id)))
@@ -94,18 +96,19 @@ async function buildManifest(bucket) {
 
 // ── ALBUM CARD (homepage grid) ────────────────────────────────────────
 async function buildAlbumCard(bucket, albumId) {
-  const { meta, objects } = await getFolderData(bucket, albumId);
+  const fullId = ALBUMS_PREFIX + albumId;
+  const { meta, objects } = await getFolderData(bucket, fullId);
   const autoTitle = albumId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   // Detect sub-folders → this is a collection, not a plain album
-  const subListed  = await bucket.list({ prefix: `${albumId}/`, delimiter: '/' });
+  const subListed  = await bucket.list({ prefix: `${fullId}/`, delimiter: '/' });
   const subfolders = (subListed.delimitedPrefixes || [])
-    .map(p => p.replace(/\/$/, '').slice(albumId.length + 1))
+    .map(p => p.replace(/\/$/, '').slice(fullId.length + 1))
     .filter(id => id && !id.startsWith('_'));
 
   if (subfolders.length > 0) {
     // Collection: cover = explicit cover.jpg, else first nested image
-    const coverKey = findCoverKey(objects, albumId) || findNestedCoverKey(objects, albumId);
+    const coverKey = findCoverKey(objects, fullId) || findNestedCoverKey(objects, fullId);
     return {
       id:          albumId,
       type:        'collection',
@@ -122,8 +125,8 @@ async function buildAlbumCard(bucket, albumId) {
   }
 
   // Plain album
-  const coverKey = findCoverKey(objects, albumId);
-  const count    = objects.filter(o => isImageInRoot(o.key, albumId)).length;
+  const coverKey = findCoverKey(objects, fullId);
+  const count    = objects.filter(o => isImageInRoot(o.key, fullId)).length;
 
   return {
     id:          albumId,
@@ -143,10 +146,12 @@ async function buildAlbumCard(bucket, albumId) {
 
 // ── ALBUM or COLLECTION DETAIL ────────────────────────────────────────
 async function buildAlbum(bucket, albumId) {
+  const fullId = ALBUMS_PREFIX + albumId;
+
   // Check for sub-folders first — if found, return collection detail
-  const subListed  = await bucket.list({ prefix: `${albumId}/`, delimiter: '/' });
+  const subListed  = await bucket.list({ prefix: `${fullId}/`, delimiter: '/' });
   const subfolders = (subListed.delimitedPrefixes || [])
-    .map(p => p.replace(/\/$/, '').slice(albumId.length + 1))
+    .map(p => p.replace(/\/$/, '').slice(fullId.length + 1))
     .filter(id => id && !id.startsWith('_'));
 
   if (subfolders.length > 0) {
@@ -154,16 +159,16 @@ async function buildAlbum(bucket, albumId) {
   }
 
   // ── Plain album ──────────────────────────────────────────────────
-  const { meta, objects } = await getFolderData(bucket, albumId);
+  const { meta, objects } = await getFolderData(bucket, fullId);
   const autoTitle = albumId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   // Load exif.json if present
-  const exifMap = await loadExif(bucket, albumId, objects);
+  const exifMap = await loadExif(bucket, fullId, objects);
 
   // All images sorted numerically, cover first
-  const coverKey = findCoverKey(objects, albumId);
+  const coverKey = findCoverKey(objects, fullId);
   const rest     = objects
-    .filter(o => isImageInRoot(o.key, albumId) && o.key !== coverKey)
+    .filter(o => isImageInRoot(o.key, fullId) && o.key !== coverKey)
     .sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
 
   const allKeys = coverKey
@@ -171,7 +176,7 @@ async function buildAlbum(bucket, albumId) {
     : rest.map(o => ({ key: o.key, iscover: false }));
 
   const images = allKeys.map(({ key, iscover }) => {
-    const file    = key.slice(albumId.length + 1);
+    const file    = key.slice(fullId.length + 1);
     const exif    = exifMap[file] || {};
     const caption = exif.caption || (iscover && meta.coverCaption ? meta.coverCaption : '');
 
@@ -211,7 +216,7 @@ async function buildAlbum(bucket, albumId) {
 
 // ── COLLECTION DETAIL (collection.html) ──────────────────────────────
 async function buildCollectionDetail(bucket, collectionId, subfolderIds) {
-  const { meta } = await getFolderData(bucket, collectionId);
+  const { meta } = await getFolderData(bucket, ALBUMS_PREFIX + collectionId);
   const autoTitle = collectionId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   const albums = (await Promise.all(
