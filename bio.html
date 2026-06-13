@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="About Nathan Clendenin — Photojournalist · Storyteller · Entrepreneur. Documentary and brand photography from Durham, NC.">
+<!-- Open Graph — iMessage, Slack, social previews -->
+<meta property="og:type"        content="website">
+<meta property="og:url"         content="https://nathanclendenin.com/bio.html">
+<meta property="og:site_name"   content="Nathan Clendenin">
+<meta property="og:title"       content="About — Nathan Clendenin">
+<meta property="og:description" content="Photojournalist · Storyteller · Entrepreneur. Documentary and brand photography from Durham, NC.">
+<meta property="og:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<meta property="og:image:width"  content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt"   content="Nathan Clendenin">
+<!-- Twitter/X Card -->
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:site"        content="@nathanclendenin">
+<meta name="twitter:creator"     content="@nathanclendenin">
+<meta name="twitter:title"       content="About — Nathan Clendenin">
+<meta name="twitter:description" content="Photojournalist · Storyteller · Entrepreneur. Documentary and brand photography from Durham, NC.">
+<meta name="twitter:image"       content="https://images.nathanclendenin.com/cdn-cgi/image/width=1200,height=630,fit=cover,quality=90,format=jpeg/hero/hero.jpg">
+<title>About — Nathan Clendenin</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-V9JSZFP90Z"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-V9JSZFP90Z');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #090909;
+  --surface: #111010;
+  --text: #e2d9ce;
+  --muted: #6b6258;
+  --accent: #c8a97e;
+  --line: #1c1b1a;
+  --white: #f4ede4;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-weight: 300;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px 40px;
+  background: linear-gradient(to bottom, rgba(9,9,9,.95) 0%, transparent 100%);
+  transition: background .4s;
+}
+nav.scrolled { background: rgba(9,9,9,.97); border-bottom: 1px solid var(--line); }
+.nav-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 300; letter-spacing: .08em;
+  color: var(--white); text-decoration: none;
+}
+.nav-links { display: flex; gap: 32px; align-items: center; }
+.nav-links a {
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .2s;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-links a.active { color: var(--accent); }
+
+/* ── BIO SECTION ── */
+.bio-section { padding: 160px 40px 100px; max-width: 1200px; margin: 0 auto; }
+.bio-grid { display: grid; grid-template-columns: 380px 1fr; gap: 64px; align-items: start; }
+.bio-image-wrap {
+  position: relative; aspect-ratio: 4/5; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--line);
+}
+.bio-image {
+  position: relative; width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  opacity: 0; transition: opacity .6s ease;
+}
+.bio-image-placeholder {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center; line-height: 2;
+  font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted);
+  background: linear-gradient(135deg, #0f0e0d 0%, #1a1714 50%, #0f0e0d 100%);
+}
+.bio-eyebrow {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px;
+}
+.bio-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px; font-weight: 300; color: var(--white);
+  line-height: 1.1; letter-spacing: -.01em; margin-bottom: 12px;
+}
+.bio-name em { color: var(--accent); font-style: italic; }
+.bio-tagline {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 32px;
+  padding-bottom: 32px; border-bottom: 1px solid var(--line);
+}
+.bio-text { font-size: 14px; line-height: 2; color: var(--text); max-width: 640px; }
+.bio-text p { margin-bottom: 20px; }
+.bio-text p:last-child { margin-bottom: 0; }
+.bio-text a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--line); transition: color .2s, border-color .2s; }
+.bio-text a:hover { color: var(--white); border-color: var(--accent); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 40px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 16px;
+}
+.footer-copy { font-size: 10px; letter-spacing: .1em; color: var(--muted); }
+.social-links { display: flex; gap: 24px; }
+.social-links a {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none; transition: color .2s;
+}
+.social-links a:hover { color: var(--accent); }
+
+/* ── PROMO SECTION ── */
+.promo-section { padding-bottom: 80px; background: var(--surface); margin-top: 80px; }
+.promo-divider {
+  display: flex; align-items: center; gap: 20px;
+  padding: 52px 40px 40px;
+}
+.promo-divider-line { flex: 1; height: 1px; background: var(--line); }
+.promo-divider-label {
+  font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted); white-space: nowrap;
+}
+.promo-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 0 40px; }
+.promo-desc.expanded { display: block; -webkit-line-clamp: unset; overflow: hidden; transition: max-height .35s ease; }
+.promo-read-more {
+  display: inline-block; margin-top: 8px;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--accent); cursor: pointer; transition: color .2s;
+  user-select: none;
+}
+.promo-read-more:hover { color: var(--white); }
+.promo-card {
+  display: flex; align-items: stretch; text-decoration: none; color: inherit;
+  background: #181614; min-height: 180px; transition: background .25s;
+}
+.promo-card:hover { background: #1e1c1a; }
+.promo-image { flex: 0 0 180px; position: relative; overflow: hidden; }
+.promo-image img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  object-position: var(--cover-position, center);
+  transition: transform .6s ease; filter: brightness(.9) saturate(.9);
+}
+.promo-card:hover .promo-image img { transform: scale(1.04); filter: brightness(.95) saturate(1); }
+.promo-image-placeholder {
+  flex: 0 0 180px; background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; border-right: 1px solid var(--line);
+}
+.promo-body {
+  flex: 1; padding: 28px 32px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  border-left: 1px solid var(--line);
+}
+.promo-eyebrow {
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 10px;
+}
+.promo-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300; color: var(--white);
+  line-height: 1.15; letter-spacing: -.01em; margin-bottom: 12px;
+}
+.promo-desc {
+  font-size: 11px; line-height: 1.8; color: var(--muted);
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.promo-link {
+  margin-top: 20px; display: inline-flex; align-items: center; gap: 7px;
+  font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--accent); transition: color .2s;
+}
+.promo-card:hover .promo-link { color: var(--white); }
+.promo-link svg { width: 12px; height: 12px; transition: transform .2s; }
+.promo-card:hover .promo-link svg { transform: translate(2px, -2px); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  nav { padding: 18px 20px; }
+  .nav-links { gap: 16px; }
+  .nav-links a:not(:last-child) { display: none; }
+
+  .bio-section { padding: 120px 20px 70px; }
+  .bio-grid { grid-template-columns: 1fr; gap: 32px; }
+  .bio-image-wrap { aspect-ratio: 4/3; }
+  .bio-name { font-size: 36px; }
+
+  footer { padding: 24px 20px; }
+  .promo-list { padding: 0 20px; grid-template-columns: 1fr; }
+  .promo-divider { padding: 40px 20px 32px; }
+  .promo-card { flex-direction: column; min-height: auto; }
+  .promo-image { flex: 0 0 auto; height: 180px; }
+  .promo-image-placeholder { flex: 0 0 auto; height: 140px; border-right: none; border-bottom: 1px solid var(--line); }
+  .promo-body { border-left: none; border-top: 1px solid var(--line); padding: 20px; }
+  .promo-title { font-size: 22px; }
+}
+
+/* ══ LIGHT MODE ══════════════════════════════════════════════════════ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:      #f8f6f2;
+    --surface: #f0ece6;
+    --text:    #1a1714;
+    --muted:   #8a7e74;
+    --line:    #d4ccc4;
+    --card:    #ffffff;
+    --white:   #1a1714;
+    --shadow:  0 1px 3px rgba(26,23,20,.09), 0 4px 16px rgba(26,23,20,.07);
+  }
+
+  /* ── NAV — warm off-white, dark text ── */
+  nav {
+    background: linear-gradient(to bottom, rgba(240,236,230,.97) 0%, transparent 100%);
+  }
+  nav.scrolled {
+    background: rgba(240,236,230,.98);
+    border-bottom-color: var(--line);
+  }
+  .nav-title      { color: #1a1714; }
+  .nav-links a    { color: var(--muted); }
+  .nav-links a:hover { color: #1a1714; }
+
+  /* ── BIO ── */
+  .bio-image-placeholder { background: linear-gradient(135deg, #efe9e1 0%, #f8f6f2 50%, #efe9e1 100%); }
+  .bio-name { color: #1a1714; }
+
+  /* ── PROMO — horizontal card light mode ── */
+  .promo-section { background: var(--surface); }
+  .promo-card { background: #ffffff; }
+  .promo-card:hover { background: var(--bg); }
+  .promo-title { color: #1a1714; }
+  .promo-image img { filter: brightness(.95) saturate(.95); }
+  .promo-card:hover .promo-image img { filter: brightness(1) saturate(1.05); }
+
+  /* ── FOOTER ── */
+  footer { background: var(--bg); border-top-color: var(--line); }
+  .footer-copy { color: var(--muted); }
+  .social-links a { color: var(--muted); }
+  .social-links a:hover { color: var(--accent); }
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="/" class="nav-title">Nathan Clendenin</a>
+  <div class="nav-links">
+    <a href="/#albums">Work</a>
+    <a href="bio.html" class="active">Bio</a>
+  </div>
+</nav>
+
+<!-- BIO -->
+<section class="bio-section" id="bio">
+  <div class="bio-grid">
+    <div class="bio-image-wrap">
+      <div class="bio-image-placeholder" id="bioImgPlaceholder">
+        Add bio/bio.jpg<br>to R2
+      </div>
+      <img class="bio-image" id="bioImg" alt="Nathan Clendenin"
+           src="https://images.nathanclendenin.com/cdn-cgi/image/width=900,quality=85,format=auto/bio/bio.jpg"
+           onload="this.style.opacity=1; document.getElementById('bioImgPlaceholder').style.display='none'"
+           onerror="this.style.display='none'">
+    </div>
+    <div class="bio-content">
+      <div class="bio-eyebrow">About</div>
+      <h1 class="bio-name">Nathan <em>Clendenin</em></h1>
+      <p class="bio-tagline">Photojournalist · Storyteller · Entrepreneur</p>
+      <div class="bio-text">
+        <p>Nathan Clendenin has spent more than two decades finding and telling stories that matter. He graduated from UNC's Hussman School of Journalism and Media in 2006 with a Master's degree in Visual Communication. His thesis project, <a href="https://hivstories.org" target="_blank" rel="noopener">HIV Stories</a>, explored the intersection of HIV, poverty, and faith in the South African township of Mamelodi.</p>
+        <p>As the first Multimedia Producer for WRAL.com/CBC New Media Group, Nathan combined still photography with Emmy Award-winning multimedia production for one of the Southeast's leading news websites. When he and his wife Rebecca felt called to South Africa, he stepped away from that role to volunteer in community development and storytelling with the nonprofit Africa Revolution — an experience that deepened his commitment to stories that uplift.</p>
+        <p>In 2011, Nathan founded <a href="https://wearestorydriven.com" target="_blank" rel="noopener">StoryDriven</a> to help clients tell their own stories. Through compelling testimonials and explorations of cutting-edge scientific advancements, he and the StoryDriven team partnered with organizations like UNC Health, Duke Gardens, and Durham Academy to advance their missions. That work has earned 10 Mid-South Emmy Awards from the National Academy of Television Arts and Sciences, along with numerous additional nominations.</p>
+        <p>In 2020, Nathan joined <a href="https://tsdch.org" target="_blank" rel="noopener">Trinity School of Durham and Chapel Hill</a> as Director of Communications and Marketing, overseeing the school's website and social media. He edits the school's magazine, <em>The Column</em>, advises the Yearbook team, and mentors student-led storytelling and journalism projects across campus. StoryDriven remains active for select projects — Nathan still takes on work for clients whose stories he believes in.</p>
+        <p>Nathan and Rebecca share a lively home with their four children and, often, an international student. He serves as an elder at their church. When he's not behind a camera or a keyboard, you might find him somewhere in the Blue Ridge Mountains, training for the annual Blue Ridge Relay.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROMO SECTION -->
+<section class="promo-section" id="promoSection" style="display:none">
+  <div class="promo-divider">
+    <div class="promo-divider-line"></div>
+    <span class="promo-divider-label">More from Nathan Clendenin</span>
+    <div class="promo-divider-line"></div>
+  </div>
+  <div class="promo-list" id="promoGrid"></div>
+</section>
+
+<footer>
+  <p class="footer-copy">Soli Deo Gloria · © Nathan Clendenin</p>
+  <div class="social-links">
+    <a href="https://instagram.com/nathanclendenin" target="_blank" rel="noopener">Instagram</a>
+    <a href="https://linkedin.com/in/nathanclendenin" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+</footer>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────
+const API_URL = 'https://api.nathanclendenin.com';
+
+// ── NAV SCROLL ─────────────────────────────────────────────────────
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 80);
+});
+
+// ── PROMO ──────────────────────────────────────────────────────────
+async function loadPromo() {
+  try {
+    const res = await fetch(`${API_URL}/promo`, { cache: 'no-cache' });
+    if (!res.ok) return;
+    const data = await res.json();
+    renderPromo(data.items || []);
+  } catch(e) { /* non-essential — fail silently */ }
+}
+
+function renderPromo(items) {
+  if (!items.length) return;
+  const section = document.getElementById('promoSection');
+  const grid    = document.getElementById('promoGrid');
+
+  items.forEach(item => {
+    if (!item.url) return;
+    const a = document.createElement('a');
+    a.className = 'promo-card';
+    a.href = item.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+
+    let domain = '';
+    try { domain = new URL(item.url).hostname.replace(/^www\./, ''); } catch(e) {}
+    const pos = item.coverPosition || 'center';
+
+    const coverHtml = item.cover
+      ? `<div class="promo-image" style="--cover-position:${pos}">
+           <img src="${item.cover.thumb}"
+                srcset="${item.cover.thumb} 600w, ${item.cover.medium} 1200w"
+                sizes="30vw" alt="${item.title}">
+         </div>`
+      : `<div class="promo-image-placeholder">🔗</div>`;
+
+    a.innerHTML = `${coverHtml}
+      <div class="promo-body">
+        <div>
+          ${item.year ? `<div class="promo-eyebrow">${item.year}</div>` : ''}
+          <div class="promo-title">${item.title}</div>
+          ${item.description ? `<p class="promo-desc">${item.description}</p><span class="promo-read-more" onclick="event.preventDefault();event.stopPropagation();togglePromoDesc(this)">Read more ↓</span>` : ''}
+        </div>
+        <div class="promo-link">
+          Visit${domain ? ` → ${domain}` : ''}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M7 17L17 7M17 7H7M17 7v10"/>
+          </svg>
+        </div>
+      </div>`;
+
+    grid.appendChild(a);
+  });
+
+  section.style.display = 'block';
+  // Hide "Read more" on cards whose description isn't actually clamped
+  requestAnimationFrame(() => {
+    section.querySelectorAll('.promo-read-more').forEach(btn => {
+      const desc = btn.previousElementSibling;
+      if (!desc) return;
+      if (desc.scrollHeight <= desc.clientHeight + 2) {
+        btn.style.display = 'none';
+      } else {
+        desc.dataset.collapsedHeight = desc.clientHeight;
+      }
+    });
+  });
+}
+
+function togglePromoDesc(btn) {
+  const desc = btn.previousElementSibling;
+  clearTimeout(desc._collapseTimer);
+  if (!desc.classList.contains('expanded')) {
+    const collapsed = desc.dataset.collapsedHeight || desc.clientHeight;
+    desc.style.maxHeight = collapsed + 'px';
+    desc.classList.add('expanded');
+    void desc.offsetHeight; // force reflow so the transition fires
+    desc.style.maxHeight = desc.scrollHeight + 'px';
+    btn.textContent = 'Read less ↑';
+  } else {
+    desc.style.maxHeight = desc.scrollHeight + 'px';
+    void desc.offsetHeight;
+    desc.style.maxHeight = (desc.dataset.collapsedHeight || 0) + 'px';
+    btn.textContent = 'Read more ↓';
+    desc._collapseTimer = setTimeout(() => {
+      desc.classList.remove('expanded');
+      desc.style.maxHeight = '';
+    }, 350);
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────
+loadPromo();
+</script>
+</body>
+</html>
