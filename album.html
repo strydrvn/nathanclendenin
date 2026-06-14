@@ -298,6 +298,10 @@ async function loadAlbum() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     renderAlbum(data);
+
+    // Deep link: open the requested photo directly (?photo=N, 1-based)
+    const n = parseInt(new URLSearchParams(location.search).get('photo'), 10);
+    if (n >= 1 && n <= photos.length) openLb(n - 1, false);
   } catch(e) {
     showError(`Could not load album "${albumId}" from Worker at ${api}. (${e.message})`);
   }
@@ -381,7 +385,20 @@ const preloadCache = new Set(); // avoid duplicate preloads
 
 function lbImg(n) { return document.getElementById(`lbImg${n}`); }
 
-function openLb(idx) {
+// ── DEEP-LINK URL HELPERS (?album=…&photo=N, 1-based) ──
+function photoUrl(idx) {
+  const p = new URLSearchParams(location.search);
+  p.set('album', albumId);
+  p.set('photo', idx + 1);
+  return `${location.pathname}?${p.toString()}`;
+}
+function albumUrl() {
+  const p = new URLSearchParams(location.search);
+  p.delete('photo');
+  return `${location.pathname}?${p.toString()}`;
+}
+
+function openLb(idx, push = true) {
   lbIdx = idx;
   // Reset layers
   activeLayer = 0;
@@ -391,11 +408,13 @@ function openLb(idx) {
   updateLb(true); // true = skip transition on first open
   document.getElementById('lightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
+  if (push) history.pushState({ photo: idx + 1 }, '', photoUrl(idx));
 }
 
-function closeLb() {
+function closeLb(updateHistory = true) {
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow = '';
+  if (updateHistory) history.replaceState({}, '', albumUrl());
 }
 
 function handleLbClick(e) { if (e.target === e.currentTarget) closeLb(); }
@@ -403,7 +422,15 @@ function handleLbClick(e) { if (e.target === e.currentTarget) closeLb(); }
 function lbNav(dir) {
   lbIdx = (lbIdx + dir + photos.length) % photos.length;
   updateLb(false);
+  history.replaceState({ photo: lbIdx + 1 }, '', photoUrl(lbIdx));
 }
+
+// Back/forward buttons sync the lightbox (no new history entry)
+window.addEventListener('popstate', () => {
+  const n = parseInt(new URLSearchParams(location.search).get('photo'), 10);
+  if (n >= 1 && n <= photos.length) openLb(n - 1, false);
+  else closeLb(false);
+});
 
 function updateLb(instant) {
   const photo     = photos[lbIdx];
