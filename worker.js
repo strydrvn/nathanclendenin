@@ -25,13 +25,15 @@ const R2_DOMAIN = 'https://images.nathanclendenin.com';
 
 // Cloudflare Image Resizing helper
 // Sizes served per context:
-//   thumb  → album grid cards  (600w, 4:3 crop, WebP)
+//   thumb  → album cover cards (600w, 4:3 crop, WebP)
+//   grid   → justified album grid tile (700w, uncropped, WebP)
 //   medium → lightbox preload  (1200w, WebP)
 //   full   → lightbox full res (2400w, WebP)
 //   hero   → homepage hero     (2560w, WebP)
 function imgUrl(key, size) {
   const params = {
     thumb:  'width=600,height=450,fit=cover,quality=82,format=webp',
+    grid:   'width=700,quality=82,format=webp',
     medium: 'width=1200,quality=88,format=webp',
     full:   'width=2400,quality=90,format=webp',
     hero:   'width=2560,quality=90,format=webp',
@@ -193,6 +195,7 @@ async function buildAlbum(bucket, albumId) {
       ...(exif.date      && { date:     exif.date }),
       urls: {
         thumb:  imgUrl(key, 'thumb'),
+        grid:   imgUrl(key, 'grid'),
         medium: imgUrl(key, 'medium'),
         full:   imgUrl(key, 'full'),
       }

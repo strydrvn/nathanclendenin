@@ -53,11 +53,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .album-meta-item{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .album-meta-item strong{color:var(--text);display:block;font-weight:400;font-size:13px;letter-spacing:0;margin-bottom:2px}
 
-.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:3px;padding:3px}
-.photo-item{aspect-ratio:3/2;overflow:hidden;cursor:pointer;position:relative;background:var(--surface)}
-.photo-item img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease,filter .3s;filter:brightness(.9) saturate(.95)}
+.photo-grid{display:flex;flex-wrap:wrap;gap:3px;padding:3px;align-items:flex-start}
+.photo-item{flex:0 0 auto;overflow:hidden;cursor:pointer;position:relative;background:var(--surface);display:block}
+.photo-item img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .5s ease,filter .3s;filter:brightness(.9) saturate(.95)}
 .photo-item:hover img{transform:scale(1.04);filter:brightness(1) saturate(1.05)}
-.photo-item.portrait{aspect-ratio:2/3}
 .photo-caption-hover{position:absolute;bottom:0;left:0;right:0;padding:12px 14px;background:linear-gradient(transparent,rgba(0,0,0,.8));font-size:10px;color:rgba(255,255,255,.7);opacity:0;transition:opacity .3s;letter-spacing:.05em}
 .photo-item:hover .photo-caption-hover{opacity:1}
 
@@ -155,7 +154,7 @@ footer{border-top:1px solid var(--line);padding:24px 40px;font-size:10px;color:v
 @media(max-width:768px){
   nav{padding:16px 20px}
   .album-header{padding:88px 20px 36px}
-  .photo-grid{grid-template-columns:1fr 1fr;gap:2px;padding:2px}
+  .photo-grid{gap:2px;padding:2px}
   footer{padding:20px}
   .promo-list{padding:0 20px;grid-template-columns:1fr}
   .promo-divider{padding:40px 20px 32px}
@@ -337,15 +336,29 @@ function renderAlbum(data) {
     <div class="photo-grid" id="photoGrid"></div>
   `;
 
+  buildGrid();
+}
+
+// ── JUSTIFIED-ROWS GRID ──
+const gridItems = [];
+
+function buildGrid() {
   const grid = document.getElementById('photoGrid');
+  if (!grid) return;
+  if (!photos.length) { grid.innerHTML = `<div class="error-msg">No photos here yet.</div>`; return; }
+
+  grid.innerHTML = '';
+  gridItems.length = 0;
+
   photos.forEach((photo, idx) => {
     const div = document.createElement('div');
-    div.className = `photo-item${photo.portrait ? ' portrait' : ''}`;
+    div.className = 'photo-item';
+    div._aspect = 1.5; // placeholder until the image loads
     div.onclick = () => openLb(idx);
 
     // Worker provides pre-built sized URLs via CF Image Resizing
-    const thumb  = photo.urls ? photo.urls.thumb  : `${r2}/${albumId}/${photo.file}`;
-    const medium = photo.urls ? photo.urls.medium : thumb;
+    const grid700 = photo.urls ? photo.urls.grid   : `${r2}/${albumId}/${photo.file}`;
+    const medium  = photo.urls ? photo.urls.medium : grid700;
 
     // Build EXIF overlay for grid
     const exifParts = [];
@@ -358,20 +371,74 @@ function renderAlbum(data) {
     const hasOverlay = photo.caption || exifParts.length;
 
     div.innerHTML = `
-      <img src="${thumb}"
-           srcset="${thumb} 600w, ${medium} 1200w"
-           sizes="(max-width: 600px) 50vw, 33vw"
+      <img src="${grid700}"
+           srcset="${grid700} 700w, ${medium} 1200w"
+           sizes="(max-width: 768px) 50vw, 33vw"
            alt="${photo.caption || ''}"
-           loading="${idx < 6 ? 'eager' : 'lazy'}">
+           loading="${idx < 8 ? 'eager' : 'lazy'}">
       ${hasOverlay ? `
       <div class="photo-exif">
         ${photo.caption ? `<div class="exif-caption">${photo.caption}</div>` : ''}
         ${exifHtml ? `<div class="exif-data">${exifHtml}</div>` : ''}
       </div>` : ''}
     `;
+    const img = div.querySelector('img');
+    img.addEventListener('load', () => {
+      if (img.naturalHeight) div._aspect = img.naturalWidth / img.naturalHeight;
+      scheduleJustify();
+    });
     grid.appendChild(div);
+    gridItems.push(div);
   });
+
+  justify();
 }
+
+let justifyRaf;
+function scheduleJustify() {
+  cancelAnimationFrame(justifyRaf);
+  justifyRaf = requestAnimationFrame(justify);
+}
+
+function justify() {
+  const grid = document.getElementById('photoGrid');
+  if (!grid || !gridItems.length) return;
+
+  const cs   = getComputedStyle(grid);
+  const gap  = parseFloat(cs.gap) || 3;
+  const padL = parseFloat(cs.paddingLeft) || 0;
+  const padR = parseFloat(cs.paddingRight) || 0;
+  const containerW = grid.clientWidth - padL - padR;
+  if (containerW <= 0) return;
+
+  const target = window.matchMedia('(max-width:768px)').matches ? 220 : 340; // row height px
+
+  let row = [], aspectSum = 0;
+  const flush = (stretch) => {
+    const totalGap = gap * (row.length - 1);
+    const h = stretch ? (containerW - totalGap) / aspectSum : target;
+    row.forEach(it => {
+      it.style.width  = Math.floor(it._aspect * h) + 'px';
+      it.style.height = Math.floor(h) + 'px';
+    });
+    row = []; aspectSum = 0;
+  };
+
+  gridItems.forEach(it => {
+    row.push(it);
+    aspectSum += it._aspect;
+    // Once the row would overflow at the target height, lock it in and scale to fit exactly.
+    const projected = aspectSum * target + gap * (row.length - 1);
+    if (projected >= containerW) flush(true);
+  });
+  if (row.length) flush(false); // trailing row → natural height, left-aligned
+}
+
+let resizeRaf;
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(resizeRaf);
+  resizeRaf = requestAnimationFrame(justify);
+});
 
 function showError(msg) {
   document.getElementById('albumContent').innerHTML =
