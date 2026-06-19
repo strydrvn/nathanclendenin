@@ -259,6 +259,23 @@ nav.over-poster .nav-back:hover { color: #1a1714; }
   background: #0f0e0c;
 }
 .price-card.featured .price-card-label { color: var(--accent); }
+.buy-btn {
+  display: block;
+  margin-top: 28px;
+  padding: 16px 24px;
+  background: var(--accent);
+  color: #0a0a0a;
+  text-align: center;
+  text-decoration: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  border: 1px solid var(--accent);
+  transition: background .25s, color .25s;
+}
+.buy-btn:hover { background: transparent; color: var(--accent); }
 .price-card-img {
   display: block;
   width: calc(100% + 80px);
@@ -521,6 +538,7 @@ footer {
           <br><br>
           Local pickup available in South Bend, IN.
         </p>
+        <a class="buy-btn" href="https://buy.stripe.com/9B6bJ12O160QaNJ6jsafS02">Buy Now — $600</a>
       </div>
 
       <div class="price-card featured">
@@ -534,6 +552,7 @@ footer {
           <br><br>
           Local pickup available in South Bend, IN. Inquire about other delivery options.
         </p>
+        <a class="buy-btn" href="https://buy.stripe.com/eVq14n1JXfBq5tp37gafS03">Buy Now — $975</a>
       </div>
 
     </div>
