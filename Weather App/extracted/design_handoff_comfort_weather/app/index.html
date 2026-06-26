@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="manifest" href="./manifest.json">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Comfort">
+<meta name="theme-color" content="#16223c">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#0e1626}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#fff}
+::-webkit-scrollbar{width:0;height:0}
+button{font-family:inherit}
+@keyframes cwfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes cwspin{to{transform:rotate(360deg)}}
+@keyframes cwrise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</helmet>
+
+<div style="position:relative; min-height:100dvh; width:100%; overflow-x:hidden">
+
+  <div ref="{{ bgRef }}" style="position:fixed; inset:0; z-index:0; background:linear-gradient(180deg, oklch(0.37 0.07 235) 0%, oklch(0.47 0.072 232) 50%, oklch(0.63 0.062 226) 100%); transition:background 1.2s ease"></div>
+  <div style="position:fixed; inset:0; z-index:1; pointer-events:none; background:radial-gradient(130% 75% at 80% 3%, rgba(255,255,255,0.20), rgba(255,255,255,0) 44%)"></div>
+  <div style="position:fixed; inset:0; z-index:1; pointer-events:none; background:radial-gradient(150% 55% at 50% 124%, rgba(8,12,24,0.42), rgba(8,12,24,0) 60%)"></div>
+  <div style="position:fixed; top:-70px; right:-46px; width:250px; height:250px; z-index:1; pointer-events:none; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.15), rgba(255,255,255,0) 70%); filter:blur(8px); animation:cwfloat 9s ease-in-out infinite"></div>
+
+  <div style="position:relative; z-index:2; max-width:440px; margin:0 auto; padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 30px)">
+
+    <div style="display:flex; align-items:center; justify-content:space-between; height:32px; margin-bottom:4px">
+      <div style="font-size:12px; font-weight:700; letter-spacing:0.16em; color:rgba(255,255,255,0.55); text-transform:uppercase">Comfort</div>
+      <button onClick="{{ openSearch }}" style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.16); color:#fff; padding:6px 12px; border-radius:16px; font-size:13px; cursor:pointer; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px)">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21" stroke-linecap="round"></line></svg>
+        Search
+      </button>
+    </div>
+
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:62dvh; gap:16px">
+        <div style="width:34px; height:34px; border-radius:50%; border:3px solid rgba(255,255,255,0.25); border-top-color:#fff; animation:cwspin .8s linear infinite"></div>
+        <div style="font-size:15px; color:rgba(255,255,255,0.7)">Reading the air…</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:50dvh; gap:14px; text-align:center; padding:0 24px">
+        <div style="font-size:17px; font-weight:600">Couldn't load the weather</div>
+        <div style="font-size:14px; color:rgba(255,255,255,0.65)">{{ error }}</div>
+        <button onClick="{{ retry }}" style="margin-top:4px; background:rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:9px 18px; border-radius:18px; font-size:14px; cursor:pointer">Try again</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ready }}" hint-placeholder-val="{{ false }}">
+      <div>
+
+        <div style="text-align:center; padding:12px 0 6px">
+          <button onClick="{{ openSearch }}" style="background:none; border:none; color:#fff; cursor:pointer; padding:0; max-width:100%; font-size:26px; font-weight:600; letter-spacing:-0.01em; line-height:1.15; text-wrap:balance">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="opacity:.85; vertical-align:-1px; margin-right:6px"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"></path></svg><span>{{ locName }}</span>
+          </button>
+          <div style="font-size:82px; font-weight:200; line-height:1.02; letter-spacing:-0.04em; margin-top:2px">{{ curTemp }}°</div>
+          <div style="display:flex; align-items:center; justify-content:center; gap:7px; margin-top:0">
+            <span style="display:inline-flex">{{ curIconSmall }}</span>
+            <span style="font-size:19px; font-weight:500">{{ curCond }}</span>
+          </div>
+          <div style="font-size:16px; color:rgba(255,255,255,0.85); margin-top:5px">H:{{ hiToday }}°  L:{{ loToday }}°  ·  {{ curHum }}% humidity</div>
+        </div>
+
+        <div style="margin-top:14px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.16); border-radius:22px; padding:18px 18px 20px; backdrop-filter:blur(22px) saturate(1.3); -webkit-backdrop-filter:blur(22px) saturate(1.3); box-shadow:0 8px 30px rgba(0,0,0,0.18)">
+          <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:rgba(255,255,255,0.6); text-transform:uppercase">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-5-7-10a7 7 0 0 1 14 0c0 5-7 10-7 10z" stroke-linejoin="round"></path></svg>
+            Comfort Now
+          </div>
+          <div style="display:flex; align-items:baseline; gap:10px; margin-top:8px">
+            <div style="font-size:42px; font-weight:700; letter-spacing:-0.02em; color:{{ comfortColor }}">{{ comfortLabel }}</div>
+            <div style="font-size:15px; color:rgba(255,255,255,0.6)">{{ comfortScore }}/100</div>
+          </div>
+          <div style="font-size:14px; color:rgba(255,255,255,0.72); margin-top:1px">{{ comfortSub }}</div>
+          <div style="position:relative; height:12px; border-radius:7px; margin-top:18px; background:linear-gradient(90deg,#f08a8a 0%,#f0a071 16%,#f0c27e 32%,#dcd884 48%,#a6e389 64%,#7ee0c8 82%,#86d8ff 100%)">
+            <div style="position:absolute; top:50%; left:{{ comfortMarkerPct }}%; transform:translate(-50%,-50%); width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 0 0 3px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.3)"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:7px; font-size:11px; color:rgba(255,255,255,0.5)">
+            <span>Brutal</span><span>Heaven</span>
+          </div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.65); margin-top:14px; line-height:1.45">{{ curTemp }}° with a <span style="color:rgba(255,255,255,0.92); font-weight:600; text-transform:capitalize">{{ dewWord }}</span> dew point of {{ curDew }}°. {{ comfortReason }}</div>
+        </div>
+
+        <sc-if value="{{ showMood }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.16); border-radius:22px; padding:14px 14px 12px; backdrop-filter:blur(22px) saturate(1.3); -webkit-backdrop-filter:blur(22px) saturate(1.3); box-shadow:0 8px 30px rgba(0,0,0,0.18)">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:11px; padding:0 2px">
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:rgba(255,255,255,0.6); text-transform:uppercase">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="10" r="6.2"></circle><path d="M13.5 14.5l4 4" stroke-linecap="round"></path><path d="M6.5 8.5a3 3 0 0 1 2.6-1.8" stroke-linecap="round"></path></svg>
+              The Mood
+            </div>
+            <button onClick="{{ rerollMood }}" style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.16); color:rgba(255,255,255,0.85); padding:5px 11px; border-radius:14px; font-size:12px; cursor:pointer">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9a7 7 0 0 1 12-3l2 2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M20 15a7 7 0 0 1-12 3l-2-2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 4v4h-4M6 20v-4h4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              another
+            </button>
+          </div>
+          <sc-for list="{{ moodTiers }}" as="tier" hint-placeholder-count="1">
+            <div style="display:{{ tier.display }}; flex-direction:column">
+              <div style="position:relative; width:100%; height:178px; border-radius:16px; overflow:hidden; background:rgba(255,255,255,0.06)">
+                <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="{{ tier.slotId }}" placeholder="{{ tier.placeholder }}" shape="rect" style="width:100%; height:178px; display:block" hint-size="100%,178px"></x-import>
+                <div style="position:absolute; left:0; right:0; bottom:0; padding:30px 15px 14px; pointer-events:none; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.30) 40%, rgba(0,0,0,0.80) 100%)">
+                  <div style="font-size:18px; font-weight:700; line-height:1.28; letter-spacing:-0.01em; text-shadow:0 1px 8px rgba(0,0,0,0.6)">{{ tier.quip }}</div>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+          <div style="font-size:11px; color:rgba(255,255,255,0.42); text-align:center; margin-top:9px">Drag your own photo onto the frame — it sticks to this mood</div>
+        </div>
+        </sc-if>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px">
+          <div style="display:flex; flex-direction:column; min-height:118px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.14); border-radius:18px; padding:13px 14px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px)">
+            <div style="display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; letter-spacing:0.06em; color:rgba(255,255,255,0.55); text-transform:uppercase">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 13.6V5a2 2 0 1 1 4 0v8.6a4 4 0 1 1-4 0z" stroke-linejoin="round"></path></svg>
+              Feels Like
+            </div>
+            <div style="font-size:32px; font-weight:300; margin-top:8px; letter-spacing:-0.02em">{{ curFeels }}°</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:auto; line-height:1.35">{{ feelsNote }}</div>
+          </div>
+          <div style="display:flex; flex-direction:column; min-height:118px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.14); border-radius:18px; padding:13px 14px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px)">
+            <div style="display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; letter-spacing:0.06em; color:rgba(255,255,255,0.55); text-transform:uppercase">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 3s6 6.6 6 10.5a6 6 0 0 1-12 0C6 9.6 12 3 12 3z"></path></svg>
+              Humidity
+            </div>
+            <div style="font-size:32px; font-weight:300; margin-top:8px; letter-spacing:-0.02em">{{ curHum }}%</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:auto; line-height:1.35">Dew point {{ curDew }}°</div>
+          </div>
+          <div style="display:flex; flex-direction:column; min-height:118px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.14); border-radius:18px; padding:13px 14px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px)">
+            <div style="display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; letter-spacing:0.06em; color:rgba(255,255,255,0.55); text-transform:uppercase">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s6 6.6 6 10.5a6 6 0 0 1-12 0C6 9.6 12 3 12 3z" stroke-linejoin="round"></path></svg>
+              Dew Point
+            </div>
+            <div style="font-size:32px; font-weight:300; margin-top:8px; letter-spacing:-0.02em">{{ curDew }}°</div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:auto; line-height:1.35; text-transform:capitalize">{{ dewWord }} air</div>
+          </div>
+          <div style="display:flex; flex-direction:column; min-height:118px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.14); border-radius:18px; padding:13px 14px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px)">
+            <div style="display:flex; align-items:center; gap:5px; font-size:10.5px; font-weight:600; letter-spacing:0.06em; color:rgba(255,255,255,0.55); text-transform:uppercase">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h11a3 3 0 1 0-3-3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 12h15a3 3 0 1 1-3 3" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 16h9" stroke-linecap="round"></path></svg>
+              Wind
+            </div>
+            <div style="margin-top:8px; display:flex; align-items:baseline; gap:5px"><span style="font-size:32px; font-weight:300; letter-spacing:-0.02em">{{ curWind }}</span><span style="font-size:14px; color:rgba(255,255,255,0.6)">{{ windLabel }}</span></div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:auto; line-height:1.35">from {{ windDir }}</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.16); border-radius:22px; padding:4px 16px 10px; backdrop-filter:blur(22px) saturate(1.3); -webkit-backdrop-filter:blur(22px) saturate(1.3); box-shadow:0 8px 30px rgba(0,0,0,0.18)">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:13px 0 9px; border-bottom:1px solid rgba(255,255,255,0.1)">
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:rgba(255,255,255,0.6); text-transform:uppercase">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="15" rx="2.5"></rect><line x1="3.5" y1="9" x2="20.5" y2="9"></line><line x1="8" y1="3" x2="8" y2="6.5" stroke-linecap="round"></line><line x1="16" y1="3" x2="16" y2="6.5" stroke-linecap="round"></line></svg>
+              {{ forecastTitle }}
+            </div>
+            <div style="font-size:10px; color:rgba(255,255,255,0.45)">temp° · humidity%</div>
+          </div>
+          <sc-for list="{{ days }}" as="day" hint-placeholder-count="5">
+            <div style="display:flex; align-items:center; gap:11px; padding:11px 0; border-top:1px solid rgba(255,255,255,0.07)">
+              <div style="width:42px; font-size:16px; font-weight:600; flex-shrink:0">{{ day.name }}</div>
+              <div style="width:30px; display:flex; justify-content:center; flex-shrink:0">{{ day.icon }}</div>
+              <div style="flex:1; display:flex; flex-direction:column; gap:7px; min-width:0">
+                <div style="display:flex; align-items:center; gap:7px">
+                  <span style="width:30px; text-align:right; font-size:12px; color:rgba(255,255,255,0.6); flex-shrink:0">{{ day.tLo }}°</span>
+                  <div style="flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,0.13); position:relative">
+                    <div style="position:absolute; top:0; bottom:0; left:{{ day.tLeft }}%; width:{{ day.tWidth }}%; border-radius:3px; background:{{ day.tGrad }}"></div>
+                    <sc-if value="{{ day.isToday }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:50%; left:{{ day.curDotPct }}%; transform:translate(-50%,-50%); width:9px; height:9px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,0.25)"></div></sc-if>
+                  </div>
+                  <span style="width:30px; font-size:13px; font-weight:600; flex-shrink:0">{{ day.tHi }}°</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:7px">
+                  <span style="width:30px; text-align:right; font-size:11px; color:rgba(255,255,255,0.45); flex-shrink:0">{{ day.hLo }}%</span>
+                  <div style="flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,0.13); position:relative">
+                    <div style="position:absolute; top:0; bottom:0; left:{{ day.hLeft }}%; width:{{ day.hWidth }}%; border-radius:3px; background:linear-gradient(90deg,#a9def6,#5a8cf0)"></div>
+                  </div>
+                  <span style="width:30px; font-size:11px; color:rgba(255,255,255,0.45); flex-shrink:0">{{ day.hHi }}%</span>
+                </div>
+              </div>
+              <div style="width:56px; text-align:right; flex-shrink:0">
+                <div style="font-size:13px; font-weight:600; color:{{ day.cColor }}; line-height:1.1">{{ day.cLabel }}</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.4)">{{ day.cmf }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-top:16px; font-size:12px; color:rgba(255,255,255,0.62)">
+          <div style="display:flex; align-items:center; gap:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="15" r="3.4"></circle><line x1="4" y1="20.5" x2="20" y2="20.5" stroke-linecap="round"></line><line x1="12" y1="7.5" x2="12" y2="5" stroke-linecap="round"></line><path d="M9 10l3-3 3 3" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ sunrise }}</div>
+          <div style="width:1px; height:12px; background:rgba(255,255,255,0.2)"></div>
+          <div style="display:flex; align-items:center; gap:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="15" r="3.4"></circle><line x1="4" y1="20.5" x2="20" y2="20.5" stroke-linecap="round"></line><path d="M9 7l3 3 3-3" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ sunset }}</div>
+        </div>
+        <div style="text-align:center; margin-top:13px; font-size:10.5px; color:rgba(255,255,255,0.4); line-height:1.5">
+          Comfort blends temperature &amp; dew point — the real mugginess metric.<br>Live data from Open-Meteo · refreshes on open
+        </div>
+
+      </div>
+    </sc-if>
+
+  </div>
+
+  <sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; z-index:20; background:rgba(8,12,22,0.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)" onClick="{{ closeSearch }}">
+      <div onClick="{{ stop }}" style="position:absolute; left:0; right:0; top:0; max-width:440px; margin:0 auto; background:rgba(20,28,46,0.97); border-radius:0 0 24px 24px; padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 22px; box-shadow:0 20px 60px rgba(0,0,0,0.45)">
+        <div style="display:flex; align-items:center; gap:10px">
+          <div style="flex:1; display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.14); border-radius:14px; padding:10px 12px">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21" stroke-linecap="round"></line></svg>
+            <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search city or place" style="flex:1; background:none; border:none; outline:none; color:#fff; font-size:16px"/>
+          </div>
+          <button onClick="{{ closeSearch }}" style="background:none; border:none; color:rgba(255,255,255,0.75); font-size:15px; cursor:pointer; padding:4px">Done</button>
+        </div>
+        <button onClick="{{ useMyLocation }}" style="display:flex; align-items:center; gap:9px; width:100%; margin-top:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); border-radius:14px; padding:12px; color:#7fb8ff; font-size:14px; font-weight:500; cursor:pointer">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"></circle><circle cx="12" cy="12" r="8"></circle><line x1="12" y1="1.5" x2="12" y2="4.5" stroke-linecap="round"></line><line x1="12" y1="19.5" x2="12" y2="22.5" stroke-linecap="round"></line><line x1="1.5" y1="12" x2="4.5" y2="12" stroke-linecap="round"></line><line x1="19.5" y1="12" x2="22.5" y2="12" stroke-linecap="round"></line></svg>
+          Use my current location
+        </button>
+        <sc-if value="{{ hasResults }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:10px; max-height:46dvh; overflow-y:auto">
+            <sc-for list="{{ results }}" as="r" hint-placeholder-count="3">
+              <button onClick="{{ r.select }}" style="display:flex; align-items:center; justify-content:space-between; width:100%; background:none; border:none; border-bottom:1px solid rgba(255,255,255,0.08); padding:13px 4px; color:#fff; font-size:15px; cursor:pointer; text-align:left">
+                <span style="font-weight:500">{{ r.name }}</span>
+                <span style="font-size:12px; color:rgba(255,255,255,0.5)">{{ r.region }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ showSaved }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:14px">
+            <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.45); margin-bottom:4px">Saved</div>
+            <sc-for list="{{ saved }}" as="s" hint-placeholder-count="2">
+              <button onClick="{{ s.select }}" style="display:flex; align-items:center; justify-content:space-between; width:100%; background:none; border:none; border-bottom:1px solid rgba(255,255,255,0.08); padding:12px 4px; color:#fff; font-size:15px; cursor:pointer; text-align:left">
+                <span>{{ s.name }}</span><span style="font-size:12px; color:rgba(255,255,255,0.5)">{{ s.region }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844},&quot;units&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;fahrenheit&quot;,&quot;celsius&quot;],&quot;default&quot;:&quot;fahrenheit&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;forecastDays&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;5&quot;,&quot;7&quot;],&quot;default&quot;:&quot;7&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;bgMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;comfort&quot;,&quot;calm&quot;],&quot;default&quot;:&quot;calm&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.bgRef = React.createRef();
+    this._t = null;
+    this.MOOD = {
+      heaven:{ ph:"Drop your 'life is good' photo — beach, shades, bliss", quotes:[
+        "Step outside. Yes, like that. Now stay a while.",
+        "Nature is showing off today. Let it.",
+        "If a day could be dessert, this is the one.",
+        "Cancel something. Be outside instead."
+      ]},
+      lovely:{ ph:"Drop a 'feeling great' photo here", quotes:[
+        "Crack a window and let the good air in.",
+        "Patio weather. No notes.",
+        "The kind of day that quietly fixes your mood.",
+        "Sleeves optional, smiles mandatory."
+      ]},
+      pleasant:{ ph:"Drop a 'just right' photo here", quotes:[
+        "Perfectly fine out. Go touch some grass.",
+        "No coat, no complaints.",
+        "A solid, unbothered sort of day.",
+        "Goldilocks would approve."
+      ]},
+      fair:{ ph:"Drop a 'meh, it's fine' photo here", quotes:[
+        "It's a day. You'll survive it.",
+        "Bring a layer, just in case.",
+        "Weather's middle child: neither great nor terrible.",
+        "Mild, with a chance of meh."
+      ]},
+      sticky:{ ph:"Drop a 'getting sweaty' photo here", quotes:[
+        "The air just hugged you and won't let go.",
+        "Your shirt's already planning to stick around.",
+        "Someone set the humidifier to 'rainforest.'",
+        "Glistening. We're calling it glistening."
+      ]},
+      muggy:{ ph:"Drop a 'can't even breathe' photo here", quotes:[
+        "Breathing feels like a group project today.",
+        "It's soup out there, and you're a crouton.",
+        "Swamp mode: fully engaged.",
+        "The air is 70% water and 100% rude."
+      ]},
+      brutal:{ ph:"Drop your 'son of a…' meltdown photo here", quotes:[
+        "Abandon all hope, ye who step outside.",
+        "The sun has personally wronged you.",
+        "Stay in. Befriend your air conditioner.",
+        "Today's forecast: regret, with a high of nope."
+      ]}
+    };
+    const pick = {};
+    Object.keys(this.MOOD).forEach(k => { pick[k] = Math.floor(Math.random()*this.MOOD[k].quotes.length); });
+    this.state = {
+      loading:true, error:null,
+      loc:{ name:'Durham', region:'NC', lat:35.9940, lon:-78.8986 },
+      vm:null,
+      searchOpen:false, query:'', results:[], searching:false,
+      saved:[], moodPick:pick
+    };
+  }
+
+  componentDidMount(){
+    let loc=this.state.loc, hasSaved=false;
+    try{
+      const raw = localStorage.getItem('comfortwx_v1');
+      if(raw){ const s=JSON.parse(raw); if(s && s.loc){ loc=s.loc; hasSaved=true; } this.setState({ loc, saved:(s&&s.saved)||[] }); }
+    }catch(e){}
+    // Always start on the last location it was set to. Only auto-detect via GPS
+    // on a first-ever launch (no saved location); after that, switching is manual
+    // (search, or the "use my location" button), so it stays put until changed.
+    this.fetchWeather(loc);
+    if(!hasSaved) this.tryGeo();
+  }
+
+  componentDidUpdate(pp, ps){
+    pp = pp || {}; ps = ps || {};
+    if(pp.units!==this.props.units || pp.forecastDays!==this.props.forecastDays){
+      this.fetchWeather(this.state.loc);
+    }
+    if(this.state.vm && (!ps.vm || ps.vm.comfortScore!==this.state.vm.comfortScore || pp.bgMode!==this.props.bgMode)){
+      this.applyBackground(this.state.vm.comfortScore);
+    }
+  }
+
+  opts(){
+    const c = this.props.units==='celsius';
+    const days = this.props.forecastDays==='5' ? 5 : 7;
+    return { c, days, windLabel: c?'km/h':'mph' };
+  }
+  conv(f){ return this.props.units==='celsius' ? Math.round((f-32)*5/9) : Math.round(f); }
+  windConv(m){ return this.props.units==='celsius' ? Math.round(m*1.609) : Math.round(m); }
+
+  persist(){
+    try{ localStorage.setItem('comfortwx_v1', JSON.stringify({ loc:this.state.loc, saved:this.state.saved })); }catch(e){}
+  }
+
+  tryGeo(){
+    if(!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(async (pos)=>{
+      const lat=pos.coords.latitude, lon=pos.coords.longitude;
+      let name='Current Location', region='';
+      try{
+        const r=await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lon+'&localityLanguage=en');
+        const j=await r.json();
+        name=j.city||j.locality||j.principalSubdivision||'Current Location';
+        region=(j.principalSubdivisionCode||'').replace(/^[A-Z]{2}-/,'')||j.principalSubdivision||'';
+      }catch(e){}
+      const loc={ name, region, lat, lon, isCurrent:true };
+      this.setState({ loc }, ()=>this.persist());
+      this.fetchWeather(loc);
+    }, ()=>{}, { timeout:8000, maximumAge:600000 });
+  }
+
+  async fetchWeather(loc){
+    this.setState({ loading:true, error:null });
+    try{
+      const o=this.opts();
+      const params=new URLSearchParams({
+        latitude:loc.lat, longitude:loc.lon,
+        current:'temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m',
+        hourly:'temperature_2m,relative_humidity_2m,dew_point_2m',
+        daily:'temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset',
+        temperature_unit:'fahrenheit', wind_speed_unit:'mph', timezone:'auto',
+        forecast_days:String(o.days+1)
+      });
+      const res=await fetch('https://api.open-meteo.com/v1/forecast?'+params.toString());
+      if(!res.ok) throw new Error('Weather service unavailable');
+      const d=await res.json();
+      if(!d || !d.current) throw new Error('No data for this location');
+      const vm=this.buildVM(d, loc);
+      this.setState({ vm, loading:false });
+    }catch(e){
+      this.setState({ loading:false, error:(e&&e.message)||'Could not load weather' });
+    }
+  }
+
+  comfortScore(t, dew){
+    let tPen;
+    if(t>=60 && t<=74) tPen=0;
+    else if(t>74) tPen=(t-74)*2.2;
+    else tPen=(60-t)*1.5;
+    const dPen = dew<55 ? 0 : Math.pow(dew-55,1.35)*1.15;
+    return Math.max(0, Math.min(100, Math.round(100-tPen-dPen)));
+  }
+  tierKey(s){
+    if(s>=90)return 'heaven'; if(s>=80)return 'lovely'; if(s>=68)return 'pleasant';
+    if(s>=55)return 'fair'; if(s>=42)return 'sticky'; if(s>=25)return 'muggy'; return 'brutal';
+  }
+  comfortLabel(s){
+    const k=this.tierKey(s);
+    const m={
+      heaven:{ label:'Heaven!', sub:'About as good as it gets', color:'#86d8ff' },
+      lovely:{ label:'Lovely', sub:'Crisp and easy out there', color:'#82e3cb' },
+      pleasant:{ label:'Pleasant', sub:'Comfortable, no complaints', color:'#a6e389' },
+      fair:{ label:'Fair', sub:'Noticeable but livable', color:'#dcd884' },
+      sticky:{ label:'Sticky', sub:'Muggy and a little close', color:'#f0c27e' },
+      muggy:{ label:'Muggy', sub:'Heavy, damp air', color:'#f0a071' },
+      brutal:{ label:'Brutal', sub:'Oppressive — stay cool', color:'#f08a8a' }
+    };
+    return Object.assign({ key:k }, m[k]);
+  }
+  dewWord(d){
+    if(d<50) return 'dry'; if(d<55) return 'comfortable'; if(d<60) return 'pleasant';
+    if(d<65) return 'sticky'; if(d<70) return 'humid'; if(d<75) return 'oppressive'; return 'miserable';
+  }
+  comfortReason(t, dew, s){
+    if(dew>=68) return 'The mugginess is what you\u2019ll feel most.';
+    if(t>=88) return 'The heat is the main factor today.';
+    if(t<=38) return 'It\u2019s the cold driving this one.';
+    if(s>=88) return 'Hard to ask for better.';
+    if(dew>=60) return 'A little stickiness in the air.';
+    return '';
+  }
+  feelsNote(f,t){
+    const d=Math.round(f-t);
+    if(Math.abs(d)<2) return 'Close to the real temperature.';
+    return d>0 ? ('Feels '+d+'\u00b0 warmer than actual.') : ('Feels '+(-d)+'\u00b0 cooler than actual.');
+  }
+  dirLabel(deg){
+    if(deg==null||isNaN(deg)) return '\u2014';
+    const dirs=['N','NE','E','SE','S','SW','W','NW'];
+    return dirs[Math.round((deg%360)/45)%8];
+  }
+  tempColor(t){
+    const c=Math.max(0,Math.min(1,(t-30)/70));
+    const hue=250 - c*(250-25);
+    return 'oklch(0.78 0.13 '+hue.toFixed(0)+')';
+  }
+
+  applyBackground(score){
+    const el=this.bgRef.current; if(!el) return;
+    if(this.props.bgMode==='calm'){
+      el.style.background='linear-gradient(180deg, oklch(0.36 0.07 240) 0%, oklch(0.47 0.082 236) 52%, oklch(0.63 0.07 230) 100%)';
+      return;
+    }
+    // Warm (low comfort) -> amber; cool (high comfort) -> true sky blue.
+    // Anchor each end to a fixed hue and fade chroma toward a neutral middle,
+    // so the gradient never travels through green/teal.
+    const t=Math.max(0,Math.min(1,score/100));
+    const cool=t>=0.5;
+    const hue=cool?234:50;
+    const k=cool?(t-0.5)/0.5:(0.5-t)/0.5;
+    const ch=0.030 + k*0.088;
+    const top='oklch(0.36 '+ch.toFixed(3)+' '+hue+')';
+    const mid='oklch(0.47 '+ch.toFixed(3)+' '+hue+')';
+    const bot='oklch(0.64 '+(ch*0.82).toFixed(3)+' '+(cool?hue-9:hue+8)+')';
+    el.style.background='linear-gradient(180deg, '+top+' 0%, '+mid+' 50%, '+bot+' 100%)';
+  }
+
+  icon(kind, size, isDay){
+    const E=React.createElement;
+    if(size==null) size=34; if(isDay==null) isDay=true;
+    const wrap=(kids)=>E('svg',{viewBox:'0 0 24 24', width:size, height:size, style:{display:'block', overflow:'visible'}}, kids);
+    const sun=(cx,cy,r,col)=>{ cx=cx==null?12:cx; cy=cy==null?12:cy; r=r==null?4.4:r; col=col||'#ffd66b';
+      const a=[E('circle',{key:'sc',cx:cx,cy:cy,r:r,fill:col})];
+      for(let i=0;i<8;i++){ const an=i*Math.PI/4; a.push(E('line',{key:'sr'+i,x1:cx+Math.cos(an)*(r+2),y1:cy+Math.sin(an)*(r+2),x2:cx+Math.cos(an)*(r+4.2),y2:cy+Math.sin(an)*(r+4.2),stroke:col,strokeWidth:1.5,strokeLinecap:'round'})); }
+      return a;
+    };
+    const moon=(col)=>[E('path',{key:'mn',d:'M20 14.2A8 8 0 0 1 9.6 3.8 7 7 0 1 0 20 14.2z',fill:col||'#e3e9f6'})];
+    const cloud=(col,ox,oy,sc)=>{ col=col||'#e2e8f4'; ox=ox||0; oy=oy||0; sc=sc||1;
+      return [E('g',{key:'cl',transform:'translate('+ox+' '+oy+') scale('+sc+')'},[
+        E('circle',{key:1,cx:9.2,cy:13,r:3.4,fill:col}),
+        E('circle',{key:2,cx:14,cy:11.8,r:4.3,fill:col}),
+        E('circle',{key:3,cx:16.6,cy:14.4,r:3.1,fill:col}),
+        E('rect',{key:4,x:7,y:14,width:11.2,height:4,rx:2,fill:col})
+      ])];
+    };
+    const drops=(n)=>{ const xs = n===3?[9.5,13,16.5]:[10.5,15]; return xs.map((x,i)=>E('line',{key:'d'+i,x1:x,y1:19.2,x2:x-1.3,y2:22.2,stroke:'#84c6ff',strokeWidth:1.7,strokeLinecap:'round'})); };
+    const flakes=()=>[9.5,13,16.5].map((x,i)=>E('circle',{key:'f'+i,cx:x,cy:20.4,r:1,fill:'#dcecff'}));
+    switch(kind){
+      case 'sun': return isDay? wrap(sun()) : wrap(moon());
+      case 'partly': return isDay? wrap([].concat(sun(8.5,8.5,3.2),cloud('#e6ecf6',2,4,0.92))) : wrap([].concat(moon('#dbe2f2'),cloud('#cdd6e6',2.5,4.5,0.82)));
+      case 'cloud': return wrap(cloud('#dbe3f0'));
+      case 'fog': return wrap([].concat(cloud('#dbe3f0',0,-1,0.96),[E('line',{key:'fg1',x1:6,y1:19.6,x2:18,y2:19.6,stroke:'#cdd6e6',strokeWidth:1.4,strokeLinecap:'round'}),E('line',{key:'fg2',x1:8,y1:21.9,x2:16,y2:21.9,stroke:'#cdd6e6',strokeWidth:1.4,strokeLinecap:'round'})]));
+      case 'drizzle': return wrap([].concat(cloud('#dbe3f0',0,-1.5,0.96),drops(2)));
+      case 'rain': return wrap([].concat(cloud('#dbe3f0',0,-1.5,0.96),drops(3)));
+      case 'snow': return wrap([].concat(cloud('#dbe3f0',0,-1.5,0.96),flakes()));
+      case 'thunder': return wrap([].concat(cloud('#dbe3f0',0,-1.5,0.96),[E('polygon',{key:'bolt',points:'12.6,16 9.6,21 11.7,21 10.9,24 14.4,19 12.2,19',fill:'#ffd66b'})]));
+      default: return wrap(cloud());
+    }
+  }
+  codeInfo(code, isDay){
+    const mk=(label,kind)=>({ label:label, icon:(sz)=>this.icon(kind,sz,isDay) });
+    if(code===0) return mk('Clear','sun');
+    if(code===1) return mk('Mainly Clear','partly');
+    if(code===2) return mk('Partly Cloudy','partly');
+    if(code===3) return mk('Cloudy','cloud');
+    if(code===45||code===48) return mk('Foggy','fog');
+    if(code>=51&&code<=57) return mk('Drizzle','drizzle');
+    if((code>=61&&code<=67)||(code>=80&&code<=82)) return mk('Rain','rain');
+    if((code>=71&&code<=77)||code===85||code===86) return mk('Snow','snow');
+    if(code>=95) return mk('Thunderstorms','thunder');
+    return mk('Cloudy','cloud');
+  }
+
+  buildVM(d, loc){
+    const o=this.opts();
+    const cur=d.current;
+    const rawT=cur.temperature_2m, rawDew=cur.dew_point_2m;
+    const isDay=cur.is_day===1;
+    const cScore=this.comfortScore(rawT, rawDew);
+    const cInfo=this.comfortLabel(cScore);
+    const cond=this.codeInfo(cur.weather_code, isDay);
+
+    const H=d.hourly, byDate={};
+    for(let i=0;i<H.time.length;i++){
+      const date=H.time[i].slice(0,10);
+      const hour=parseInt(H.time[i].slice(11,13),10);
+      (byDate[date]=byDate[date]||[]).push({ hour, temp:H.temperature_2m[i], rh:H.relative_humidity_2m[i], dew:H.dew_point_2m[i] });
+    }
+
+    const dates=d.daily.time.slice(0,o.days);
+    let gLo=Infinity, gHi=-Infinity;
+    const raw=dates.map((dt,i)=>{
+      const tHiF=d.daily.temperature_2m_max[i], tLoF=d.daily.temperature_2m_min[i];
+      const tHi=this.conv(tHiF), tLo=this.conv(tLoF);
+      gLo=Math.min(gLo,tLo); gHi=Math.max(gHi,tHi);
+      const hrs=byDate[dt]||[];
+      const rhs=hrs.map(h=>h.rh).filter(v=>v!=null);
+      const hHi=rhs.length?Math.round(Math.max.apply(null,rhs)):Math.round(cur.relative_humidity_2m);
+      const hLo=rhs.length?Math.round(Math.min.apply(null,rhs)):Math.round(cur.relative_humidity_2m);
+      const dayHrs=hrs.filter(h=>h.hour>=8&&h.hour<=20);
+      const pool=dayHrs.length?dayHrs:hrs;
+      const scs=pool.map(h=>this.comfortScore(h.temp,h.dew));
+      const cmf=scs.length?Math.round(scs.reduce((a,b)=>a+b,0)/scs.length):cScore;
+      return { dt,i,tHi,tLo,tHiF,tLoF,hHi,hLo,cmf,code:d.daily.weather_code[i] };
+    });
+    const span=Math.max(1,gHi-gLo);
+    const curTempDisp=this.conv(rawT);
+    const days=raw.map(r=>{
+      const ci=this.comfortLabel(r.cmf);
+      const dobj=new Date(r.dt+'T12:00:00');
+      const name=r.i===0?'Today':dobj.toLocaleDateString('en-US',{weekday:'short'});
+      return {
+        name, icon:this.codeInfo(r.code,true).icon(32),
+        tHi:r.tHi, tLo:r.tLo, hHi:r.hHi, hLo:r.hLo,
+        cmf:r.cmf, cLabel:ci.label, cColor:ci.color,
+        tLeft:Math.round(((r.tLo-gLo)/span)*1000)/10,
+        tWidth:Math.round(Math.max(8,((r.tHi-r.tLo)/span)*100)*10)/10,
+        tGrad:'linear-gradient(90deg, '+this.tempColor(r.tLoF)+', '+this.tempColor(r.tHiF)+')',
+        isToday:r.i===0,
+        curDotPct:Math.round(Math.max(0,Math.min(100,((curTempDisp-gLo)/span)*100))*10)/10,
+        hLeft:r.hLo, hWidth:Math.max(3,r.hHi-r.hLo)
+      };
+    });
+
+    const fmt=(iso)=>{ const t=new Date(iso); let h=t.getHours(); const m=t.getMinutes(); const ap=h>=12?'PM':'AM'; h=h%12||12; return h+':'+(m<10?'0'+m:m)+' '+ap; };
+
+    return {
+      locName:loc.name, region:loc.region||'',
+      curTemp:curTempDisp, curHum:Math.round(cur.relative_humidity_2m),
+      curDew:this.conv(rawDew), curFeels:this.conv(cur.apparent_temperature),
+      curWind:this.windConv(cur.wind_speed_10m), windLabel:o.windLabel,
+      windDir:this.dirLabel(cur.wind_direction_10m),
+      curCond:cond.label, curIconSmall:cond.icon(22),
+      hiToday:days[0].tHi, loToday:days[0].tLo,
+      comfortScore:cScore, comfortKey:cInfo.key, comfortLabel:cInfo.label, comfortSub:cInfo.sub, comfortColor:cInfo.color, comfortMarkerPct:cScore,
+      comfortReason:this.comfortReason(rawT, rawDew, cScore),
+      dewWord:this.dewWord(rawDew),
+      feelsNote:this.feelsNote(cur.apparent_temperature, rawT),
+      sunrise:fmt(d.daily.sunrise[0]), sunset:fmt(d.daily.sunset[0]),
+      forecastTitle:o.days+'-Day Comfort',
+      days
+    };
+  }
+
+  onQuery(e){
+    const q=e.target.value;
+    this.setState({ query:q });
+    if(this._t) clearTimeout(this._t);
+    if(q.trim().length<2){ this.setState({ results:[] }); return; }
+    this._t=setTimeout(()=>this.doSearch(q),260);
+  }
+  async doSearch(q){
+    this.setState({ searching:true });
+    try{
+      const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q)+'&count=6&language=en&format=json');
+      const j=await r.json();
+      const results=(j.results||[]).map(x=>({ name:x.name, region:[x.admin1,x.country_code].filter(Boolean).join(', '), lat:x.latitude, lon:x.longitude }));
+      this.setState({ results, searching:false });
+    }catch(e){ this.setState({ searching:false }); }
+  }
+  selectCity(c){
+    const loc={ name:c.name, region:c.region||'', lat:c.lat, lon:c.lon };
+    const saved=[loc].concat((this.state.saved||[]).filter(s=>!(Math.abs(s.lat-loc.lat)<0.02&&Math.abs(s.lon-loc.lon)<0.02))).slice(0,8);
+    this.setState({ loc, saved, searchOpen:false, query:'', results:[] }, ()=>this.persist());
+    this.fetchWeather(loc);
+  }
+  rerollMood(){
+    const key = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
+    this.setState(s=>({ moodPick: Object.assign({}, s.moodPick, { [key]: (s.moodPick[key]+1)%this.MOOD[key].quotes.length }) }));
+  }
+
+  renderVals(){
+    const vm=this.state.vm||{};
+    const mkList=(arr)=>(arr||[]).map(c=>Object.assign({}, c, { select:()=>this.selectCity(c) }));
+    const results=mkList(this.state.results);
+    const saved=mkList(this.state.saved);
+    const activeKey = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
+    const moodTiers = Object.keys(this.MOOD).map(k=>({
+      key:k, slotId:'comfort-mood-'+k, placeholder:this.MOOD[k].ph,
+      quip:this.MOOD[k].quotes[ this.state.moodPick[k] % this.MOOD[k].quotes.length ],
+      display: k===activeKey ? 'flex' : 'none'
+    }));
+    return Object.assign({}, vm, {
+      ready:!!this.state.vm,
+      loading:this.state.loading && !this.state.vm,
+      error:this.state.error,
+      bgRef:this.bgRef,
+      searchOpen:this.state.searchOpen,
+      query:this.state.query,
+      results, saved,
+      hasResults:results.length>0,
+      showSaved:saved.length>0 && results.length===0,
+      moodTiers,
+      showMood:false,
+      openSearch:()=>this.setState({ searchOpen:true }),
+      closeSearch:()=>this.setState({ searchOpen:false, query:'', results:[] }),
+      onQuery:(e)=>this.onQuery(e),
+      stop:(e)=>{ e.stopPropagation(); },
+      useMyLocation:()=>{ this.setState({ searchOpen:false }); this.tryGeo(); },
+      rerollMood:()=>this.rerollMood(),
+      retry:()=>this.fetchWeather(this.state.loc)
+    });
+  }
+}
+</script>
+</body>
+</html>
