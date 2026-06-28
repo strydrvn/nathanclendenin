@@ -8,9 +8,24 @@
 <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.json">
+<style>
+  html,body{margin:0;padding:0;background:#0e1626}
+  #cw-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:linear-gradient(180deg, oklch(0.37 0.07 235) 0%, oklch(0.47 0.072 232) 50%, oklch(0.63 0.062 226) 100%);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#fff;opacity:1;transition:opacity .5s ease}
+  #cw-splash.cw-hide{opacity:0;pointer-events:none}
+  #cw-splash .cw-name{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:0;right:0;text-align:center;font-size:12px;font-weight:700;letter-spacing:.16em;color:rgba(255,255,255,.55);text-transform:uppercase}
+  #cw-splash .cw-ring{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;animation:cwspin .8s linear infinite}
+  #cw-splash .cw-msg{font-size:15px;color:rgba(255,255,255,.7)}
+  @keyframes cwspin{to{transform:rotate(360deg)}}
+</style>
 <script src="./support.js"></script>
 </head>
 <body>
+<div id="cw-splash" aria-hidden="true">
+  <div class="cw-name">Comfort</div>
+  <div class="cw-ring"></div>
+  <div class="cw-msg">Reading the air…</div>
+</div>
+<script>setTimeout(function(){var s=document.getElementById('cw-splash');if(s){s.classList.add('cw-hide');setTimeout(function(){if(s&&s.parentNode)s.parentNode.removeChild(s);},600);}},15000);</script>
 <x-dc>
 <helmet>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
@@ -331,6 +346,14 @@ class Component extends DCLogic {
     if(this.state.vm && (!ps.vm || ps.vm.comfortScore!==this.state.vm.comfortScore || pp.bgMode!==this.props.bgMode)){
       this.applyBackground(this.state.vm.comfortScore);
     }
+    if(this.state.vm || this.state.error) this.hideSplash();
+  }
+
+  hideSplash(){
+    if(this._splashGone) return; this._splashGone=true;
+    var s=document.getElementById('cw-splash'); if(!s) return;
+    s.classList.add('cw-hide');
+    setTimeout(function(){ if(s&&s.parentNode) s.parentNode.removeChild(s); }, 600);
   }
 
   opts(){
