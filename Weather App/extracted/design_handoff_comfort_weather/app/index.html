@@ -92,7 +92,7 @@ button{font-family:inherit}
             <div style="position:absolute; top:50%; left:{{ comfortMarkerPct }}%; transform:translate(-50%,-50%); width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 0 0 3px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.3)"></div>
           </div>
           <div style="display:flex; justify-content:space-between; margin-top:7px; font-size:11px; color:rgba(255,255,255,0.5)">
-            <span>Brutal</span><span>Heaven</span>
+            <span>Ohio</span><span>Goated</span>
           </div>
           <div style="font-size:13px; color:rgba(255,255,255,0.65); margin-top:14px; line-height:1.45">{{ curTemp }}° with a <span style="color:rgba(255,255,255,0.92); font-weight:600; text-transform:capitalize">{{ dewWord }}</span> dew point of {{ curDew }}°. {{ comfortReason }}</div>
         </div>
@@ -400,13 +400,13 @@ class Component extends DCLogic {
   comfortLabel(s){
     const k=this.tierKey(s);
     const m={
-      heaven:{ label:'Heaven!', sub:'About as good as it gets', color:'#86d8ff' },
-      lovely:{ label:'Lovely', sub:'Crisp and easy out there', color:'#82e3cb' },
-      pleasant:{ label:'Pleasant', sub:'Comfortable, no complaints', color:'#a6e389' },
-      fair:{ label:'Fair', sub:'Noticeable but livable', color:'#dcd884' },
-      sticky:{ label:'Sticky', sub:'Muggy and a little close', color:'#f0c27e' },
-      muggy:{ label:'Muggy', sub:'Heavy, damp air', color:'#f0a071' },
-      brutal:{ label:'Brutal', sub:'Oppressive — stay cool', color:'#f08a8a' }
+      heaven:{ label:'Goated', sub:'About as good as it gets', color:'#86d8ff' },
+      lovely:{ label:'Fire', sub:'Crisp and easy out there', color:'#82e3cb' },
+      pleasant:{ label:'Vibing', sub:'Comfortable, no complaints', color:'#a6e389' },
+      fair:{ label:'Mid', sub:'Noticeable but livable', color:'#dcd884' },
+      sticky:{ label:'Chopped', sub:'Muggy and a little close', color:'#f0c27e' },
+      muggy:{ label:'Cooked', sub:'Heavy, damp air', color:'#f0a071' },
+      brutal:{ label:'Ohio', sub:'Oppressive — stay cool', color:'#f08a8a' }
     };
     return Object.assign({ key:k }, m[k]);
   }
