@@ -182,30 +182,38 @@ button{font-family:inherit}
             <div style="font-size:10px; color:rgba(255,255,255,0.45)">temp° · humidity%</div>
           </div>
           <sc-for list="{{ days }}" as="day" hint-placeholder-count="5">
-            <div style="display:flex; align-items:center; gap:11px; padding:11px 0; border-top:1px solid rgba(255,255,255,0.07)">
-              <div style="width:42px; font-size:16px; font-weight:600; flex-shrink:0">{{ day.name }}</div>
-              <div style="width:30px; display:flex; justify-content:center; flex-shrink:0">{{ day.icon }}</div>
-              <div style="flex:1; display:flex; flex-direction:column; gap:7px; min-width:0">
-                <div style="display:flex; align-items:center; gap:7px">
-                  <span style="width:30px; text-align:right; font-size:12px; color:rgba(255,255,255,0.6); flex-shrink:0">{{ day.tLo }}°</span>
-                  <div style="flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,0.13); position:relative">
-                    <div style="position:absolute; top:0; bottom:0; left:{{ day.tLeft }}%; width:{{ day.tWidth }}%; border-radius:3px; background:{{ day.tGrad }}"></div>
-                    <sc-if value="{{ day.isToday }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:50%; left:{{ day.curDotPct }}%; transform:translate(-50%,-50%); width:9px; height:9px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,0.25)"></div></sc-if>
+            <div style="border-top:1px solid rgba(255,255,255,0.07)">
+              <div onClick="{{ day.toggle }}" style="display:flex; align-items:center; gap:10px; padding:11px 0; cursor:pointer">
+                <div style="width:40px; font-size:16px; font-weight:600; flex-shrink:0">{{ day.name }}</div>
+                <div style="width:28px; display:flex; justify-content:center; flex-shrink:0">{{ day.icon }}</div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:7px; min-width:0">
+                  <div style="display:flex; align-items:center; gap:7px">
+                    <span style="width:30px; text-align:right; font-size:12px; color:rgba(255,255,255,0.6); flex-shrink:0">{{ day.tLo }}°</span>
+                    <div style="flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,0.13); position:relative">
+                      <div style="position:absolute; top:0; bottom:0; left:{{ day.tLeft }}%; width:{{ day.tWidth }}%; border-radius:3px; background:{{ day.tGrad }}"></div>
+                      <sc-if value="{{ day.isToday }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:50%; left:{{ day.curDotPct }}%; transform:translate(-50%,-50%); width:9px; height:9px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,0.25)"></div></sc-if>
+                    </div>
+                    <span style="width:30px; font-size:13px; font-weight:600; flex-shrink:0">{{ day.tHi }}°</span>
                   </div>
-                  <span style="width:30px; font-size:13px; font-weight:600; flex-shrink:0">{{ day.tHi }}°</span>
+                  <div style="display:flex; align-items:center; gap:7px">
+                    <span style="width:30px; text-align:right; font-size:11px; color:rgba(255,255,255,0.45); flex-shrink:0">{{ day.hLo }}%</span>
+                    <div style="flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,0.13); position:relative">
+                      <div style="position:absolute; top:0; bottom:0; left:{{ day.hLeft }}%; width:{{ day.hWidth }}%; border-radius:3px; background:linear-gradient(90deg,#a9def6,#5a8cf0)"></div>
+                    </div>
+                    <span style="width:30px; font-size:11px; color:rgba(255,255,255,0.45); flex-shrink:0">{{ day.hHi }}%</span>
+                  </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:7px">
-                  <span style="width:30px; text-align:right; font-size:11px; color:rgba(255,255,255,0.45); flex-shrink:0">{{ day.hLo }}%</span>
-                  <div style="flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,0.13); position:relative">
-                    <div style="position:absolute; top:0; bottom:0; left:{{ day.hLeft }}%; width:{{ day.hWidth }}%; border-radius:3px; background:linear-gradient(90deg,#a9def6,#5a8cf0)"></div>
-                  </div>
-                  <span style="width:30px; font-size:11px; color:rgba(255,255,255,0.45); flex-shrink:0">{{ day.hHi }}%</span>
+                <div style="width:50px; text-align:right; flex-shrink:0">
+                  <div style="font-size:13px; font-weight:600; color:{{ day.cColor }}; line-height:1.1">{{ day.cLabel }}</div>
+                  <div style="font-size:10px; color:rgba(255,255,255,0.4)">{{ day.cmf }}</div>
+                </div>
+                <div style="width:12px; flex-shrink:0; display:flex; justify-content:center; color:rgba(255,255,255,0.45); transform:{{ day.chevronRot }}; transition:transform .2s ease">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                 </div>
               </div>
-              <div style="width:56px; text-align:right; flex-shrink:0">
-                <div style="font-size:13px; font-weight:600; color:{{ day.cColor }}; line-height:1.1">{{ day.cLabel }}</div>
-                <div style="font-size:10px; color:rgba(255,255,255,0.4)">{{ day.cmf }}</div>
-              </div>
+              <sc-if value="{{ day.open }}" hint-placeholder-val="{{ false }}">
+                {{ day.detailEl }}
+              </sc-if>
             </div>
           </sc-for>
         </div>
@@ -321,7 +329,7 @@ class Component extends DCLogic {
       loc:{ name:'Durham', region:'NC', lat:35.9940, lon:-78.8986 },
       vm:null,
       searchOpen:false, query:'', results:[], searching:false,
-      saved:[], moodPick:pick
+      saved:[], moodPick:pick, openDay:null
     };
   }
 
@@ -386,15 +394,15 @@ class Component extends DCLogic {
   }
 
   async fetchWeather(loc){
-    this.setState({ loading:true, error:null });
+    this.setState({ loading:true, error:null, openDay:null });
     try{
       const o=this.opts();
       const params=new URLSearchParams({
         latitude:loc.lat, longitude:loc.lon,
         current:'temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m',
-        hourly:'temperature_2m,relative_humidity_2m,dew_point_2m',
-        daily:'temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset',
-        temperature_unit:'fahrenheit', wind_speed_unit:'mph', timezone:'auto',
+        hourly:'temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code',
+        daily:'temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,precipitation_probability_max,precipitation_sum',
+        temperature_unit:'fahrenheit', wind_speed_unit:'mph', precipitation_unit:'inch', timezone:'auto',
         forecast_days:String(o.days+1)
       });
       const res=await fetch('https://api.open-meteo.com/v1/forecast?'+params.toString());
@@ -529,6 +537,9 @@ class Component extends DCLogic {
 
   buildVM(d, loc){
     const o=this.opts();
+    const E=React.createElement;
+    const nowH=new Date().getHours();
+    const fmtHour=(hr)=>{ const ap=hr>=12?'PM':'AM'; let x=hr%12; if(x===0)x=12; return x+' '+ap; };
     const cur=d.current;
     const rawT=cur.temperature_2m, rawDew=cur.dew_point_2m;
     const isDay=cur.is_day===1;
@@ -540,7 +551,7 @@ class Component extends DCLogic {
     for(let i=0;i<H.time.length;i++){
       const date=H.time[i].slice(0,10);
       const hour=parseInt(H.time[i].slice(11,13),10);
-      (byDate[date]=byDate[date]||[]).push({ hour, temp:H.temperature_2m[i], rh:H.relative_humidity_2m[i], dew:H.dew_point_2m[i] });
+      (byDate[date]=byDate[date]||[]).push({ hour, temp:H.temperature_2m[i], rh:H.relative_humidity_2m[i], dew:H.dew_point_2m[i], pop:(H.precipitation_probability?H.precipitation_probability[i]:null), code:(H.weather_code?H.weather_code[i]:0) });
     }
 
     const dates=d.daily.time.slice(0,o.days);
@@ -557,7 +568,34 @@ class Component extends DCLogic {
       const pool=dayHrs.length?dayHrs:hrs;
       const scs=pool.map(h=>this.comfortScore(h.temp,h.dew));
       const cmf=scs.length?Math.round(scs.reduce((a,b)=>a+b,0)/scs.length):cScore;
-      return { dt,i,tHi,tLo,tHiF,tLoF,hHi,hLo,cmf,code:d.daily.weather_code[i] };
+      // per-day hourly detail: rain timing + hourly strip (built as one React element)
+      const loH=i===0?nowH:6, hiH=23;
+      const detH=hrs.filter(h=>h.hour>=loH&&h.hour<=hiH);
+      const hourEls=detH.map((h,j)=>{
+        const isDayH=h.hour>=6&&h.hour<20;
+        const pop=h.pop==null?0:Math.round(h.pop);
+        return E('div',{key:j,style:{display:'flex',flexDirection:'column',alignItems:'center',gap:'6px',flexShrink:0,minWidth:'44px',padding:'4px 0'}},[
+          E('div',{key:'l',style:{fontSize:'11px',color:'rgba(255,255,255,0.6)',whiteSpace:'nowrap'}}, (i===0&&h.hour===nowH)?'Now':fmtHour(h.hour)),
+          E('div',{key:'i',style:{height:'22px',display:'flex',alignItems:'center'}}, this.codeInfo(h.code,isDayH).icon(22)),
+          E('div',{key:'t',style:{fontSize:'13px',fontWeight:600}}, this.conv(h.temp)+'°'),
+          E('div',{key:'p',style:{fontSize:'10.5px',color:'#9fd0f5',minHeight:'13px',whiteSpace:'nowrap'}}, pop>=15?pop+'%':'')
+        ]);
+      });
+      const probs=hrs.map(h=>h.pop).filter(v=>v!=null);
+      const popMax=probs.length?Math.round(Math.max.apply(null,probs)):Math.round((d.daily.precipitation_probability_max&&d.daily.precipitation_probability_max[i])||0);
+      const wet=hrs.filter(h=>h.pop!=null&&h.pop>=40);
+      let rainText;
+      if(wet.length){ const wlo=Math.min.apply(null,wet.map(h=>h.hour)), whi=Math.max.apply(null,wet.map(h=>h.hour)); rainText='Rain likely '+fmtHour(wlo)+(whi>wlo?'–'+fmtHour(whi):'')+' · up to '+popMax+'%'; }
+      else if(popMax>=25){ rainText='Slight chance of rain · up to '+popMax+'%'; }
+      else { rainText='No rain expected'; }
+      const detailEl=E('div',{style:{padding:'2px 0 14px'}},[
+        E('div',{key:'rt',style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'12.5px',color:'rgba(255,255,255,0.82)',margin:'0 2px 12px'}},[
+          E('svg',{key:'ic',viewBox:'0 0 24 24',width:14,height:14,fill:'none',stroke:'currentColor',strokeWidth:1.7,style:{flexShrink:0,opacity:0.85}}, E('path',{d:'M7 18a5 5 0 0 1-1-9.9A6 6 0 0 1 18 8.5a4 4 0 0 1 .5 9.5z',strokeLinejoin:'round'})),
+          E('span',{key:'tx'}, rainText)
+        ]),
+        hourEls.length?E('div',{key:'st',style:{display:'flex',gap:'2px',overflowX:'auto',WebkitOverflowScrolling:'touch',padding:'2px 0 4px'}}, hourEls):E('div',{key:'st',style:{fontSize:'12px',color:'rgba(255,255,255,0.4)',padding:'2px'}},'Hourly detail unavailable')
+      ]);
+      return { dt,i,tHi,tLo,tHiF,tLoF,hHi,hLo,cmf,code:d.daily.weather_code[i], detailEl };
     });
     const span=Math.max(1,gHi-gLo);
     const curTempDisp=this.conv(rawT);
@@ -574,7 +612,8 @@ class Component extends DCLogic {
         tGrad:'linear-gradient(90deg, '+this.tempColor(r.tLoF)+', '+this.tempColor(r.tHiF)+')',
         isToday:r.i===0,
         curDotPct:Math.round(Math.max(0,Math.min(100,((curTempDisp-gLo)/span)*100))*10)/10,
-        hLeft:r.hLo, hWidth:Math.max(3,r.hHi-r.hLo)
+        hLeft:r.hLo, hWidth:Math.max(3,r.hHi-r.hLo),
+        detailEl:r.detailEl
       };
     });
 
@@ -624,12 +663,19 @@ class Component extends DCLogic {
     const key = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
     this.setState(s=>({ moodPick: Object.assign({}, s.moodPick, { [key]: (s.moodPick[key]+1)%this.MOOD[key].quotes.length }) }));
   }
+  toggleDay(i){ this.setState(s=>({ openDay: s.openDay===i ? null : i })); }
 
   renderVals(){
     const vm=this.state.vm||{};
     const mkList=(arr)=>(arr||[]).map(c=>Object.assign({}, c, { select:()=>this.selectCity(c) }));
     const results=mkList(this.state.results);
     const saved=mkList(this.state.saved);
+    const openDay=this.state.openDay;
+    const days=(vm.days||[]).map((day,i)=>Object.assign({}, day, {
+      open: openDay===i,
+      toggle: ()=>this.toggleDay(i),
+      chevronRot: openDay===i ? 'rotate(90deg)' : 'rotate(0deg)'
+    }));
     const activeKey = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
     const moodTiers = Object.keys(this.MOOD).map(k=>({
       key:k, slotId:'comfort-mood-'+k, placeholder:this.MOOD[k].ph,
@@ -641,6 +687,7 @@ class Component extends DCLogic {
       loading:this.state.loading && !this.state.vm,
       error:this.state.error,
       bgRef:this.bgRef,
+      days,
       searchOpen:this.state.searchOpen,
       query:this.state.query,
       results, saved,
