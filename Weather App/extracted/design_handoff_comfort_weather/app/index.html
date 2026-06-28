@@ -109,7 +109,7 @@ button{font-family:inherit}
           <div style="display:flex; justify-content:space-between; margin-top:7px; font-size:11px; color:rgba(255,255,255,0.5)">
             <span>Ohio</span><span>Goated</span>
           </div>
-          <div style="font-size:13px; color:rgba(255,255,255,0.65); margin-top:14px; line-height:1.45">{{ curTemp }}° with a <span style="color:rgba(255,255,255,0.92); font-weight:600; text-transform:capitalize">{{ dewWord }}</span> dew point of {{ curDew }}°. {{ comfortReason }}</div>
+          <div style="font-size:13px; color:rgba(255,255,255,0.65); margin-top:14px; line-height:1.45">{{ curTemp }}° with {{ dewArticle }} <span style="color:rgba(255,255,255,0.92); font-weight:600; text-transform:capitalize">{{ dewWord }}</span> dew point of {{ curDew }}°. {{ comfortReason }}</div>
         </div>
 
         <sc-if value="{{ showMood }}" hint-placeholder-val="{{ false }}">
@@ -449,8 +449,15 @@ class Component extends DCLogic {
     if(d<50) return 'dry'; if(d<55) return 'comfortable'; if(d<60) return 'pleasant';
     if(d<65) return 'sticky'; if(d<70) return 'humid'; if(d<75) return 'oppressive'; return 'miserable';
   }
-  comfortReason(t, dew, s){
-    if(dew>=68) return 'The mugginess is what you\u2019ll feel most.';
+  comfortReason(t, dew, s, swr, isDay){
+    const sun = (swr==null) ? 0.71 : Math.max(0, Math.min(1, swr/650));
+    // Muggy air, but the sun's load is gone \u2014 the score is decent, so say why.
+    if(dew>=65 && sun<0.25 && s>=55){
+      return isDay ? 'Out of the sun, though, it feels far easier than that number.'
+                   : 'But with the sun down, that muggy air has backed right off.';
+    }
+    if(dew>=68) return sun>=0.45 ? 'In this sun, the mugginess is what you\u2019ll feel most.'
+                                 : 'The mugginess is the main thing to expect.';
     if(t>=88) return 'The heat is the main factor today.';
     if(t<=38) return 'It\u2019s the cold driving this one.';
     if(s>=88) return 'Hard to ask for better.';
@@ -632,8 +639,9 @@ class Component extends DCLogic {
       curCond:cond.label, curIconSmall:cond.icon(22),
       hiToday:days[0].tHi, loToday:days[0].tLo,
       comfortScore:cScore, comfortKey:cInfo.key, comfortLabel:cInfo.label, comfortSub:cInfo.sub, comfortColor:cInfo.color, comfortMarkerPct:cScore,
-      comfortReason:this.comfortReason(rawT, rawDew, cScore),
+      comfortReason:this.comfortReason(rawT, rawDew, cScore, cur.shortwave_radiation, isDay),
       dewWord:this.dewWord(rawDew),
+      dewArticle:/^[aeiou]/i.test(this.dewWord(rawDew)) ? 'an' : 'a',
       feelsNote:this.feelsNote(cur.apparent_temperature, rawT),
       sunrise:fmt(d.daily.sunrise[0]), sunset:fmt(d.daily.sunset[0]),
       forecastTitle:o.days+'-Day Comfort',
