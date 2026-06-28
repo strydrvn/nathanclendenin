@@ -349,14 +349,20 @@ class Component extends DCLogic {
     // Offline-friendly: paint the last cached weather instantly (don't blank the
     // screen on launch). It's only replaced once a fresh fetch succeeds.
     try{
-      const cr = localStorage.getItem('comfortwx_cache');
-      if(cr){ const c=JSON.parse(cr); if(c && c.d){ const vm=this.buildVM(c.d, c.loc||loc, c.ts||Date.now()); this.setState({ vm, loading:false }); } }
+      const lastKey=localStorage.getItem('comfortwx_lastkey');
+      const m=this.readLocsMap();
+      let c = lastKey && m[lastKey];
+      if(!c){ try{ const old=JSON.parse(localStorage.getItem('comfortwx_cache')||'null'); if(old&&old.d) c=old; }catch(e){} }
+      if(c && c.d){ const vm=this.buildVM(c.d, c.loc||loc, c.ts||Date.now()); this.setState({ vm, loading:false }); }
     }catch(e){}
     // Always start on the last location it was set to. Only auto-detect via GPS
     // on a first-ever launch (no saved location); after that, switching is manual
     // (search, or the "use my location" button), so it stays put until changed.
     this.fetchWeather(loc);
     if(!hasSaved) this.tryGeo();
+    // Background-cache every saved location while we (probably) still have signal,
+    // so they all work offline later. Delayed so it doesn't compete with the primary load.
+    setTimeout(()=>this.prefetchSaved(), 1500);
     // Keep the "updated … ago" label honest while the app sits open.
     this._clock=setInterval(()=>{ try{ this.setState({}); }catch(e){} }, 60000);
   }
@@ -409,30 +415,73 @@ class Component extends DCLogic {
     }, ()=>{}, { timeout:8000, maximumAge:600000 });
   }
 
+  forecastUrl(loc){
+    const o=this.opts();
+    const params=new URLSearchParams({
+      latitude:loc.lat, longitude:loc.lon,
+      current:'temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m,shortwave_radiation',
+      hourly:'temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code,shortwave_radiation',
+      daily:'temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,precipitation_probability_max,precipitation_sum',
+      temperature_unit:'fahrenheit', wind_speed_unit:'mph', precipitation_unit:'inch', timezone:'auto',
+      forecast_days:String(o.days+1)
+    });
+    return 'https://api.open-meteo.com/v1/forecast?'+params.toString();
+  }
+  async getForecast(loc){
+    const res=await fetch(this.forecastUrl(loc));
+    if(!res.ok) throw new Error('Weather service unavailable');
+    const d=await res.json();
+    if(!d || !d.current) throw new Error('No data for this location');
+    return d;
+  }
   async fetchWeather(loc){
     this.setState({ loading:true, error:null, openDay:null });
     try{
-      const o=this.opts();
-      const params=new URLSearchParams({
-        latitude:loc.lat, longitude:loc.lon,
-        current:'temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m,shortwave_radiation',
-        hourly:'temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code,shortwave_radiation',
-        daily:'temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,precipitation_probability_max,precipitation_sum',
-        temperature_unit:'fahrenheit', wind_speed_unit:'mph', precipitation_unit:'inch', timezone:'auto',
-        forecast_days:String(o.days+1)
-      });
-      const res=await fetch('https://api.open-meteo.com/v1/forecast?'+params.toString());
-      if(!res.ok) throw new Error('Weather service unavailable');
-      const d=await res.json();
-      if(!d || !d.current) throw new Error('No data for this location');
+      const d=await this.getForecast(loc);
       const ts=Date.now();
       const vm=this.buildVM(d, loc, ts);
       this.setState({ vm, loading:false, error:null, offline:false });
-      try{ localStorage.setItem('comfortwx_cache', JSON.stringify({ loc, d, ts })); }catch(e){}
+      this.cacheLoc(loc, d, ts);
     }catch(e){
-      // No signal? Keep whatever's on screen (cached data) and flag it stale.
-      // Only show the error screen if we have nothing to show at all.
-      this.setState(s=>({ loading:false, offline: !!s.vm, error: s.vm ? null : ((e&&e.message)||'Could not load weather') }));
+      // No signal: fall back to THIS location's own cached forecast if we have it
+      // (prefetched while online); else keep what's on screen, error only if nothing.
+      const cached=this.readLoc(loc);
+      if(cached && cached.d){
+        const vm=this.buildVM(cached.d, cached.loc||loc, cached.ts||Date.now());
+        this.setState({ vm, loading:false, error:null, offline:true });
+      } else {
+        this.setState(s=>({ loading:false, offline: !!s.vm, error: s.vm ? null : ((e&&e.message)||'Could not load weather') }));
+      }
+    }
+  }
+  // --- per-location forecast cache (so every saved place works offline) ---
+  locKey(loc){ return (loc&&loc.lat!=null) ? (Number(loc.lat).toFixed(3)+','+Number(loc.lon).toFixed(3)) : ''; }
+  readLocsMap(){ try{ return JSON.parse(localStorage.getItem('comfortwx_locs')||'{}')||{}; }catch(e){ return {}; } }
+  readLoc(loc){ const k=this.locKey(loc); if(!k) return null; return this.readLocsMap()[k]||null; }
+  cacheLoc(loc, d, ts){
+    try{
+      const k=this.locKey(loc); if(!k) return;
+      const m=this.readLocsMap();
+      m[k]={ loc, d, ts };
+      // keep the active location + all saved ones, so storage stays bounded
+      const activeK=this.locKey(this.state.loc);
+      const keepKeys=[k, activeK].concat((this.state.saved||[]).filter(s=>s&&s.lat!=null).map(s=>this.locKey(s)));
+      const keep={}; keepKeys.forEach(kk=>{ if(kk && m[kk]) keep[kk]=m[kk]; });
+      localStorage.setItem('comfortwx_locs', JSON.stringify(keep));
+      // only the actively-viewed location is the one to restore on next launch
+      if(k===activeK) localStorage.setItem('comfortwx_lastkey', k);
+    }catch(e){}
+  }
+  async prefetchSaved(){
+    if(this._prefetched) return; this._prefetched=true;
+    const cur=this.state.loc;
+    const list=(this.state.saved||[]).filter(s=>s && !s.egg && !s.bruh && s.lat!=null);
+    for(let i=0;i<list.length;i++){
+      const loc=list[i];
+      if(cur && this.locKey(loc)===this.locKey(cur)) continue; // already loaded as the active one
+      try{ const d=await this.getForecast(loc); this.cacheLoc(loc, d, Date.now()); }
+      catch(e){ break; } // no signal — stop trying
+      await new Promise(r=>setTimeout(r, 400)); // gentle on the free API
     }
   }
 
