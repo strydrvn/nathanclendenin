@@ -399,8 +399,8 @@ class Component extends DCLogic {
       const o=this.opts();
       const params=new URLSearchParams({
         latitude:loc.lat, longitude:loc.lon,
-        current:'temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m',
-        hourly:'temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code',
+        current:'temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m,shortwave_radiation',
+        hourly:'temperature_2m,relative_humidity_2m,dew_point_2m,precipitation_probability,precipitation,weather_code,shortwave_radiation',
         daily:'temperature_2m_max,temperature_2m_min,weather_code,sunrise,sunset,precipitation_probability_max,precipitation_sum',
         temperature_unit:'fahrenheit', wind_speed_unit:'mph', precipitation_unit:'inch', timezone:'auto',
         forecast_days:String(o.days+1)
@@ -416,12 +416,16 @@ class Component extends DCLogic {
     }
   }
 
-  comfortScore(t, dew){
+  comfortScore(t, dew, swr){
     let tPen;
     if(t>=60 && t<=74) tPen=0;
     else if(t>74) tPen=(t-74)*2.2;
     else tPen=(60-t)*1.5;
-    const dPen = dew<55 ? 0 : Math.pow(dew-55,1.35)*1.15;
+    // Sunshine makes mugginess bite harder; no sun (night, clouds, dawn/dusk) eases it.
+    // shortwave_radiation (W/m^2): 0 at night, ~650+ in bright midday sun.
+    const sun = (swr==null) ? 0.71 : Math.max(0, Math.min(1, swr/650));
+    const sunFactor = 0.5 + 0.7*sun; // 0.5 (no sun) -> 1.2 (full sun); ~1.0 at moderate sun
+    const dPen = dew<55 ? 0 : Math.pow(dew-55,1.35)*1.15*sunFactor;
     return Math.max(0, Math.min(100, Math.round(100-tPen-dPen)));
   }
   tierKey(s){
@@ -543,7 +547,7 @@ class Component extends DCLogic {
     const cur=d.current;
     const rawT=cur.temperature_2m, rawDew=cur.dew_point_2m;
     const isDay=cur.is_day===1;
-    const cScore=this.comfortScore(rawT, rawDew);
+    const cScore=this.comfortScore(rawT, rawDew, cur.shortwave_radiation);
     const cInfo=this.comfortLabel(cScore);
     const cond=this.codeInfo(cur.weather_code, isDay);
 
@@ -551,7 +555,7 @@ class Component extends DCLogic {
     for(let i=0;i<H.time.length;i++){
       const date=H.time[i].slice(0,10);
       const hour=parseInt(H.time[i].slice(11,13),10);
-      (byDate[date]=byDate[date]||[]).push({ hour, temp:H.temperature_2m[i], rh:H.relative_humidity_2m[i], dew:H.dew_point_2m[i], pop:(H.precipitation_probability?H.precipitation_probability[i]:null), code:(H.weather_code?H.weather_code[i]:0) });
+      (byDate[date]=byDate[date]||[]).push({ hour, temp:H.temperature_2m[i], rh:H.relative_humidity_2m[i], dew:H.dew_point_2m[i], pop:(H.precipitation_probability?H.precipitation_probability[i]:null), code:(H.weather_code?H.weather_code[i]:0), swr:(H.shortwave_radiation?H.shortwave_radiation[i]:null) });
     }
 
     const dates=d.daily.time.slice(0,o.days);
@@ -566,7 +570,7 @@ class Component extends DCLogic {
       const hLo=rhs.length?Math.round(Math.min.apply(null,rhs)):Math.round(cur.relative_humidity_2m);
       const dayHrs=hrs.filter(h=>h.hour>=8&&h.hour<=20);
       const pool=dayHrs.length?dayHrs:hrs;
-      const scs=pool.map(h=>this.comfortScore(h.temp,h.dew));
+      const scs=pool.map(h=>this.comfortScore(h.temp,h.dew,h.swr));
       const cmf=scs.length?Math.round(scs.reduce((a,b)=>a+b,0)/scs.length):cScore;
       // per-day hourly detail: rain timing + hourly strip (built as one React element)
       const loH=i===0?nowH:6, hiH=23;
