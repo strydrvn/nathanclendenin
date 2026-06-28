@@ -260,9 +260,14 @@ button{font-family:inherit}
           <div style="margin-top:14px">
             <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.45); margin-bottom:4px">Saved</div>
             <sc-for list="{{ saved }}" as="s" hint-placeholder-count="2">
-              <button onClick="{{ s.select }}" style="display:flex; align-items:center; justify-content:space-between; width:100%; background:none; border:none; border-bottom:1px solid rgba(255,255,255,0.08); padding:12px 4px; color:#fff; font-size:15px; cursor:pointer; text-align:left">
-                <span>{{ s.name }}</span><span style="font-size:12px; color:rgba(255,255,255,0.5)">{{ s.region }}</span>
-              </button>
+              <div style="display:flex; align-items:center; gap:6px; border-bottom:1px solid rgba(255,255,255,0.08)">
+                <button onClick="{{ s.select }}" style="flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:10px; background:none; border:none; padding:12px 4px; color:#fff; font-size:15px; cursor:pointer; text-align:left">
+                  <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ s.name }}</span><span style="flex-shrink:0; font-size:12px; color:rgba(255,255,255,0.5)">{{ s.region }}</span>
+                </button>
+                <button onClick="{{ s.remove }}" aria-label="Remove saved location" style="flex-shrink:0; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border:none; border-radius:50%; color:rgba(255,255,255,0.55); cursor:pointer">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"></line><line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"></line></svg>
+                </button>
+              </div>
             </sc-for>
           </div>
         </sc-if>
@@ -671,6 +676,9 @@ class Component extends DCLogic {
     this.setState({ loc, saved, searchOpen:false, query:'', results:[] }, ()=>this.persist());
     this.fetchWeather(loc);
   }
+  removeCity(c){
+    this.setState(s=>({ saved:(s.saved||[]).filter(x=>!(x.lat===c.lat && x.lon===c.lon)) }), ()=>this.persist());
+  }
   rerollMood(){
     const key = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
     this.setState(s=>({ moodPick: Object.assign({}, s.moodPick, { [key]: (s.moodPick[key]+1)%this.MOOD[key].quotes.length }) }));
@@ -681,7 +689,7 @@ class Component extends DCLogic {
     const vm=this.state.vm||{};
     const mkList=(arr)=>(arr||[]).map(c=>Object.assign({}, c, { select:()=>this.selectCity(c) }));
     const results=mkList(this.state.results);
-    const saved=mkList(this.state.saved);
+    const saved=(this.state.saved||[]).map(c=>Object.assign({}, c, { select:()=>this.selectCity(c), remove:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.removeCity(c); } }));
     const openDay=this.state.openDay;
     const days=(vm.days||[]).map((day,i)=>Object.assign({}, day, {
       open: openDay===i,
