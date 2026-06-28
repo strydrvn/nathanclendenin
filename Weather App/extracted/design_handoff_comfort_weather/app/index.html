@@ -25,7 +25,8 @@
   <div class="cw-ring"></div>
   <div class="cw-msg">Reading the air…</div>
 </div>
-<script>setTimeout(function(){var s=document.getElementById('cw-splash');if(s){s.classList.add('cw-hide');setTimeout(function(){if(s&&s.parentNode)s.parentNode.removeChild(s);},600);}},15000);</script>
+<script>setTimeout(function(){var s=document.getElementById('cw-splash');if(s){s.classList.add('cw-hide');setTimeout(function(){if(s&&s.parentNode)s.parentNode.removeChild(s);},600);}},15000);
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js').catch(function(){});});}</script>
 <x-dc>
 <helmet>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
@@ -91,6 +92,7 @@ button{font-family:inherit}
             <span style="font-size:19px; font-weight:500">{{ curCond }}</span>
           </div>
           <div style="font-size:16px; color:rgba(255,255,255,0.85); margin-top:5px">H:{{ hiToday }}°  L:{{ loToday }}°  ·  {{ curHum }}% humidity</div>
+          <div style="font-size:11.5px; color:{{ updatedColor }}; margin-top:5px; letter-spacing:0.01em">{{ updatedLine }}</div>
         </div>
 
         <div style="margin-top:14px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.16); border-radius:22px; padding:18px 18px 20px; backdrop-filter:blur(22px) saturate(1.3); -webkit-backdrop-filter:blur(22px) saturate(1.3); box-shadow:0 8px 30px rgba(0,0,0,0.18)">
@@ -334,7 +336,7 @@ class Component extends DCLogic {
       loc:{ name:'Durham', region:'NC', lat:35.9940, lon:-78.8986 },
       vm:null,
       searchOpen:false, query:'', results:[], searching:false,
-      saved:[], moodPick:pick, openDay:null
+      saved:[], moodPick:pick, openDay:null, offline:false
     };
   }
 
@@ -344,12 +346,21 @@ class Component extends DCLogic {
       const raw = localStorage.getItem('comfortwx_v1');
       if(raw){ const s=JSON.parse(raw); if(s && s.loc){ loc=s.loc; hasSaved=true; } this.setState({ loc, saved:(s&&s.saved)||[] }); }
     }catch(e){}
+    // Offline-friendly: paint the last cached weather instantly (don't blank the
+    // screen on launch). It's only replaced once a fresh fetch succeeds.
+    try{
+      const cr = localStorage.getItem('comfortwx_cache');
+      if(cr){ const c=JSON.parse(cr); if(c && c.d){ const vm=this.buildVM(c.d, c.loc||loc, c.ts||Date.now()); this.setState({ vm, loading:false }); } }
+    }catch(e){}
     // Always start on the last location it was set to. Only auto-detect via GPS
     // on a first-ever launch (no saved location); after that, switching is manual
     // (search, or the "use my location" button), so it stays put until changed.
     this.fetchWeather(loc);
     if(!hasSaved) this.tryGeo();
+    // Keep the "updated … ago" label honest while the app sits open.
+    this._clock=setInterval(()=>{ try{ this.setState({}); }catch(e){} }, 60000);
   }
+  componentWillUnmount(){ if(this._clock) clearInterval(this._clock); }
 
   componentDidUpdate(pp, ps){
     pp = pp || {}; ps = ps || {};
@@ -414,10 +425,14 @@ class Component extends DCLogic {
       if(!res.ok) throw new Error('Weather service unavailable');
       const d=await res.json();
       if(!d || !d.current) throw new Error('No data for this location');
-      const vm=this.buildVM(d, loc);
-      this.setState({ vm, loading:false });
+      const ts=Date.now();
+      const vm=this.buildVM(d, loc, ts);
+      this.setState({ vm, loading:false, error:null, offline:false });
+      try{ localStorage.setItem('comfortwx_cache', JSON.stringify({ loc, d, ts })); }catch(e){}
     }catch(e){
-      this.setState({ loading:false, error:(e&&e.message)||'Could not load weather' });
+      // No signal? Keep whatever's on screen (cached data) and flag it stale.
+      // Only show the error screen if we have nothing to show at all.
+      this.setState(s=>({ loading:false, offline: !!s.vm, error: s.vm ? null : ((e&&e.message)||'Could not load weather') }));
     }
   }
 
@@ -563,7 +578,7 @@ class Component extends DCLogic {
     return mk('Cloudy','cloud');
   }
 
-  buildVM(d, loc){
+  buildVM(d, loc, ts){
     const o=this.opts();
     const E=React.createElement;
     const nowH=new Date().getHours();
@@ -663,8 +678,17 @@ class Component extends DCLogic {
       feelsNote:this.feelsNote(cur.apparent_temperature, rawT),
       sunrise:fmt(d.daily.sunrise[0]), sunset:fmt(d.daily.sunset[0]),
       forecastTitle:o.days+'-Day Comfort',
+      updatedTs: ts||Date.now(),
       days
     };
+  }
+  timeAgo(ts){
+    if(!ts) return '';
+    const s=Math.max(0, Math.round((Date.now()-ts)/1000));
+    if(s<60) return 'just now';
+    const m=Math.round(s/60); if(m<60) return m+' min ago';
+    const h=Math.round(m/60); if(h<24) return h+' hr ago';
+    const dd=Math.round(h/24); return dd+(dd>1?' days ago':' day ago');
   }
 
   onQuery(e){
@@ -725,6 +749,8 @@ class Component extends DCLogic {
       cLabel: this.comfortLabel(day.cmf, mode).label
     }));
     const meter=this.meterEnds(mode);
+    const offline=!!this.state.offline;
+    const ago=vm.updatedTs ? this.timeAgo(vm.updatedTs) : '';
     const activeKey = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
     const moodTiers = Object.keys(this.MOOD).map(k=>({
       key:k, slotId:'comfort-mood-'+k, placeholder:this.MOOD[k].ph,
@@ -740,6 +766,8 @@ class Component extends DCLogic {
       comfortLabel: this.state.vm ? this.comfortLabel(this.state.vm.comfortScore, mode).label : vm.comfortLabel,
       meterLo: meter[0],
       meterHi: meter[1],
+      updatedLine: ago ? ((offline?'Offline · last updated ':'Updated ')+ago) : '',
+      updatedColor: offline ? '#f0c27e' : 'rgba(255,255,255,0.5)',
       searchOpen:this.state.searchOpen,
       query:this.state.query,
       results, saved,
