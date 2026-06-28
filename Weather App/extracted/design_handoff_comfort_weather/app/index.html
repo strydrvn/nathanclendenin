@@ -203,7 +203,7 @@ button{font-family:inherit}
                     <span style="width:30px; font-size:11px; color:rgba(255,255,255,0.45); flex-shrink:0">{{ day.hHi }}%</span>
                   </div>
                 </div>
-                <div style="width:50px; text-align:right; flex-shrink:0">
+                <div style="width:64px; text-align:right; flex-shrink:0">
                   <div style="font-size:13px; font-weight:600; color:{{ day.cColor }}; line-height:1.1">{{ day.cLabel }}</div>
                   <div style="font-size:10px; color:rgba(255,255,255,0.4)">{{ day.cmf }}</div>
                 </div>
@@ -437,22 +437,31 @@ class Component extends DCLogic {
     if(s>=90)return 'heaven'; if(s>=80)return 'lovely'; if(s>=68)return 'pleasant';
     if(s>=55)return 'fair'; if(s>=42)return 'sticky'; if(s>=25)return 'muggy'; return 'brutal';
   }
-  comfortLabel(s, slang){
+  comfortLabel(s, mode){
     const k=this.tierKey(s);
     const m={
-      heaven:{ v1:'Heaven!', slang:'Goated', sub:'About as good as it gets', color:'#86d8ff' },
-      lovely:{ v1:'Lovely', slang:'Fire', sub:'Crisp and easy out there', color:'#82e3cb' },
-      pleasant:{ v1:'Pleasant', slang:'Vibing', sub:'Comfortable, no complaints', color:'#a6e389' },
-      fair:{ v1:'Fair', slang:'Mid', sub:'Noticeable but livable', color:'#dcd884' },
-      sticky:{ v1:'Sticky', slang:'Chopped', sub:'Muggy and a little close', color:'#f0c27e' },
-      muggy:{ v1:'Muggy', slang:'Cooked', sub:'Heavy, damp air', color:'#f0a071' },
-      brutal:{ v1:'Brutal', slang:'Ohio', sub:'Oppressive — stay cool', color:'#f08a8a' }
+      heaven:{ v1:'Heaven!', slang:'Goated', swiftie:'Enchanted', sub:'About as good as it gets', color:'#86d8ff' },
+      lovely:{ v1:'Lovely', slang:'Fire', swiftie:'Gorgeous', sub:'Crisp and easy out there', color:'#82e3cb' },
+      pleasant:{ v1:'Pleasant', slang:'Vibing', swiftie:'Cardigan', sub:'Comfortable, no complaints', color:'#a6e389' },
+      fair:{ v1:'Fair', slang:'Mid', swiftie:'August', sub:'Noticeable but livable', color:'#dcd884' },
+      sticky:{ v1:'Sticky', slang:'Chopped', swiftie:'Cruel', sub:'Muggy and a little close', color:'#f0c27e' },
+      muggy:{ v1:'Muggy', slang:'Cooked', swiftie:'Maroon', sub:'Heavy, damp air', color:'#f0a071' },
+      brutal:{ v1:'Brutal', slang:'Ohio', swiftie:'Great War', sub:'Oppressive — stay cool', color:'#f08a8a' }
     };
     const x=m[k];
-    return { key:k, label: slang?x.slang:x.v1, sub:x.sub, color:x.color };
+    return { key:k, label: x[mode]||x.v1, sub:x.sub, color:x.color };
   }
-  // Gen-Alpha slang is an easter egg: ON only while a "Bruh" entry is saved.
-  slangOn(){ return (this.state.saved||[]).some(s=>s && s.bruh); }
+  // Easter-egg language modes, keyed off a hidden saved entry (Bruh / Tswift).
+  langMode(){
+    const e=this.state.saved||[];
+    if(e.some(s=>s && s.egg==='swiftie')) return 'swiftie';
+    if(e.some(s=>s && (s.egg==='slang' || s.bruh))) return 'slang';
+    return 'v1';
+  }
+  meterEnds(mode){
+    const m={ v1:['Brutal','Heaven'], slang:['Ohio','Goated'], swiftie:['Great War','Enchanted'] };
+    return m[mode]||m.v1;
+  }
   dewWord(d){
     if(d<50) return 'dry'; if(d<55) return 'comfortable'; if(d<60) return 'pleasant';
     if(d<65) return 'sticky'; if(d<70) return 'humid'; if(d<75) return 'oppressive'; return 'miserable';
@@ -562,9 +571,9 @@ class Component extends DCLogic {
     const cur=d.current;
     const rawT=cur.temperature_2m, rawDew=cur.dew_point_2m;
     const isDay=cur.is_day===1;
-    const slang=this.slangOn();
+    const mode=this.langMode();
     const cScore=this.comfortScore(rawT, rawDew, cur.shortwave_radiation);
-    const cInfo=this.comfortLabel(cScore, slang);
+    const cInfo=this.comfortLabel(cScore, mode);
     const cond=this.codeInfo(cur.weather_code, isDay);
 
     const H=d.hourly, byDate={};
@@ -620,7 +629,7 @@ class Component extends DCLogic {
     const span=Math.max(1,gHi-gLo);
     const curTempDisp=this.conv(rawT);
     const days=raw.map(r=>{
-      const ci=this.comfortLabel(r.cmf, slang);
+      const ci=this.comfortLabel(r.cmf, mode);
       const dobj=new Date(r.dt+'T12:00:00');
       const name=r.i===0?'Today':dobj.toLocaleDateString('en-US',{weekday:'short'});
       return {
@@ -662,14 +671,18 @@ class Component extends DCLogic {
     const q=e.target.value;
     this.setState({ query:q });
     if(this._t) clearTimeout(this._t);
-    if(q.trim().toLowerCase()==='bruh'){ this.activateBruh(); return; } // easter egg
+    const lc=q.trim().toLowerCase();
+    if(lc==='bruh'){ this.activateEgg('slang'); return; }   // easter egg: gen-alpha
+    if(lc==='tswift'){ this.activateEgg('swiftie'); return; } // easter egg: swiftie
     if(q.trim().length<2){ this.setState({ results:[] }); return; }
     this._t=setTimeout(()=>this.doSearch(q),260);
   }
-  activateBruh(){
-    if(this.slangOn()){ this.setState({ query:'', results:[] }); return; }
-    const bruh={ name:'Bruh', region:'gen alpha', bruh:true };
-    const saved=[bruh].concat((this.state.saved||[]).filter(s=>!s.bruh)).slice(0,8);
+  activateEgg(kind){
+    if((this.state.saved||[]).some(s=>s && s.egg===kind)){ this.setState({ query:'', results:[] }); return; }
+    const meta = kind==='swiftie' ? { name:'Tswift', region:'swiftie era' } : { name:'Bruh', region:'gen alpha' };
+    const entry = Object.assign({ egg:kind }, meta);
+    // one egg at a time: drop any existing egg (incl. legacy bruh:true), put new on top
+    const saved=[entry].concat((this.state.saved||[]).filter(s=>!s.egg && !s.bruh)).slice(0,8);
     this.setState({ saved, query:'', results:[] }, ()=>this.persist());
   }
   async doSearch(q){
@@ -682,14 +695,15 @@ class Component extends DCLogic {
     }catch(e){ this.setState({ searching:false }); }
   }
   selectCity(c){
-    if(c&&c.bruh){ this.setState({ searchOpen:false, query:'', results:[] }); return; }
+    if(c && (c.egg||c.bruh)){ this.setState({ searchOpen:false, query:'', results:[] }); return; }
     const loc={ name:c.name, region:c.region||'', lat:c.lat, lon:c.lon };
     const saved=[loc].concat((this.state.saved||[]).filter(s=>!(Math.abs(s.lat-loc.lat)<0.02&&Math.abs(s.lon-loc.lon)<0.02))).slice(0,8);
     this.setState({ loc, saved, searchOpen:false, query:'', results:[] }, ()=>this.persist());
     this.fetchWeather(loc);
   }
   removeCity(c){
-    this.setState(s=>({ saved:(s.saved||[]).filter(x=> (c&&c.bruh) ? !x.bruh : !(x.lat===c.lat && x.lon===c.lon)) }), ()=>this.persist());
+    const egg = c && (c.egg||c.bruh);
+    this.setState(s=>({ saved:(s.saved||[]).filter(x=> egg ? !(x.egg||x.bruh) : !(x.lat===c.lat && x.lon===c.lon)) }), ()=>this.persist());
   }
   rerollMood(){
     const key = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
@@ -703,13 +717,14 @@ class Component extends DCLogic {
     const results=mkList(this.state.results);
     const saved=(this.state.saved||[]).map(c=>Object.assign({}, c, { select:()=>this.selectCity(c), remove:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.removeCity(c); } }));
     const openDay=this.state.openDay;
-    const slang=this.slangOn();
+    const mode=this.langMode();
     const days=(vm.days||[]).map((day,i)=>Object.assign({}, day, {
       open: openDay===i,
       toggle: ()=>this.toggleDay(i),
       chevronRot: openDay===i ? 'rotate(90deg)' : 'rotate(0deg)',
-      cLabel: this.comfortLabel(day.cmf, slang).label
+      cLabel: this.comfortLabel(day.cmf, mode).label
     }));
+    const meter=this.meterEnds(mode);
     const activeKey = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
     const moodTiers = Object.keys(this.MOOD).map(k=>({
       key:k, slotId:'comfort-mood-'+k, placeholder:this.MOOD[k].ph,
@@ -722,9 +737,9 @@ class Component extends DCLogic {
       error:this.state.error,
       bgRef:this.bgRef,
       days,
-      comfortLabel: this.state.vm ? this.comfortLabel(this.state.vm.comfortScore, slang).label : vm.comfortLabel,
-      meterLo: slang ? 'Ohio' : 'Brutal',
-      meterHi: slang ? 'Goated' : 'Heaven',
+      comfortLabel: this.state.vm ? this.comfortLabel(this.state.vm.comfortScore, mode).label : vm.comfortLabel,
+      meterLo: meter[0],
+      meterHi: meter[1],
       searchOpen:this.state.searchOpen,
       query:this.state.query,
       results, saved,
