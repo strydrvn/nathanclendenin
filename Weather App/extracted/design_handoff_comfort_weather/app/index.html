@@ -107,7 +107,7 @@ button{font-family:inherit}
             <div style="position:absolute; top:50%; left:{{ comfortMarkerPct }}%; transform:translate(-50%,-50%); width:18px; height:18px; border-radius:50%; background:#fff; box-shadow:0 0 0 3px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.3)"></div>
           </div>
           <div style="display:flex; justify-content:space-between; margin-top:7px; font-size:11px; color:rgba(255,255,255,0.5)">
-            <span>Ohio</span><span>Goated</span>
+            <span>{{ meterLo }}</span><span>{{ meterHi }}</span>
           </div>
           <div style="font-size:13px; color:rgba(255,255,255,0.65); margin-top:14px; line-height:1.45">{{ curTemp }}° with {{ dewArticle }} <span style="color:rgba(255,255,255,0.92); font-weight:600; text-transform:capitalize">{{ dewWord }}</span> dew point of {{ curDew }}°. {{ comfortReason }}</div>
         </div>
@@ -437,19 +437,22 @@ class Component extends DCLogic {
     if(s>=90)return 'heaven'; if(s>=80)return 'lovely'; if(s>=68)return 'pleasant';
     if(s>=55)return 'fair'; if(s>=42)return 'sticky'; if(s>=25)return 'muggy'; return 'brutal';
   }
-  comfortLabel(s){
+  comfortLabel(s, slang){
     const k=this.tierKey(s);
     const m={
-      heaven:{ label:'Goated', sub:'About as good as it gets', color:'#86d8ff' },
-      lovely:{ label:'Fire', sub:'Crisp and easy out there', color:'#82e3cb' },
-      pleasant:{ label:'Vibing', sub:'Comfortable, no complaints', color:'#a6e389' },
-      fair:{ label:'Mid', sub:'Noticeable but livable', color:'#dcd884' },
-      sticky:{ label:'Chopped', sub:'Muggy and a little close', color:'#f0c27e' },
-      muggy:{ label:'Cooked', sub:'Heavy, damp air', color:'#f0a071' },
-      brutal:{ label:'Ohio', sub:'Oppressive — stay cool', color:'#f08a8a' }
+      heaven:{ v1:'Heaven!', slang:'Goated', sub:'About as good as it gets', color:'#86d8ff' },
+      lovely:{ v1:'Lovely', slang:'Fire', sub:'Crisp and easy out there', color:'#82e3cb' },
+      pleasant:{ v1:'Pleasant', slang:'Vibing', sub:'Comfortable, no complaints', color:'#a6e389' },
+      fair:{ v1:'Fair', slang:'Mid', sub:'Noticeable but livable', color:'#dcd884' },
+      sticky:{ v1:'Sticky', slang:'Chopped', sub:'Muggy and a little close', color:'#f0c27e' },
+      muggy:{ v1:'Muggy', slang:'Cooked', sub:'Heavy, damp air', color:'#f0a071' },
+      brutal:{ v1:'Brutal', slang:'Ohio', sub:'Oppressive — stay cool', color:'#f08a8a' }
     };
-    return Object.assign({ key:k }, m[k]);
+    const x=m[k];
+    return { key:k, label: slang?x.slang:x.v1, sub:x.sub, color:x.color };
   }
+  // Gen-Alpha slang is an easter egg: ON only while a "Bruh" entry is saved.
+  slangOn(){ return (this.state.saved||[]).some(s=>s && s.bruh); }
   dewWord(d){
     if(d<50) return 'dry'; if(d<55) return 'comfortable'; if(d<60) return 'pleasant';
     if(d<65) return 'sticky'; if(d<70) return 'humid'; if(d<75) return 'oppressive'; return 'miserable';
@@ -559,8 +562,9 @@ class Component extends DCLogic {
     const cur=d.current;
     const rawT=cur.temperature_2m, rawDew=cur.dew_point_2m;
     const isDay=cur.is_day===1;
+    const slang=this.slangOn();
     const cScore=this.comfortScore(rawT, rawDew, cur.shortwave_radiation);
-    const cInfo=this.comfortLabel(cScore);
+    const cInfo=this.comfortLabel(cScore, slang);
     const cond=this.codeInfo(cur.weather_code, isDay);
 
     const H=d.hourly, byDate={};
@@ -616,7 +620,7 @@ class Component extends DCLogic {
     const span=Math.max(1,gHi-gLo);
     const curTempDisp=this.conv(rawT);
     const days=raw.map(r=>{
-      const ci=this.comfortLabel(r.cmf);
+      const ci=this.comfortLabel(r.cmf, slang);
       const dobj=new Date(r.dt+'T12:00:00');
       const name=r.i===0?'Today':dobj.toLocaleDateString('en-US',{weekday:'short'});
       return {
@@ -658,8 +662,15 @@ class Component extends DCLogic {
     const q=e.target.value;
     this.setState({ query:q });
     if(this._t) clearTimeout(this._t);
+    if(q.trim().toLowerCase()==='bruh'){ this.activateBruh(); return; } // easter egg
     if(q.trim().length<2){ this.setState({ results:[] }); return; }
     this._t=setTimeout(()=>this.doSearch(q),260);
+  }
+  activateBruh(){
+    if(this.slangOn()){ this.setState({ query:'', results:[] }); return; }
+    const bruh={ name:'Bruh', region:'gen alpha', bruh:true };
+    const saved=[bruh].concat((this.state.saved||[]).filter(s=>!s.bruh)).slice(0,8);
+    this.setState({ saved, query:'', results:[] }, ()=>this.persist());
   }
   async doSearch(q){
     this.setState({ searching:true });
@@ -671,13 +682,14 @@ class Component extends DCLogic {
     }catch(e){ this.setState({ searching:false }); }
   }
   selectCity(c){
+    if(c&&c.bruh){ this.setState({ searchOpen:false, query:'', results:[] }); return; }
     const loc={ name:c.name, region:c.region||'', lat:c.lat, lon:c.lon };
     const saved=[loc].concat((this.state.saved||[]).filter(s=>!(Math.abs(s.lat-loc.lat)<0.02&&Math.abs(s.lon-loc.lon)<0.02))).slice(0,8);
     this.setState({ loc, saved, searchOpen:false, query:'', results:[] }, ()=>this.persist());
     this.fetchWeather(loc);
   }
   removeCity(c){
-    this.setState(s=>({ saved:(s.saved||[]).filter(x=>!(x.lat===c.lat && x.lon===c.lon)) }), ()=>this.persist());
+    this.setState(s=>({ saved:(s.saved||[]).filter(x=> (c&&c.bruh) ? !x.bruh : !(x.lat===c.lat && x.lon===c.lon)) }), ()=>this.persist());
   }
   rerollMood(){
     const key = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
@@ -691,10 +703,12 @@ class Component extends DCLogic {
     const results=mkList(this.state.results);
     const saved=(this.state.saved||[]).map(c=>Object.assign({}, c, { select:()=>this.selectCity(c), remove:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.removeCity(c); } }));
     const openDay=this.state.openDay;
+    const slang=this.slangOn();
     const days=(vm.days||[]).map((day,i)=>Object.assign({}, day, {
       open: openDay===i,
       toggle: ()=>this.toggleDay(i),
-      chevronRot: openDay===i ? 'rotate(90deg)' : 'rotate(0deg)'
+      chevronRot: openDay===i ? 'rotate(90deg)' : 'rotate(0deg)',
+      cLabel: this.comfortLabel(day.cmf, slang).label
     }));
     const activeKey = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
     const moodTiers = Object.keys(this.MOOD).map(k=>({
@@ -708,6 +722,9 @@ class Component extends DCLogic {
       error:this.state.error,
       bgRef:this.bgRef,
       days,
+      comfortLabel: this.state.vm ? this.comfortLabel(this.state.vm.comfortScore, slang).label : vm.comfortLabel,
+      meterLo: slang ? 'Ohio' : 'Brutal',
+      meterHi: slang ? 'Goated' : 'Heaven',
       searchOpen:this.state.searchOpen,
       query:this.state.query,
       results, saved,
