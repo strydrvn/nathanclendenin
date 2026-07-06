@@ -746,11 +746,57 @@ class Component extends DCLogic {
       if(wet.length){ const wlo=Math.min.apply(null,wet.map(h=>h.hour)), whi=Math.max.apply(null,wet.map(h=>h.hour)); rainText='Rain likely '+fmtHour(wlo)+(whi>wlo?'–'+fmtHour(whi):'')+' · up to '+popMax+'%'; }
       else if(popMax>=25){ rainText='Slight chance of rain · up to '+popMax+'%'; }
       else { rainText='No rain expected'; }
+      // Overlapping temp + humidity timelines for the whole day (full 24h,
+      // even for today — past hours give context). Two scales: temp fits the
+      // day's range; humidity is fixed 0–100 so its height always means the same.
+      const chartEl=(()=>{
+        const pts=hrs.filter(h=>h.temp!=null);
+        if(pts.length<3) return null;
+        const W=336,CH=104,PL=32,PR=32,PT=10,PB=17;
+        const xOf=(hr)=>PL+(hr/23)*(W-PL-PR);
+        const temps=pts.map(h=>h.temp);
+        const tMinF=Math.min.apply(null,temps), tMaxF=Math.max.apply(null,temps);
+        const pad=Math.max(2,(tMaxF-tMinF)*0.18);
+        const tBot=tMinF-pad, tTop=tMaxF+pad;
+        const tyOf=(v)=>PT+(1-(v-tBot)/(tTop-tBot))*(CH-PT-PB);
+        const hyOf=(v)=>PT+(1-Math.max(0,Math.min(100,v))/100)*(CH-PT-PB);
+        const tLine=pts.map(h=>xOf(h.hour).toFixed(1)+','+tyOf(h.temp).toFixed(1)).join(' ');
+        const hPts2=hrs.filter(h=>h.rh!=null);
+        const hLine=hPts2.map(h=>xOf(h.hour).toFixed(1)+','+hyOf(h.rh).toFixed(1)).join(' ');
+        let yHumHi=hyOf(hHi), yHumLo=hyOf(hLo);
+        if(yHumLo-yHumHi<11) yHumLo=yHumHi+11;
+        const kids=[
+          E('polyline',{key:'hl',points:hLine,fill:'none',stroke:'#7fb2f0',strokeWidth:2,strokeLinejoin:'round',strokeLinecap:'round',opacity:0.9}),
+          E('polyline',{key:'tl',points:tLine,fill:'none',stroke:'#ffc46b',strokeWidth:2.4,strokeLinejoin:'round',strokeLinecap:'round'}),
+          E('text',{key:'tH',x:PL-5,y:tyOf(tMaxF)+3,textAnchor:'end',fontSize:9.5,fill:'#ffc46b'}, this.conv(tMaxF)+'°'),
+          E('text',{key:'tL',x:PL-5,y:tyOf(tMinF)+3,textAnchor:'end',fontSize:9.5,fill:'rgba(255,196,107,0.75)'}, this.conv(tMinF)+'°'),
+          E('text',{key:'hH',x:W-PR+5,y:yHumHi+3,textAnchor:'start',fontSize:9.5,fill:'#7fb2f0'}, hHi+'%'),
+          E('text',{key:'hL',x:W-PR+5,y:yHumLo+3,textAnchor:'start',fontSize:9.5,fill:'rgba(127,178,240,0.75)'}, hLo+'%')
+        ];
+        [[6,'6 AM'],[12,'Noon'],[18,'6 PM']].forEach(function(tk){
+          kids.push(E('line',{key:'g'+tk[0],x1:xOf(tk[0]),y1:PT,x2:xOf(tk[0]),y2:CH-PB,stroke:'rgba(255,255,255,0.08)',strokeWidth:1}));
+          kids.push(E('text',{key:'x'+tk[0],x:xOf(tk[0]),y:CH-4,textAnchor:'middle',fontSize:8.5,fill:'rgba(255,255,255,0.45)'},tk[1]));
+        });
+        if(i===0){
+          const nx=xOf(Math.min(23,nowH));
+          kids.push(E('line',{key:'nw',x1:nx,y1:PT,x2:nx,y2:CH-PB,stroke:'rgba(255,255,255,0.4)',strokeDasharray:'2 3',strokeWidth:1}));
+          const nowPt=pts.reduce((a,h)=>Math.abs(h.hour-nowH)<Math.abs(a.hour-nowH)?h:a,pts[0]);
+          kids.push(E('circle',{key:'nd',cx:xOf(nowPt.hour),cy:tyOf(nowPt.temp),r:3,fill:'#fff'}));
+        }
+        return E('div',{key:'ch',style:{margin:'0 0 10px'}},[
+          E('div',{key:'lg',style:{display:'flex',gap:'14px',alignItems:'center',fontSize:'10.5px',color:'rgba(255,255,255,0.6)',margin:'0 2px 4px'}},[
+            E('span',{key:'t',style:{display:'inline-flex',alignItems:'center',gap:'5px'}},[E('span',{key:'d',style:{width:'14px',height:'3px',borderRadius:'2px',background:'#ffc46b',display:'inline-block'}}),'Temp']),
+            E('span',{key:'h',style:{display:'inline-flex',alignItems:'center',gap:'5px'}},[E('span',{key:'d',style:{width:'14px',height:'3px',borderRadius:'2px',background:'#7fb2f0',display:'inline-block'}}),'Humidity'])
+          ]),
+          E('svg',{key:'sv',viewBox:'0 0 '+W+' '+CH,style:{width:'100%',height:'auto',display:'block'}},kids)
+        ]);
+      })();
       const detailEl=E('div',{style:{padding:'2px 0 14px'}},[
         E('div',{key:'rt',style:{display:'flex',alignItems:'center',gap:'6px',fontSize:'12.5px',color:'rgba(255,255,255,0.82)',margin:'0 2px 12px'}},[
           E('svg',{key:'ic',viewBox:'0 0 24 24',width:14,height:14,fill:'none',stroke:'currentColor',strokeWidth:1.7,style:{flexShrink:0,opacity:0.85}}, E('path',{d:'M7 18a5 5 0 0 1-1-9.9A6 6 0 0 1 18 8.5a4 4 0 0 1 .5 9.5z',strokeLinejoin:'round'})),
           E('span',{key:'tx'}, rainText)
         ]),
+        chartEl,
         hourEls.length?E('div',{key:'st',style:{display:'flex',gap:'2px',overflowX:'auto',WebkitOverflowScrolling:'touch',padding:'2px 0 4px'}}, hourEls):E('div',{key:'st',style:{fontSize:'12px',color:'rgba(255,255,255,0.4)',padding:'2px'}},'Hourly detail unavailable')
       ]);
       return { dt,i,tHi,tLo,tHiF,tLoF,hHi,hLo,cmf,kind:dayKind,code:d.daily.weather_code[i], detailEl };
