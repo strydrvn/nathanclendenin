@@ -211,6 +211,8 @@ const CATEGORIES=[
   {id:'appetizer',label:'Appetizers',  emoji:'🥗'},
   {id:'dessert',  label:'Desserts',    emoji:'🍰'},
   {id:'drink',    label:'Drinks',      emoji:'🥤'},
+  {id:'mediterranean',label:'Mediterranean',emoji:'🫒'},
+  {id:'nyt',      label:'NYT',         emoji:'🗞️'},
 ];
 
 const STORE_COLORS={
@@ -246,6 +248,8 @@ function calcUnitPrice(price,size,sizeUnit){
   return null;
 }
 const fmtUP=up=>up?`${fmt(up.value)}/${up.displayUnit}`:null;
+
+const getCats=r=>(r.categories&&r.categories.length?r.categories:[r.category||'main_dish']);
 
 function pantryStatus(ingredNorm,pantry){
   const match=Object.entries(pantry).find(([k])=>k===ingredNorm||ingredNorm.includes(k)||k.includes(ingredNorm));
@@ -647,7 +651,7 @@ function ShopView({shoppingList,setShoppingList,pantry,setPantry,entries,customS
 function AddRecipeSheet({onClose,onSave,existing}){
   const [name,setName]=useState(existing?.name||'');
   const [emoji,setEmoji]=useState(existing?.emoji||'🍝');
-  const [category,setCategory]=useState(existing?.category||'main_dish');
+  const [cats,setCats]=useState(existing?.categories?.length?existing.categories:[existing?.category||'main_dish']);
   const [ingredients,setIngredients]=useState(existing?.ingredients||[]);
   const [ingrName,setIngrName]=useState('');
   const [ingrAmt,setIngrAmt]=useState('');
@@ -700,11 +704,14 @@ function AddRecipeSheet({onClose,onSave,existing}){
       setMode('manual');
     }catch{setStatus({type:'error',msg:'Could not parse. Try pasting just the ingredients list.'});}
   }
+  function toggleCat(id){
+    setCats(prev=>prev.includes(id)?(prev.length>1?prev.filter(c=>c!==id):prev):[...prev,id]);
+  }
   function save(){
     if(!name.trim()||!ingredients.length){setStatus({type:'error',msg:!name.trim()?'Add a name.':'Add at least one ingredient.'});return;}
-    onSave({id:existing?.id||uid(),name:name.trim(),emoji,category,ingredients});
+    onSave({...(existing||{}),id:existing?.id||uid(),name:name.trim(),emoji,category:cats[0]||'main_dish',categories:cats,ingredients});
   }
-  const catLabels={main_dish:'Main Dish',breakfast:'Breakfast',appetizer:'Appetizer',dessert:'Dessert',drink:'Drink'};
+  const catOptions=CATEGORIES.filter(c=>c.id!=='all');
   return(
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="sheet" style={{maxHeight:'95vh'}}>
@@ -720,10 +727,10 @@ function AddRecipeSheet({onClose,onSave,existing}){
           <div style={{flex:1}}><div className="inp-label">Recipe Name</div><input className="inp" placeholder="e.g. Chicken Alfredo" value={name} onChange={e=>setName(e.target.value)}/></div>
         </div>
         <div style={{marginBottom:12}}>
-          <div className="inp-label">Category</div>
-          <div className="filter-row" style={{marginBottom:0}}>
-            {Object.entries(catLabels).map(([id,label])=>(
-              <button key={id} className={`filter-chip ${category===id?'active':''}`} onClick={()=>setCategory(id)}>{label}</button>
+          <div className="inp-label">Categories · tap to toggle</div>
+          <div className="filter-row" style={{marginBottom:0,flexWrap:'wrap'}}>
+            {catOptions.map(c=>(
+              <button key={c.id} className={`filter-chip ${cats.includes(c.id)?'active':''}`} onClick={()=>toggleCat(c.id)}>{c.emoji} {c.label}</button>
             ))}
           </div>
         </div>
@@ -811,7 +818,7 @@ function RecipeDetailSheet({recipe,pantry,shoppingList,setShoppingList,entries,o
     setShoppingList(prev=>[...prev,...newItems]);
     setAdded({count:newItems.length,skipped:toAdd.length-newItems.length,stocked:haveCount});
   }
-  const cat=CATEGORIES.find(c=>c.id===(recipe.category||'main_dish'));
+  const rcats=getCats(recipe).map(id=>CATEGORIES.find(c=>c.id===id)).filter(Boolean);
   return(
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="sheet">
@@ -820,7 +827,7 @@ function RecipeDetailSheet({recipe,pantry,shoppingList,setShoppingList,entries,o
           <div>
             <div style={{fontSize:28,marginBottom:2}}>{recipe.emoji}</div>
             <div className="sheet-title" style={{marginBottom:0}}>{recipe.name}</div>
-            <div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>{cat?.emoji} {cat?.label} · {recipe.ingredients.length} ingredients · {haveCount} stocked</div>
+            <div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>{rcats.map(c=>c.label).join(' · ')} · {recipe.ingredients.length} ingredients · {haveCount} stocked</div>
           </div>
           <button className="sheet-close" onClick={onClose}>×</button>
         </div>
@@ -866,7 +873,7 @@ function RecipesView({recipes,setRecipes,pantry,shoppingList,setShoppingList,ent
   const [addStatus,setAddStatus]=useState(null);
 
   const filtered=recipes.filter(r=>{
-    if(category!=='all'&&(r.category||'main_dish')!==category)return false;
+    if(category!=='all'&&!getCats(r).includes(category))return false;
     if(search&&!r.name.toLowerCase().includes(search.toLowerCase()))return false;
     return true;
   });
@@ -899,7 +906,7 @@ function RecipesView({recipes,setRecipes,pantry,shoppingList,setShoppingList,ent
   function deleteRecipe(id){setRecipes(prev=>prev.filter(r=>r.id!==id));setDetail(null);}
 
   const counts={};
-  recipes.forEach(r=>{const c=r.category||'main_dish';counts[c]=(counts[c]||0)+1;});
+  recipes.forEach(r=>{getCats(r).forEach(c=>{counts[c]=(counts[c]||0)+1;});});
 
   return(
     <div style={{paddingBottom:selectMode&&selected.size>0?80:0}}>
@@ -929,7 +936,7 @@ function RecipesView({recipes,setRecipes,pantry,shoppingList,setShoppingList,ent
             const haveCount=r.ingredients.filter(i=>pantryStatus(i.normalName,pantry)==='have').length;
             const needCount=r.ingredients.length-haveCount;
             const isSel=selected.has(r.id);
-            const cat=CATEGORIES.find(c=>c.id===(r.category||'main_dish'));
+            const rcats=getCats(r).map(id=>CATEGORIES.find(c=>c.id===id)).filter(Boolean);
             return(
               <div key={r.id} className="recipe-card" onClick={()=>selectMode?toggleSelect(r.id):setDetail(r)}
                 style={{background:isSel?'var(--green-bg)':''}}>
@@ -938,7 +945,7 @@ function RecipesView({recipes,setRecipes,pantry,shoppingList,setShoppingList,ent
                 <div className="recipe-card-info">
                   <div className="recipe-card-name">{r.name}</div>
                   <div className="recipe-card-sub">
-                    <span style={{marginRight:6}}>{cat?.emoji} {cat?.label}</span>
+                    <span style={{marginRight:6}}>{rcats.map(c=>c.label).join(' · ')}</span>
                     {haveCount>0&&<span style={{color:'var(--green)'}}>✓ {haveCount}</span>}
                     {haveCount>0&&needCount>0&&<span style={{color:'var(--muted)'}}> · </span>}
                     {needCount>0&&<span style={{color:'var(--muted)'}}>{needCount} needed</span>}
