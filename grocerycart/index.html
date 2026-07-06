@@ -251,6 +251,22 @@ const fmtUP=up=>up?`${fmt(up.value)}/${up.displayUnit}`:null;
 
 const getCats=r=>(r.categories&&r.categories.length?r.categories:[r.category||'main_dish']);
 
+function resizeImageFile(file,maxW,cb){
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const scale=Math.min(1,maxW/img.width);
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      cb(c.toDataURL('image/jpeg',0.72));
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
 function pantryStatus(ingredNorm,pantry){
   const match=Object.entries(pantry).find(([k])=>k===ingredNorm||ingredNorm.includes(k)||k.includes(ingredNorm));
   if(!match)return'none';
@@ -685,7 +701,10 @@ function AddRecipeSheet({onClose,onSave,existing}){
   function ldImageUrl(img){
     if(!img)return null;
     if(typeof img==='string')return img;
-    if(Array.isArray(img))return ldImageUrl(img[0]);
+    if(Array.isArray(img)){
+      const urls=img.map(ldImageUrl).filter(Boolean);
+      return urls.find(u=>/mediumSquare|square/i.test(u))||urls[0]||null;
+    }
     return img.contentUrl||img.url||null;
   }
   async function importFromLink(){
@@ -779,6 +798,20 @@ function AddRecipeSheet({onClose,onSave,existing}){
             <select className="inp" value={emoji} onChange={e=>setEmoji(e.target.value)} style={{width:58,textAlign:'center',fontSize:17,padding:'7px 2px'}}>{EMOJIS.map(e=><option key={e}>{e}</option>)}</select>
           </div>
           <div style={{flex:1}}><div className="inp-label">Recipe Name</div><input className="inp" placeholder="e.g. Chicken Alfredo" value={name} onChange={e=>setName(e.target.value)}/></div>
+        </div>
+        <div style={{marginBottom:10}}>
+          <div className="inp-label">Photo</div>
+          {photo?(
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <img src={photo} alt="" style={{width:56,height:56,objectFit:'cover',borderRadius:2,border:'1px solid var(--line)'}}/>
+              <button className="chip-btn" onClick={()=>setPhoto(null)}>Remove</button>
+            </div>
+          ):(
+            <div style={{position:'relative',display:'inline-block'}}>
+              <button className="chip-btn">＋ Add Photo</button>
+              <input type="file" accept="image/*" onChange={e=>{const f=e.target.files[0];if(f)resizeImageFile(f,640,setPhoto);}} style={{position:'absolute',inset:0,opacity:0,width:'100%',cursor:'pointer'}}/>
+            </div>
+          )}
         </div>
         <div style={{marginBottom:12}}>
           <div className="inp-label">Categories · tap to toggle</div>
@@ -888,9 +921,10 @@ function RecipeDetailSheet({recipe,pantry,shoppingList,setShoppingList,entries,o
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="sheet">
         <div className="sheet-handle"/>
+        {recipe.photo&&<img src={recipe.photo} alt="" style={{width:'100%',height:170,objectFit:'cover',borderRadius:2,marginBottom:12,border:'1px solid var(--line)'}}/>}
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
           <div>
-            <div style={{fontSize:28,marginBottom:2}}>{recipe.emoji}</div>
+            {!recipe.photo&&<div style={{fontSize:28,marginBottom:2}}>{recipe.emoji}</div>}
             <div className="sheet-title" style={{marginBottom:0}}>{recipe.name}</div>
             <div style={{fontSize:10,color:'var(--muted)',marginTop:2}}>{rcats.map(c=>c.label).join(' · ')} · {recipe.ingredients.length} ingredients · {haveCount} stocked</div>
           </div>
@@ -1006,7 +1040,7 @@ function RecipesView({recipes,setRecipes,pantry,shoppingList,setShoppingList,ent
               <div key={r.id} className="recipe-card" onClick={()=>selectMode?toggleSelect(r.id):setDetail(r)}
                 style={{background:isSel?'var(--green-bg)':''}}>
                 {selectMode&&<div className={`sel-circle ${isSel?'on':''}`}>{isSel&&'✓'}</div>}
-                <div className="recipe-card-icon">{r.emoji}</div>
+                {r.photo?<img className="recipe-card-icon" src={r.photo} alt="" style={{objectFit:'cover'}} loading="lazy"/>:<div className="recipe-card-icon">{r.emoji}</div>}
                 <div className="recipe-card-info">
                   <div className="recipe-card-name">{r.name}</div>
                   <div className="recipe-card-sub">
