@@ -220,6 +220,23 @@ button{font-family:inherit}
           </sc-for>
         </div>
 
+        <sc-if value="{{ radarReady }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.16); border-radius:22px; padding:14px 16px 10px; backdrop-filter:blur(22px) saturate(1.3); -webkit-backdrop-filter:blur(22px) saturate(1.3); box-shadow:0 8px 30px rgba(0,0,0,0.18)">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px">
+            <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:rgba(255,255,255,0.6); text-transform:uppercase">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"></circle><path d="M15.5 8.5a5 5 0 0 1 0 7M8.5 15.5a5 5 0 0 1 0-7" stroke-linecap="round"></path><path d="M18.4 5.6a9 9 0 0 1 0 12.8M5.6 18.4a9 9 0 0 1 0-12.8" stroke-linecap="round"></path></svg>
+              Radar
+            </div>
+            <div style="font-size:11px; color:rgba(255,255,255,0.55)">{{ radarTime }}</div>
+          </div>
+          <div style="position:relative; height:230px; border-radius:14px; overflow:hidden; background:#10182b">
+            {{ radarEl }}
+            <button onClick="{{ toggleRadar }}" aria-label="Play or pause radar loop" style="position:absolute; left:10px; bottom:10px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; background:rgba(10,16,30,0.65); border:1px solid rgba(255,255,255,0.22); border-radius:50%; color:#fff; font-size:10px; cursor:pointer; backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)">{{ radarPlayLabel }}</button>
+          </div>
+          <div style="font-size:9.5px; color:rgba(255,255,255,0.38); text-align:right; margin-top:6px">Radar © RainViewer · Map © CARTO / OSM</div>
+        </div>
+        </sc-if>
+
         <div style="display:flex; align-items:center; justify-content:center; gap:16px; margin-top:16px; font-size:12px; color:rgba(255,255,255,0.62)">
           <div style="display:flex; align-items:center; gap:6px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="15" r="3.4"></circle><line x1="4" y1="20.5" x2="20" y2="20.5" stroke-linecap="round"></line><line x1="12" y1="7.5" x2="12" y2="5" stroke-linecap="round"></line><path d="M9 10l3-3 3 3" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ sunrise }}</div>
           <div style="width:1px; height:12px; background:rgba(255,255,255,0.2)"></div>
@@ -346,7 +363,8 @@ class Component extends DCLogic {
       loc:{ name:'Durham', region:'NC', lat:35.9940, lon:-78.8986 },
       vm:null,
       searchOpen:false, query:'', results:[], searching:false,
-      saved:[], moodPick:pick, openDay:null, offline:false
+      saved:[], moodPick:pick, openDay:null, offline:false,
+      radarHost:null, radarFrames:[], radarIdx:0, radarPlaying:true
     };
   }
 
@@ -375,8 +393,15 @@ class Component extends DCLogic {
     setTimeout(()=>this.prefetchSaved(), 1500);
     // Keep the "updated … ago" label honest while the app sits open.
     this._clock=setInterval(()=>{ try{ this.setState({}); }catch(e){} }, 60000);
+    // Radar: load frame list, then advance the loop while playing & visible.
+    this.loadRadar();
+    this._radTimer=setInterval(()=>{
+      const s=this.state;
+      if(!s.radarPlaying || !s.radarFrames.length || (typeof document!=='undefined'&&document.hidden)) return;
+      this.setState(st=>({ radarIdx:(st.radarIdx+1)%st.radarFrames.length }));
+    }, 600);
   }
-  componentWillUnmount(){ if(this._clock) clearInterval(this._clock); }
+  componentWillUnmount(){ if(this._clock) clearInterval(this._clock); if(this._radTimer) clearInterval(this._radTimer); }
 
   componentDidUpdate(pp, ps){
     pp = pp || {}; ps = ps || {};
@@ -452,6 +477,7 @@ class Component extends DCLogic {
       const vm=this.buildVM(d, loc, ts);
       this.setState({ vm, loading:false, error:null, offline:false });
       this.cacheLoc(loc, d, ts);
+      this.loadRadar();
     }catch(e){
       // No signal: fall back to THIS location's own cached forecast if we have it
       // (prefetched while online); else keep what's on screen, error only if nothing.
@@ -497,7 +523,7 @@ class Component extends DCLogic {
     }
   }
 
-  comfortScore(t, dew, swr){
+  comfortParts(t, dew, swr){
     let tPen;
     if(t>=60 && t<=74) tPen=0;
     else if(t>74) tPen=(t-74)*2.2;
@@ -507,13 +533,24 @@ class Component extends DCLogic {
     const sun = (swr==null) ? 0.71 : Math.max(0, Math.min(1, swr/650));
     const sunFactor = 0.5 + 0.7*sun; // 0.5 (no sun) -> 1.2 (full sun); ~1.0 at moderate sun
     const dPen = dew<55 ? 0 : Math.pow(dew-55,1.35)*1.15*sunFactor;
-    return Math.max(0, Math.min(100, Math.round(100-tPen-dPen)));
+    return { tPen, dPen, score: Math.max(0, Math.min(100, Math.round(100-tPen-dPen))) };
+  }
+  comfortScore(t, dew, swr){ return this.comfortParts(t, dew, swr).score; }
+  // What's actually dragging the score down? Low scores get mugginess-flavored
+  // words by default, which reads wrong in Phoenix (104° at 12% humidity is not
+  // "Muggy"). If temperature is the dominant penalty and the air is dry, the
+  // words should say heat (or cold) instead.
+  comfortKind(t, dew, swr){
+    const p=this.comfortParts(t, dew, swr);
+    if(p.score>=68) return 'mix';
+    if(p.tPen>p.dPen*1.25 && dew<62) return t>67 ? 'heat' : 'cold';
+    return 'mix';
   }
   tierKey(s){
     if(s>=90)return 'heaven'; if(s>=80)return 'lovely'; if(s>=68)return 'pleasant';
     if(s>=55)return 'fair'; if(s>=42)return 'sticky'; if(s>=25)return 'muggy'; return 'brutal';
   }
-  comfortLabel(s, mode){
+  comfortLabel(s, mode, kind){
     const k=this.tierKey(s);
     const m={
       heaven:{ v1:'Heaven!', slang:'Goated', swiftie:'Enchanted', sub:'About as good as it gets', color:'#86d8ff' },
@@ -524,8 +561,17 @@ class Component extends DCLogic {
       muggy:{ v1:'Muggy', slang:'Cooked', swiftie:'Maroon', sub:'Heavy, damp air', color:'#f0a071' },
       brutal:{ v1:'Brutal', slang:'Ohio', swiftie:'Great War', sub:'Oppressive — stay cool', color:'#f08a8a' }
     };
+    // Dry heat / cold shouldn't be described as mugginess. v1 words swap;
+    // slang & swiftie labels are condition-agnostic. Subs swap in all modes.
+    const alt={
+      heat:{ fair:['Warm','Warm but manageable'], sticky:['Hot','Hot, especially in the sun'], muggy:['Scorching','Serious dry heat'], brutal:['Roasting','Dangerous heat — stay cool'] },
+      cold:{ fair:['Cool','Light-jacket weather'], sticky:['Chilly','Bundle up a bit'], muggy:['Cold','Properly cold out'], brutal:['Bitter','Biting cold — stay warm'] }
+    };
     const x=m[k];
-    return { key:k, label: x[mode]||x.v1, sub:x.sub, color:x.color };
+    let label = x[mode]||x.v1, sub = x.sub;
+    const o = alt[kind] && alt[kind][k];
+    if(o){ sub=o[1]; if(mode==='v1'||!x[mode]) label=o[0]; }
+    return { key:k, label, sub, color:x.color };
   }
   // Easter-egg language modes, keyed off a hidden saved entry (Bruh / Tswift).
   langMode(){
@@ -649,7 +695,8 @@ class Component extends DCLogic {
     const isDay=cur.is_day===1;
     const mode=this.langMode();
     const cScore=this.comfortScore(rawT, rawDew, cur.shortwave_radiation);
-    const cInfo=this.comfortLabel(cScore, mode);
+    const kindCur=this.comfortKind(rawT, rawDew, cur.shortwave_radiation);
+    const cInfo=this.comfortLabel(cScore, mode, kindCur);
     const cond=this.codeInfo(cur.weather_code, isDay);
 
     const H=d.hourly, byDate={};
@@ -671,8 +718,14 @@ class Component extends DCLogic {
       const hLo=rhs.length?Math.round(Math.min.apply(null,rhs)):Math.round(cur.relative_humidity_2m);
       const dayHrs=hrs.filter(h=>h.hour>=8&&h.hour<=20);
       const pool=dayHrs.length?dayHrs:hrs;
-      const scs=pool.map(h=>this.comfortScore(h.temp,h.dew,h.swr));
-      const cmf=scs.length?Math.round(scs.reduce((a,b)=>a+b,0)/scs.length):cScore;
+      const parts=pool.map(h=>this.comfortParts(h.temp,h.dew,h.swr));
+      const cmf=parts.length?Math.round(parts.reduce((a,b)=>a+b.score,0)/parts.length):cScore;
+      // day-level kind: same dominant-penalty test, averaged over the day's pool
+      const tPenAvg=parts.length?parts.reduce((a,b)=>a+b.tPen,0)/parts.length:0;
+      const dPenAvg=parts.length?parts.reduce((a,b)=>a+b.dPen,0)/parts.length:0;
+      const tAvg=pool.length?pool.reduce((a,h)=>a+h.temp,0)/pool.length:rawT;
+      const dAvg=pool.length?pool.reduce((a,h)=>a+h.dew,0)/pool.length:rawDew;
+      const dayKind=(cmf>=68)?'mix':((tPenAvg>dPenAvg*1.25&&dAvg<62)?(tAvg>67?'heat':'cold'):'mix');
       // per-day hourly detail: rain timing + hourly strip (built as one React element)
       const loH=i===0?nowH:6, hiH=23;
       const detH=hrs.filter(h=>h.hour>=loH&&h.hour<=hiH);
@@ -700,18 +753,18 @@ class Component extends DCLogic {
         ]),
         hourEls.length?E('div',{key:'st',style:{display:'flex',gap:'2px',overflowX:'auto',WebkitOverflowScrolling:'touch',padding:'2px 0 4px'}}, hourEls):E('div',{key:'st',style:{fontSize:'12px',color:'rgba(255,255,255,0.4)',padding:'2px'}},'Hourly detail unavailable')
       ]);
-      return { dt,i,tHi,tLo,tHiF,tLoF,hHi,hLo,cmf,code:d.daily.weather_code[i], detailEl };
+      return { dt,i,tHi,tLo,tHiF,tLoF,hHi,hLo,cmf,kind:dayKind,code:d.daily.weather_code[i], detailEl };
     });
     const span=Math.max(1,gHi-gLo);
     const curTempDisp=this.conv(rawT);
     const days=raw.map(r=>{
-      const ci=this.comfortLabel(r.cmf, mode);
+      const ci=this.comfortLabel(r.cmf, mode, r.kind);
       const dobj=new Date(r.dt+'T12:00:00');
       const name=r.i===0?'Today':dobj.toLocaleDateString('en-US',{weekday:'short'});
       return {
         name, icon:this.codeInfo(r.code,true).icon(32),
         tHi:r.tHi, tLo:r.tLo, hHi:r.hHi, hLo:r.hLo,
-        cmf:r.cmf, cLabel:ci.label, cColor:ci.color,
+        cmf:r.cmf, kind:r.kind, cLabel:ci.label, cColor:ci.color,
         tLeft:Math.round(((r.tLo-gLo)/span)*1000)/10,
         tWidth:Math.round(Math.max(8,((r.tHi-r.tLo)/span)*100)*10)/10,
         tGrad:'linear-gradient(90deg, '+this.tempColor(r.tLoF)+', '+this.tempColor(r.tHiF)+')',
@@ -732,7 +785,7 @@ class Component extends DCLogic {
       windDir:this.dirLabel(cur.wind_direction_10m),
       curCond:cond.label, curIconSmall:cond.icon(22),
       hiToday:days[0].tHi, loToday:days[0].tLo,
-      comfortScore:cScore, comfortKey:cInfo.key, comfortLabel:cInfo.label, comfortSub:cInfo.sub, comfortColor:cInfo.color, comfortMarkerPct:cScore,
+      comfortScore:cScore, comfortKey:cInfo.key, condKind:kindCur, comfortLabel:cInfo.label, comfortSub:cInfo.sub, comfortColor:cInfo.color, comfortMarkerPct:cScore,
       comfortReason:this.comfortReason(rawT, rawDew, cScore, cur.shortwave_radiation, isDay),
       dewWord:this.dewWord(rawDew),
       dewArticle:/^[aeiou]/i.test(this.dewWord(rawDew)) ? 'an' : 'a',
@@ -752,6 +805,64 @@ class Component extends DCLogic {
     const k=cool?(t-0.5)/0.5:(0.5-t)/0.5;
     const ch=0.030+k*0.088;
     return 'linear-gradient(135deg, oklch(0.40 '+ch.toFixed(3)+' '+hue+') 0%, oklch(0.56 '+(ch*0.85).toFixed(3)+' '+(cool?hue-8:hue+8)+') 100%)';
+  }
+  // --- Radar: RainViewer composite over a CARTO dark basemap. Free, no keys,
+  // no map library — for a fixed view centered on the active location we place
+  // slippy-map tiles by hand (web-mercator math) and just swap radar frames.
+  async loadRadar(){
+    if(this._radTs && Date.now()-this._radTs < 5*60*1000) return;
+    try{
+      const r=await fetch('https://api.rainviewer.com/public/weather-maps.json');
+      const j=await r.json();
+      const past=(j.radar&&j.radar.past)||[], nowc=(j.radar&&j.radar.nowcast)||[];
+      const frames=past.concat(nowc);
+      if(!j.host || !frames.length) return;
+      this._radTs=Date.now();
+      this.setState({ radarHost:j.host, radarFrames:frames, radarIdx:Math.max(0,past.length-1) });
+      // Warm the cache so the first loop plays smoothly.
+      const T=this.radarTiles();
+      if(T) frames.forEach(f=>T.list.forEach(t=>{ const im=new Image(); im.src=j.host+f.path+'/256/'+T.z+'/'+t.xm+'/'+t.y+'/2/1_1.png'; }));
+    }catch(e){}
+  }
+  radarTiles(){
+    const loc=this.state.loc;
+    if(!loc || loc.lat==null) return null;
+    const z=7, TS=256, n=Math.pow(2,z);
+    const latR=Math.max(-85,Math.min(85,Number(loc.lat)))*Math.PI/180;
+    const wx=((Number(loc.lon)+180)/360)*n*TS;
+    const wy=(1-Math.log(Math.tan(latR)+1/Math.cos(latR))/Math.PI)/2*n*TS;
+    const HW=220, HH=118; // half-size of the largest map box we render
+    const list=[];
+    for(let tx=Math.floor((wx-HW)/TS); tx<=Math.floor((wx+HW)/TS); tx++){
+      for(let ty=Math.floor((wy-HH)/TS); ty<=Math.floor((wy+HH)/TS); ty++){
+        if(ty<0||ty>=n) continue;
+        list.push({ xm:((tx%n)+n)%n, y:ty, left:tx*TS-wx, top:ty*TS-wy });
+      }
+    }
+    return { z, list };
+  }
+  buildRadarEl(){
+    const st=this.state;
+    if(!st.radarHost || !st.radarFrames.length) return null;
+    const T=this.radarTiles();
+    if(!T) return null;
+    const E=React.createElement;
+    const f=st.radarFrames[Math.min(st.radarIdx, st.radarFrames.length-1)];
+    const tileStyle=(t,extra)=>Object.assign({ position:'absolute', left:'50%', top:'50%', marginLeft:t.left+'px', marginTop:t.top+'px', width:'256px', height:'256px' }, extra||{});
+    const kids=[];
+    T.list.forEach((t,i)=>kids.push(E('img',{ key:'b'+i, src:'https://basemaps.cartocdn.com/dark_all/'+T.z+'/'+t.xm+'/'+t.y+'.png', alt:'', draggable:false, style:tileStyle(t) })));
+    T.list.forEach((t,i)=>kids.push(E('img',{ key:'r'+i+'-'+f.time, src:st.radarHost+f.path+'/256/'+T.z+'/'+t.xm+'/'+t.y+'/2/1_1.png', alt:'', draggable:false, style:tileStyle(t,{opacity:0.78}) })));
+    kids.push(E('div',{ key:'pin', style:{ position:'absolute', left:'50%', top:'50%', transform:'translate(-50%,-50%)', width:'11px', height:'11px', borderRadius:'50%', background:'#fff', boxShadow:'0 0 0 3px rgba(20,30,50,0.55), 0 0 10px rgba(0,0,0,0.5)' } }));
+    return E('div',{ style:{ position:'absolute', inset:0 } }, kids);
+  }
+  radarTimeLabel(){
+    const st=this.state;
+    if(!st.radarFrames.length) return '';
+    const f=st.radarFrames[Math.min(st.radarIdx, st.radarFrames.length-1)];
+    const diff=f.time*1000-Date.now();
+    const mins=Math.round(Math.abs(diff)/60000);
+    if(mins<5) return 'Now';
+    return diff<0 ? (mins+' min ago') : ('+'+mins+' min');
   }
   timeAgo(ts){
     if(!ts) return '';
@@ -821,7 +932,7 @@ class Component extends DCLogic {
         if(e && e.d && e.d.current){
           const cur=e.d.current;
           const sc=this.comfortScore(cur.temperature_2m, cur.dew_point_2m, cur.shortwave_radiation);
-          const ci=this.comfortLabel(sc, mode);
+          const ci=this.comfortLabel(sc, mode, this.comfortKind(cur.temperature_2m, cur.dew_point_2m, cur.shortwave_radiation));
           base.cardTemp=this.conv(cur.temperature_2m)+'°';
           base.cardWord=ci.label;
           base.cardColor=ci.color;
@@ -835,7 +946,7 @@ class Component extends DCLogic {
       open: openDay===i,
       toggle: ()=>this.toggleDay(i),
       chevronRot: openDay===i ? 'rotate(90deg)' : 'rotate(0deg)',
-      cLabel: this.comfortLabel(day.cmf, mode).label
+      cLabel: this.comfortLabel(day.cmf, mode, day.kind).label
     }));
     const meter=this.meterEnds(mode);
     const offline=!!this.state.offline;
@@ -852,11 +963,16 @@ class Component extends DCLogic {
       error:this.state.error,
       bgRef:this.bgRef,
       days,
-      comfortLabel: this.state.vm ? this.comfortLabel(this.state.vm.comfortScore, mode).label : vm.comfortLabel,
+      comfortLabel: this.state.vm ? this.comfortLabel(this.state.vm.comfortScore, mode, this.state.vm.condKind).label : vm.comfortLabel,
       meterLo: meter[0],
       meterHi: meter[1],
       updatedLine: ago ? ((offline?'Offline · last updated ':'Updated ')+ago) : '',
       updatedColor: offline ? '#f0c27e' : 'rgba(255,255,255,0.5)',
+      radarReady: !!(this.state.radarHost && this.state.radarFrames.length && this.state.vm && !offline),
+      radarEl: this.buildRadarEl(),
+      radarTime: this.radarTimeLabel(),
+      radarPlayLabel: this.state.radarPlaying ? '❚❚' : '►',
+      toggleRadar: ()=>this.setState(s=>({ radarPlaying:!s.radarPlaying })),
       searchOpen:this.state.searchOpen,
       query:this.state.query,
       results, saved,
