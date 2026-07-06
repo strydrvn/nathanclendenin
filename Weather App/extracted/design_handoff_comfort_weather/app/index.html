@@ -262,9 +262,19 @@ button{font-family:inherit}
           <div style="margin-top:14px">
             <div style="font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.45); margin-bottom:4px">Saved</div>
             <sc-for list="{{ saved }}" as="s" hint-placeholder-count="2">
-              <div style="display:flex; align-items:center; gap:6px; border-bottom:1px solid rgba(255,255,255,0.08)">
-                <button onClick="{{ s.select }}" style="flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:10px; background:none; border:none; padding:12px 4px; color:#fff; font-size:15px; cursor:pointer; text-align:left">
-                  <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ s.name }}</span><span style="flex-shrink:0; font-size:12px; color:rgba(255,255,255,0.5)">{{ s.region }}</span>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px">
+                <button onClick="{{ s.select }}" style="flex:1; min-width:0; background:{{ s.cardBg }}; border:1px solid rgba(255,255,255,0.15); border-radius:16px; padding:11px 14px; color:#fff; cursor:pointer; text-align:left; box-shadow:0 4px 14px rgba(0,0,0,0.16)">
+                  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px">
+                    <div style="min-width:0">
+                      <div style="font-size:16px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ s.name }}</div>
+                      <div style="font-size:11px; color:rgba(255,255,255,0.65); margin-top:1px">{{ s.region }}</div>
+                    </div>
+                    <div style="font-size:28px; font-weight:300; line-height:1; flex-shrink:0">{{ s.cardTemp }}</div>
+                  </div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:7px; font-size:12.5px">
+                    <span style="font-weight:700; color:{{ s.cardColor }}">{{ s.cardWord }}</span>
+                    <span style="color:rgba(255,255,255,0.75)">{{ s.cardHum }}</span>
+                  </div>
                 </button>
                 <button onClick="{{ s.remove }}" aria-label="Remove saved location" style="flex-shrink:0; width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.08); border:none; border-radius:50%; color:rgba(255,255,255,0.55); cursor:pointer">
                   <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18" stroke-linecap="round"></line><line x1="18" y1="6" x2="6" y2="18" stroke-linecap="round"></line></svg>
@@ -473,13 +483,15 @@ class Component extends DCLogic {
     }catch(e){}
   }
   async prefetchSaved(){
-    if(this._prefetched) return; this._prefetched=true;
+    // Re-runnable, but at most every 10 min so opening the list doesn't spam the API.
+    if(this._prefTs && Date.now()-this._prefTs < 10*60*1000) return;
+    this._prefTs=Date.now();
     const cur=this.state.loc;
     const list=(this.state.saved||[]).filter(s=>s && !s.egg && !s.bruh && s.lat!=null);
     for(let i=0;i<list.length;i++){
       const loc=list[i];
       if(cur && this.locKey(loc)===this.locKey(cur)) continue; // already loaded as the active one
-      try{ const d=await this.getForecast(loc); this.cacheLoc(loc, d, Date.now()); }
+      try{ const d=await this.getForecast(loc); this.cacheLoc(loc, d, Date.now()); this.setState({}); } // rerender: card fills in
       catch(e){ break; } // no signal — stop trying
       await new Promise(r=>setTimeout(r, 400)); // gentle on the free API
     }
@@ -731,6 +743,16 @@ class Component extends DCLogic {
       days
     };
   }
+  // Card tint for the saved-places list — same comfort hue logic as applyBackground,
+  // brighter and diagonal so cards read as chips of "how it feels there right now".
+  cardBg(score){
+    const t=Math.max(0,Math.min(1,score/100));
+    const cool=t>=0.5;
+    const hue=cool?234:50;
+    const k=cool?(t-0.5)/0.5:(0.5-t)/0.5;
+    const ch=0.030+k*0.088;
+    return 'linear-gradient(135deg, oklch(0.40 '+ch.toFixed(3)+' '+hue+') 0%, oklch(0.56 '+(ch*0.85).toFixed(3)+' '+(cool?hue-8:hue+8)+') 100%)';
+  }
   timeAgo(ts){
     if(!ts) return '';
     const s=Math.max(0, Math.round((Date.now()-ts)/1000));
@@ -788,9 +810,27 @@ class Component extends DCLogic {
     const vm=this.state.vm||{};
     const mkList=(arr)=>(arr||[]).map(c=>Object.assign({}, c, { select:()=>this.selectCity(c) }));
     const results=mkList(this.state.results);
-    const saved=(this.state.saved||[]).map(c=>Object.assign({}, c, { select:()=>this.selectCity(c), remove:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.removeCity(c); } }));
     const openDay=this.state.openDay;
     const mode=this.langMode();
+    const saved=(this.state.saved||[]).map(c=>{
+      const base=Object.assign({}, c, { select:()=>this.selectCity(c), remove:(e)=>{ if(e&&e.stopPropagation)e.stopPropagation(); this.removeCity(c); } });
+      base.cardTemp=''; base.cardWord=''; base.cardHum=''; base.cardColor='#fff';
+      base.cardBg='rgba(255,255,255,0.07)';
+      if(c && !c.egg && !c.bruh){
+        const e=this.readLoc(c);
+        if(e && e.d && e.d.current){
+          const cur=e.d.current;
+          const sc=this.comfortScore(cur.temperature_2m, cur.dew_point_2m, cur.shortwave_radiation);
+          const ci=this.comfortLabel(sc, mode);
+          base.cardTemp=this.conv(cur.temperature_2m)+'°';
+          base.cardWord=ci.label;
+          base.cardColor=ci.color;
+          base.cardHum=Math.round(cur.relative_humidity_2m)+'% humidity';
+          base.cardBg=this.cardBg(sc);
+        }
+      }
+      return base;
+    });
     const days=(vm.days||[]).map((day,i)=>Object.assign({}, day, {
       open: openDay===i,
       toggle: ()=>this.toggleDay(i),
@@ -824,7 +864,7 @@ class Component extends DCLogic {
       showSaved:saved.length>0 && results.length===0,
       moodTiers,
       showMood:false,
-      openSearch:()=>this.setState({ searchOpen:true }),
+      openSearch:()=>{ this.setState({ searchOpen:true }); this.prefetchSaved(); },
       closeSearch:()=>this.setState({ searchOpen:false, query:'', results:[] }),
       onQuery:(e)=>this.onQuery(e),
       stop:(e)=>{ e.stopPropagation(); },
