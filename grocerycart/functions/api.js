@@ -80,6 +80,30 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const action = url.searchParams.get('action');
 
+  if (action === 'fetchurl') {
+    const body = await request.json();
+    let target;
+    try { target = new URL(body.url); } catch {
+      return new Response(JSON.stringify({ error: 'Invalid URL' }), { status: 400, headers: JSON_HEADERS });
+    }
+    if (target.protocol !== 'https:' && target.protocol !== 'http:') {
+      return new Response(JSON.stringify({ error: 'Invalid URL' }), { status: 400, headers: JSON_HEADERS });
+    }
+    const upstream = await fetch(target.toString(), {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+        'Accept': 'text/html,application/xhtml+xml',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+      redirect: 'follow',
+    });
+    if (!upstream.ok) {
+      return new Response(JSON.stringify({ error: `Site returned ${upstream.status} — try copying the recipe text instead` }), { status: 502, headers: JSON_HEADERS });
+    }
+    const pageHtml = await upstream.text();
+    return new Response(JSON.stringify({ html: pageHtml.slice(0, 800000) }), { headers: JSON_HEADERS });
+  }
+
   if (action === 'claude') {
     if (!env.ANTHROPIC_KEY) {
       return new Response(JSON.stringify({ error: 'ANTHROPIC_KEY not configured on server' }), { status: 500, headers: JSON_HEADERS });

@@ -662,11 +662,65 @@ function AddRecipeSheet({onClose,onSave,existing}){
   const [uploadPreview,setUploadPreview]=useState(null);
   const [uploadType,setUploadType]=useState('image');
   const [uploadName,setUploadName]=useState('');
+  const [linkUrl,setLinkUrl]=useState('');
+  const [photo,setPhoto]=useState(existing?.photo||null);
 
   function addIngredient(){
     if(!ingrName.trim())return;
     setIngredients(prev=>[...prev,{id:uid(),name:ingrName.trim(),normalName:norm(ingrName.trim()),amount:ingrAmt,unit:ingrUnit}]);
     setIngrName('');setIngrAmt('');setIngrUnit('');
+  }
+  function extractRecipeLD(html){
+    const blocks=[...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)];
+    for(const m of blocks){
+      try{
+        const data=JSON.parse(m[1]);
+        const arr=Array.isArray(data)?data:(data['@graph']||[data]);
+        const rec=arr.find(x=>x&&(x['@type']==='Recipe'||(Array.isArray(x['@type'])&&x['@type'].includes('Recipe'))));
+        if(rec)return rec;
+      }catch{}
+    }
+    return null;
+  }
+  function ldImageUrl(img){
+    if(!img)return null;
+    if(typeof img==='string')return img;
+    if(Array.isArray(img))return ldImageUrl(img[0]);
+    return img.contentUrl||img.url||null;
+  }
+  async function importFromLink(){
+    const url=linkUrl.trim();
+    if(!url)return;
+    setStatus({type:'loading',msg:'Fetching page…'});
+    try{
+      const res=await fetch(getApiUrl()+'?action=fetchurl',{method:'POST',headers:{'Content-Type':'application/json','X-PriceWatch-Token':getToken()},body:JSON.stringify({url})});
+      const data=await res.json();
+      if(!res.ok||data.error)throw new Error(data.error||'Could not fetch that page');
+      const isNYT=/nytimes\.com/i.test(url);
+      const ld=extractRecipeLD(data.html);
+      let importedName=null,importedIngr=null,img=null;
+      if(ld&&ld.recipeIngredient&&ld.recipeIngredient.length){
+        importedName=ld.name||null;
+        img=ldImageUrl(ld.image);
+        setStatus({type:'loading',msg:'Parsing ingredients…'});
+        const text=await callClaude(`Parse these recipe ingredient lines into structured JSON. Return ONLY valid JSON, no markdown: {"ingredients":[{"name":"ingredient","amount":"1","unit":"cup"}]}. Core ingredient names only (e.g. "3 large eggs" → name "eggs", amount "3", unit "large").\n\n${ld.recipeIngredient.join('\n')}`);
+        try{importedIngr=JSON.parse(text.replace(/```json|```/g,'').trim()).ingredients;}
+        catch{importedIngr=ld.recipeIngredient.map(s=>({name:s,amount:'',unit:''}));}
+      }else{
+        setStatus({type:'loading',msg:'No structured data — extracting with AI…'});
+        const textOnly=data.html.replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').slice(0,16000);
+        const text=await callClaude(`Extract recipe name and all ingredients. Return ONLY valid JSON, no markdown: {"name":"Recipe Name","ingredients":[{"name":"ingredient","amount":"1","unit":"cup"}]}. Core ingredient names only. Page text:\n\n${textOnly}`);
+        const d=JSON.parse(text.replace(/```json|```/g,'').trim());
+        importedName=d.name||null;importedIngr=d.ingredients;
+      }
+      if(!importedIngr||!importedIngr.length)throw new Error('No ingredients found on that page');
+      if(importedName&&!name)setName(importedName);
+      if(img)setPhoto(img);
+      setIngredients(importedIngr.map(i=>({id:uid(),name:i.name,normalName:norm(i.name),amount:i.amount||'',unit:i.unit||''})));
+      if(isNYT)setCats(prev=>prev.includes('nyt')?prev:[...prev,'nyt']);
+      setStatus({type:'success',msg:`Imported ${importedIngr.length} ingredients${img?' + photo':''}`});
+      setMode('manual');
+    }catch(e){setStatus({type:'error',msg:e.message||'Import failed'});}
   }
   function handleUploadFile(e){
     const f=e.target.files[0];if(!f)return;
@@ -709,7 +763,7 @@ function AddRecipeSheet({onClose,onSave,existing}){
   }
   function save(){
     if(!name.trim()||!ingredients.length){setStatus({type:'error',msg:!name.trim()?'Add a name.':'Add at least one ingredient.'});return;}
-    onSave({...(existing||{}),id:existing?.id||uid(),name:name.trim(),emoji,category:cats[0]||'main_dish',categories:cats,ingredients});
+    onSave({...(existing||{}),id:existing?.id||uid(),name:name.trim(),emoji,category:cats[0]||'main_dish',categories:cats,ingredients,photo});
   }
   const catOptions=CATEGORIES.filter(c=>c.id!=='all');
   return(
@@ -736,9 +790,20 @@ function AddRecipeSheet({onClose,onSave,existing}){
         </div>
         <div style={{display:'flex',gap:6,marginBottom:12}}>
           <button className={`filter-chip ${mode==='manual'?'active':''}`} onClick={()=>setMode('manual')}>Manual</button>
+          <button className={`filter-chip ${mode==='link'?'active':''}`} onClick={()=>setMode('link')}>🔗 Link</button>
           <button className={`filter-chip ${mode==='ai'?'active':''}`} onClick={()=>setMode('ai')}>✦ Paste &amp; Parse</button>
           <button className={`filter-chip ${mode==='upload'?'active':''}`} onClick={()=>setMode('upload')}>📷 Upload</button>
         </div>
+        {mode==='link'&&(
+          <div>
+            <div className="inp-label">Recipe URL</div>
+            <input className="inp" type="url" placeholder="https://cooking.nytimes.com/recipes/…" value={linkUrl} onChange={e=>setLinkUrl(e.target.value)} onKeyDown={e=>e.key==='Enter'&&importFromLink()} style={{marginBottom:8}}/>
+            <button className="btn btn-primary" onClick={importFromLink} disabled={status?.type==='loading'||!linkUrl.trim()}>
+              {status?.type==='loading'?<><span className="spinner"/>Importing…</>:'🔗 Import Recipe'}
+            </button>
+            <p className="settings-note">Works with NYT Cooking and most recipe sites. Paywalled pages may need a gift/unlocked link.</p>
+          </div>
+        )}
         {mode==='upload'&&(
           <div>
             {!uploadPreview?(
