@@ -175,7 +175,7 @@ button{font-family:inherit}
           </div>
         </div>
 
-        <sc-if value="{{ stationReady }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ stationShow }}" hint-placeholder-val="{{ false }}">
         <div style="margin-top:12px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.16); border-radius:22px; padding:14px 16px 13px; backdrop-filter:blur(22px) saturate(1.3); -webkit-backdrop-filter:blur(22px) saturate(1.3); box-shadow:0 8px 30px rgba(0,0,0,0.18)">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px">
             <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:rgba(255,255,255,0.6); text-transform:uppercase">
@@ -184,6 +184,14 @@ button{font-family:inherit}
             </div>
             <div style="font-size:11px; color:rgba(255,255,255,0.55)">{{ stationAgo }}</div>
           </div>
+          <sc-if value="{{ stationLoading }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; align-items:center; gap:9px; padding:5px 0 4px; font-size:13px; color:rgba(255,255,255,0.6)">
+              <div style="width:15px; height:15px; border-radius:50%; border:2px solid rgba(255,255,255,0.25); border-top-color:#fff; animation:cwspin .8s linear infinite; flex-shrink:0"></div>
+              Checking nearby stations…
+            </div>
+          </sc-if>
+          <sc-if value="{{ stationReady }}" hint-placeholder-val="{{ false }}">
+          <div>
           <div style="font-size:14.5px; font-weight:600; margin-bottom:11px">{{ stationName }} <span style="font-weight:400; font-size:12px; color:rgba(255,255,255,0.55)">· {{ stationMeta }}</span></div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px 14px">
             <div>
@@ -204,6 +212,8 @@ button{font-family:inherit}
             </div>
           </div>
           <div style="font-size:12px; color:rgba(255,255,255,0.65); margin-top:11px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1); line-height:1.4">{{ stationNote }}</div>
+          </div>
+          </sc-if>
         </div>
         </sc-if>
 
@@ -397,7 +407,7 @@ class Component extends DCLogic {
       searchOpen:false, query:'', results:[], searching:false,
       saved:[], moodPick:pick, openDay:null, offline:false,
       radarHost:null, radarFrames:[], radarIdx:0, radarPlaying:true,
-      station:null
+      station:null, stationLoading:false
     };
   }
 
@@ -503,7 +513,7 @@ class Component extends DCLogic {
     return d;
   }
   async fetchWeather(loc){
-    this.setState({ loading:true, error:null, openDay:null });
+    this.setState({ loading:true, error:null, openDay:null, stationLoading:true });
     try{
       const d=await this.getForecast(loc);
       const ts=Date.now();
@@ -518,9 +528,9 @@ class Component extends DCLogic {
       const cached=this.readLoc(loc);
       if(cached && cached.d){
         const vm=this.buildVM(cached.d, cached.loc||loc, cached.ts||Date.now());
-        this.setState({ vm, loading:false, error:null, offline:true });
+        this.setState({ vm, loading:false, error:null, offline:true, stationLoading:false });
       } else {
-        this.setState(s=>({ loading:false, offline: !!s.vm, error: s.vm ? null : ((e&&e.message)||'Could not load weather') }));
+        this.setState(s=>({ loading:false, offline: !!s.vm, stationLoading:false, error: s.vm ? null : ((e&&e.message)||'Could not load weather') }));
       }
     }
   }
@@ -902,30 +912,31 @@ class Component extends DCLogic {
     return c.base ? names[c.cover]+' · '+Number(c.base).toLocaleString()+' ft' : names[c.cover];
   }
   async loadStation(loc){
-    if(!loc || loc.lat==null) return;
+    if(!loc || loc.lat==null){ this.setState({ stationLoading:false }); return; }
     const key=this.locKey(loc);
     try{
       const la=Number(loc.lat), lo=Number(loc.lon), dLat=0.36, dLon=0.45;
       const bbox=(la-dLat).toFixed(2)+','+(lo-dLon).toFixed(2)+','+(la+dLat).toFixed(2)+','+(lo+dLon).toFixed(2);
       const r=await fetch('https://cw-metar.nathan-48c.workers.dev/metar?bbox='+bbox);
       const arr=await r.json();
-      if(this.locKey(this.state.loc)!==key) return; // switched cities mid-flight
+      if(this.locKey(this.state.loc)!==key) return; // switched cities mid-flight; newer call owns the state
       let best=null;
       (Array.isArray(arr)?arr:[]).forEach(s=>{
         if(s.temp==null||s.lat==null) return;
         const d=this.haversineMi(la,lo,s.lat,s.lon);
         if(d<=30 && (!best||d<best.d)) best={ s, d };
       });
-      if(!best){ this.setState({ station:null }); return; }
+      if(!best){ this.setState({ station:null, stationLoading:false }); return; }
       const s=best.s;
-      this.setState({ station:{
+      this.setState({ stationLoading:false, station:{
+        forKey:key,
         icao:s.icaoId, name:String(s.name||s.icaoId).split(',')[0], dist:Math.max(1,Math.round(best.d)),
         tempF:s.temp*9/5+32, dewF:(s.dewp!=null?s.dewp*9/5+32:null),
         wspd:(s.wspd!=null?Math.round(s.wspd*1.15078):null), wgst:(s.wgst?Math.round(s.wgst*1.15078):null),
         wdir:s.wdir, visib:s.visib, sky:this.skyText(s.clouds),
         obsTs:(s.obsTime?s.obsTime*1000:Date.now())
       }});
-    }catch(e){}
+    }catch(e){ if(this.locKey(this.state.loc)===key) this.setState({ stationLoading:false }); }
   }
   // --- Radar: RainViewer composite over a CARTO dark basemap. Free, no keys,
   // no map library — for a fixed view centered on the active location we place
@@ -1072,6 +1083,12 @@ class Component extends DCLogic {
     const meter=this.meterEnds(mode);
     const offline=!!this.state.offline;
     const ago=vm.updatedTs ? this.timeAgo(vm.updatedTs) : '';
+    // Station report: only show a report fetched for the CURRENT location —
+    // a stale report from the previous city must never flash on screen.
+    const stKey=this.locKey(this.state.loc);
+    const st0=(this.state.station && this.state.station.forKey===stKey) ? this.state.station : null;
+    const stReady=!!(st0 && this.state.vm && !offline);
+    const stLoad=!st0 && !!this.state.stationLoading && !!this.state.vm && !offline;
     const activeKey = this.state.vm ? this.tierKey(this.state.vm.comfortScore) : 'pleasant';
     const moodTiers = Object.keys(this.MOOD).map(k=>({
       key:k, slotId:'comfort-mood-'+k, placeholder:this.MOOD[k].ph,
@@ -1089,20 +1106,22 @@ class Component extends DCLogic {
       meterHi: meter[1],
       updatedLine: ago ? ((offline?'Offline · last updated ':'Updated ')+ago) : '',
       updatedColor: offline ? '#f0c27e' : 'rgba(255,255,255,0.5)',
-      stationReady: (()=>{ const st=this.state.station; return !!(st && this.state.vm && !offline); })(),
-      stationName: (this.state.station||{}).name||'',
-      stationMeta: this.state.station ? (this.state.station.dist<=2 ? 'nearby' : this.state.station.dist+' mi away') : '',
-      stationAgo: this.state.station ? ('Measured '+this.timeAgo(this.state.station.obsTs)) : '',
-      stationWind: (()=>{ const st=this.state.station; if(!st||st.wspd==null) return '—';
-        const o2=this.opts(); const w=this.windConv(st.wspd)+' '+o2.windLabel+(isNaN(st.wdir)?'':' '+this.dirLabel(st.wdir));
-        return st.wgst ? w+' · gusts '+this.windConv(st.wgst) : w; })(),
-      stationVis: (()=>{ const st=this.state.station; if(!st||st.visib==null) return '—'; return st.visib+' mi'; })(),
-      stationSky: (this.state.station||{}).sky||'—',
-      stationTemp: (()=>{ const st=this.state.station; if(!st) return '—';
-        return this.conv(st.tempF)+'°'+(st.dewF!=null?(' · dew '+this.conv(st.dewF)+'°'):''); })(),
-      stationNote: (()=>{ const st=this.state.station, v2=this.state.vm;
-        if(!st||!v2||v2.curTempF==null) return '';
-        const diff=st.tempF-v2.curTempF, a=Math.round(Math.abs(diff));
+      stationShow: stReady || stLoad,
+      stationLoading: stLoad,
+      stationReady: stReady,
+      stationName: (st0||{}).name||'',
+      stationMeta: st0 ? (st0.dist<=2 ? 'nearby' : st0.dist+' mi away') : '',
+      stationAgo: st0 ? ('Measured '+this.timeAgo(st0.obsTs)) : '',
+      stationWind: (()=>{ if(!st0||st0.wspd==null) return '—';
+        const o2=this.opts(); const w=this.windConv(st0.wspd)+' '+o2.windLabel+(isNaN(st0.wdir)?'':' '+this.dirLabel(st0.wdir));
+        return st0.wgst ? w+' · gusts '+this.windConv(st0.wgst) : w; })(),
+      stationVis: (st0&&st0.visib!=null) ? st0.visib+' mi' : '—',
+      stationSky: (st0||{}).sky||'—',
+      stationTemp: (()=>{ if(!st0) return '—';
+        return this.conv(st0.tempF)+'°'+(st0.dewF!=null?(' · dew '+this.conv(st0.dewF)+'°'):''); })(),
+      stationNote: (()=>{ const v2=this.state.vm;
+        if(!st0||!v2||v2.curTempF==null) return '';
+        const diff=st0.tempF-v2.curTempF, a=Math.round(Math.abs(diff));
         if(a<2) return 'The station agrees with the model — good confidence in these numbers.';
         return 'Station reads '+a+'° '+(diff>0?'warmer':'cooler')+' than the model right now.'; })(),
       radarReady: !!(this.state.radarHost && this.state.radarFrames.length && this.state.vm && !offline),
