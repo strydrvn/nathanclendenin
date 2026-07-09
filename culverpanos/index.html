@@ -259,23 +259,6 @@ nav.over-poster .nav-back:hover { color: #1a1714; }
   background: #0f0e0c;
 }
 .price-card.featured .price-card-label { color: var(--accent); }
-.buy-btn {
-  display: block;
-  margin-top: 28px;
-  padding: 16px 24px;
-  background: var(--accent);
-  color: #0a0a0a;
-  text-align: center;
-  text-decoration: none;
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  border: 1px solid var(--accent);
-  transition: background .25s, color .25s;
-}
-.buy-btn:hover { background: transparent; color: var(--accent); }
 .price-card-img {
   display: block;
   width: calc(100% + 80px);
@@ -299,6 +282,44 @@ nav.over-poster .nav-back:hover { color: #1a1714; }
 .pricing-note strong { color: var(--text); font-weight: 400; }
 .pricing-note-link { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(200,169,126,.4); transition: border-color .2s; }
 .pricing-note-link:hover { border-bottom-color: var(--accent); }
+
+/* ── EDITION CLOSED BANNER ── */
+.closed-banner { text-align: center; max-width: 640px; margin: 0 auto 56px; }
+.closed-eyebrow {
+  font-size: 10px; letter-spacing: .24em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 16px;
+}
+.closed-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 300; color: var(--white);
+  margin-bottom: 20px; letter-spacing: -.01em;
+}
+.closed-body { font-size: 13px; line-height: 1.9; color: var(--text); }
+
+/* ── MAILING LIST SIGNUP ── */
+.signup-form { display: flex; flex-direction: column; gap: 12px; max-width: 380px; margin-top: 24px; }
+.signup-input {
+  width: 100%; padding: 14px 16px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: 13px;
+  transition: border-color .2s;
+}
+.signup-input::placeholder { color: var(--muted); }
+.signup-input:focus { outline: none; border-color: var(--accent); }
+.signup-btn {
+  margin-top: 4px; padding: 15px 24px;
+  background: var(--accent); color: #0a0a0a;
+  border: 1px solid var(--accent);
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  letter-spacing: .18em; text-transform: uppercase;
+  cursor: pointer; transition: background .25s, color .25s;
+}
+.signup-btn:hover:not(:disabled) { background: transparent; color: var(--accent); }
+.signup-btn:disabled { opacity: .55; cursor: default; }
+.signup-msg { margin-top: 20px; font-size: 13px; line-height: 1.8; color: var(--accent); max-width: 380px; }
 
 /* ── ABOUT ── */
 .about-section {
@@ -523,9 +544,12 @@ footer {
 <!-- PRICING -->
 <section class="pricing-section">
   <div class="pricing-inner">
-    <div class="pricing-header fade-in">
-      <div class="section-eyebrow">Pricing</div>
-      <div class="pricing-subhead">Framed Panorama — Two Sizes</div>
+    <div class="closed-banner fade-in">
+      <div class="closed-eyebrow">Culver Campus Panorama</div>
+      <h2 class="closed-title">Ordering Is Now Closed</h2>
+      <p class="closed-body">
+        Thank you to everyone who ordered a print of this limited edition. Purchasing is no longer available — but if you'd like to be the first to hear about future offerings, <a class="pricing-note-link" href="#signup">join the mailing list below</a>.
+      </p>
     </div>
     <div class="pricing-grid fade-in">
 
@@ -540,7 +564,6 @@ footer {
           <br><br>
           Local pickup available in South Bend, IN.
         </p>
-        <a class="buy-btn" href="https://buy.stripe.com/9B6bJ12O160QaNJ6jsafS02">Buy Now — $600</a>
       </div>
 
       <div class="price-card featured">
@@ -554,12 +577,11 @@ footer {
           <br><br>
           Local pickup available in South Bend, IN. Inquire about other delivery options.
         </p>
-        <a class="buy-btn" href="https://buy.stripe.com/eVq14n1JXfBq5tp37gafS03">Buy Now — $975</a>
       </div>
 
     </div>
     <p class="pricing-note fade-in">
-      <strong>Other options available.</strong> Interested in a print only (unframed), a digital download, or have a question about sizing, shipping, or anything else? Contact Nathan at <a class="pricing-note-link" href="tel:9199236834">919.923.6834</a> (call or text) — happy to help.
+      The framed panorama was offered in two sizes, printed on archival eSatin paper and finished with a black metal frame. Have a question about this edition? Contact Nathan at <a class="pricing-note-link" href="tel:9199236834">919.923.6834</a>.
     </p>
   </div>
 </section>
@@ -581,25 +603,27 @@ footer {
 </section>
 
 <!-- CTA -->
-<section class="cta-section">
+<section class="cta-section" id="signup">
   <div class="cta-craft fade-in">
     <div class="cta-eyebrow">Craftsmanship</div>
     <h3 class="cta-craft-title">Built to Last a Lifetime</h3>
     <p class="cta-craft-body">
       Printed on archival eSatin paper, this piece is designed to last — ensuring the colors remain vibrant for years to come. It is mounted on foam core for durability and framed with a sleek black metal frame from American Frame, making it a sophisticated addition to any space.
       <br><br>
-      Ready to hang, this framed print allows you to effortlessly bring a piece of Culver's timeless beauty into your home or office. Each print comes with an official signed certification placard as part of this limited edition of 25.
+      Each print comes with an official signed certification placard as part of this limited edition of 25.
     </p>
   </div>
   <div class="fade-in">
-    <p class="cta-eyebrow">Inquire or Purchase</p>
-    <p class="cta-label">To reserve your print, call or text Nathan directly</p>
-    <a class="cta-phone" href="tel:9199236834">919.923.6834</a>
-    <p class="cta-sub">Call or Text</p>
-    <p class="cta-edition">
-      Limited edition of 25 prints · Each digitally signed &amp; certified<br>
-      Framed prints in two sizes · Unframed and digital options available on request
-    </p>
+    <p class="cta-eyebrow">Future Offerings</p>
+    <h3 class="cta-craft-title">Join the Mailing List</h3>
+    <p class="cta-label">This edition has closed, but more work is on the way. Add your name and I'll reach out when new prints are available — no spam, just the occasional note.</p>
+    <form id="signup-form" class="signup-form">
+      <input class="signup-input" type="text"  name="name"  placeholder="Full name"      autocomplete="name"  required>
+      <input class="signup-input" type="email" name="email" placeholder="Email address"   autocomplete="email" required>
+      <input class="signup-input" type="tel"   name="cell"  placeholder="Cell number"     autocomplete="tel"   required>
+      <button class="signup-btn" type="submit">Join the Mailing List</button>
+    </form>
+    <p id="signup-msg" class="signup-msg" hidden></p>
   </div>
 </section>
 
@@ -624,6 +648,35 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 
 document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// ── Mailing list signup ──
+// Paste your Google Apps Script Web App URL (ends in /exec) between the quotes to go live.
+const SIGNUP_ENDPOINT = '';
+const signupForm = document.getElementById('signup-form');
+if (signupForm) {
+  const msg = document.getElementById('signup-msg');
+  const showMsg = (text) => { signupForm.hidden = true; msg.hidden = false; msg.textContent = text; };
+  signupForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!SIGNUP_ENDPOINT) {
+      showMsg("Thanks for your interest! To join the list, please text or email Nathan at 919.923.6834 — the sign-up form will be live shortly.");
+      return;
+    }
+    const btn = signupForm.querySelector('.signup-btn');
+    btn.disabled = true; btn.textContent = 'Joining…';
+    fetch(SIGNUP_ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: new URLSearchParams(new FormData(signupForm)),
+    })
+      .then(() => showMsg("You're on the list — thank you! I'll be in touch about future prints."))
+      .catch(() => {
+        btn.disabled = false; btn.textContent = 'Join the Mailing List';
+        msg.hidden = false;
+        msg.textContent = "Something went wrong. Please text Nathan at 919.923.6834 and I'll add you.";
+      });
+  });
+}
 </script>
 </body>
 </html>
