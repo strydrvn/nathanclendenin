@@ -328,6 +328,12 @@ nav.over-poster .nav-back:hover { color: #1a1714; }
 .signup-btn:hover:not(:disabled) { background: transparent; color: var(--accent); }
 .signup-btn:disabled { opacity: .55; cursor: default; }
 .signup-msg { margin: 20px auto 0; font-size: 13px; line-height: 1.8; color: var(--accent); max-width: 380px; }
+.signup-ok {
+  padding: 18px 24px;
+  background: rgba(140,170,115,.15);
+  border: 1px solid rgba(140,170,115,.45);
+  color: #a9c78d;
+}
 
 /* ── ABOUT ── */
 .about-section {
@@ -491,6 +497,7 @@ footer {
   .price-card { background: #ffffff; border-color: var(--line); }
   .price-card.featured { background: #fdf9f5; }
   .pricing-section { background: var(--surface); }
+  .signup-ok { color: #4f6b37; }
 
   footer { background: var(--bg); border-top-color: var(--line); }
   .footer-copy { color: var(--muted); }
@@ -663,7 +670,12 @@ const SIGNUP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzEZSKFBFOQKI9g
 const signupForm = document.getElementById('signup-form');
 if (signupForm) {
   const msg = document.getElementById('signup-msg');
-  const showMsg = (text) => { signupForm.hidden = true; msg.hidden = false; msg.textContent = text; };
+  const showMsg = (text, ok) => {
+    signupForm.style.display = 'none';
+    msg.hidden = false;
+    msg.textContent = text;
+    msg.classList.toggle('signup-ok', !!ok);
+  };
   signupForm.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!SIGNUP_ENDPOINT) {
@@ -677,7 +689,7 @@ if (signupForm) {
       mode: 'no-cors',
       body: new URLSearchParams(new FormData(signupForm)),
     })
-      .then(() => showMsg("You're on the list — thank you! I'll be in touch about future prints."))
+      .then(() => showMsg("✓  You're on the list — thank you! I'll be in touch about future prints.", true))
       .catch(() => {
         btn.disabled = false; btn.textContent = 'Join the Mailing List';
         msg.hidden = false;
