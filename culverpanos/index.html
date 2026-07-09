@@ -298,7 +298,15 @@ nav.over-poster .nav-back:hover { color: #1a1714; }
 .closed-body { font-size: 13px; line-height: 1.9; color: var(--text); }
 
 /* ── MAILING LIST SIGNUP ── */
-.signup-form { display: flex; flex-direction: column; gap: 12px; max-width: 380px; margin-top: 24px; }
+.signup-box {
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 44px 40px;
+  background: rgba(200,169,126,.06);
+  border: 1px solid rgba(200,169,126,.22);
+  text-align: center;
+}
+.signup-form { display: flex; flex-direction: column; gap: 12px; max-width: 380px; margin: 24px auto 0; }
 .signup-input {
   width: 100%; padding: 14px 16px;
   background: rgba(255,255,255,.03);
@@ -319,7 +327,7 @@ nav.over-poster .nav-back:hover { color: #1a1714; }
 }
 .signup-btn:hover:not(:disabled) { background: transparent; color: var(--accent); }
 .signup-btn:disabled { opacity: .55; cursor: default; }
-.signup-msg { margin-top: 20px; font-size: 13px; line-height: 1.8; color: var(--accent); max-width: 380px; }
+.signup-msg { margin: 20px auto 0; font-size: 13px; line-height: 1.8; color: var(--accent); max-width: 380px; }
 
 /* ── ABOUT ── */
 .about-section {
@@ -613,7 +621,7 @@ footer {
       Each print comes with an official signed certification placard as part of this limited edition of 25.
     </p>
   </div>
-  <div class="fade-in">
+  <div class="signup-box fade-in">
     <p class="cta-eyebrow">Future Offerings</p>
     <h3 class="cta-craft-title">Join the Mailing List</h3>
     <p class="cta-label">This edition has closed, but more work is on the way. Add your name and I'll reach out when new prints are available — no spam, just the occasional note.</p>
