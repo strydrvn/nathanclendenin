@@ -4,10 +4,11 @@
 // are cache-first (immutable). Weather/geocoding APIs are never cached here —
 // the app caches the last parsed forecast itself (localStorage) so it can show
 // the last screen with no signal.
-const CACHE = 'comfortwx-v1';
+const CACHE = 'comfortwx-v2';
 const SHELL = [
   './', './index.html', './support.js', './image-slot.js', './manifest.json',
   './apple-touch-icon.png', './icon-192.png', './icon-512.png', './icon.svg',
+  './apple-touch-icon-night.png', './icon-night-192.png', './icon-night-512.png', './icon-night.svg',
   'https://unpkg.com/react@18.3.1/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js',
   'https://unpkg.com/@babel/standalone@7.26.4/babel.min.js'

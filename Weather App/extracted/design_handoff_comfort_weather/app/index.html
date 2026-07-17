@@ -8,6 +8,22 @@
 <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="manifest" href="./manifest.json">
+<script>
+// Night icon: before 6 AM / after 8 PM local, swap the favicon + touch icon
+// to the crescent-moon variant. (iOS snapshots the touch icon at
+// add-to-home-screen time, so home-screen icons keep whichever was active.)
+(function(){
+  var h=new Date().getHours();
+  if(h>=6 && h<20) return;
+  document.querySelectorAll('link[rel="apple-touch-icon"],link[rel="icon"]').forEach(function(l){
+    var href=l.getAttribute('href')||'';
+    if(l.rel==='apple-touch-icon') l.href='./apple-touch-icon-night.png';
+    else if(href.indexOf('.svg')>-1) l.href='./icon-night.svg';
+    else if(l.getAttribute('sizes')==='192x192') l.href='./icon-night-192.png';
+    else if(l.getAttribute('sizes')==='512x512') l.href='./icon-night-512.png';
+  });
+})();
+</script>
 <style>
   html,body{margin:0;padding:0;background:#0e1626}
   #cw-splash{position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:linear-gradient(180deg, oklch(0.37 0.07 235) 0%, oklch(0.47 0.072 232) 50%, oklch(0.63 0.062 226) 100%);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#fff;opacity:1;transition:opacity .5s ease}
