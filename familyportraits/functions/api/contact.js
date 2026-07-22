@@ -17,6 +17,22 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: false, error: 'Name, email, and message are required.' }, 400);
   }
 
+  if (env.TURNSTILE_SECRET_KEY) {
+    const tsToken = (form.get('cf-turnstile-response') || '').toString();
+    if (!tsToken) return json({ ok: false, error: 'Human verification missing — please reload and try again.' }, 400);
+    const tsResp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        secret: env.TURNSTILE_SECRET_KEY,
+        response: tsToken,
+        remoteip: request.headers.get('CF-Connecting-IP') || '',
+      }),
+    });
+    const tsData = await tsResp.json().catch(() => ({ success: false }));
+    if (!tsData.success) return json({ ok: false, error: 'Human verification failed — please reload and try again.' }, 400);
+  }
+
   const replyTo = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? email : null;
 
   const fields = [
