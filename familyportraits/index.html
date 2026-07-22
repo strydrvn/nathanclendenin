@@ -770,8 +770,6 @@
     }, { passive: true });
 
     // ── Booking form ──
-    // Paste your Google Apps Script /exec URL here to receive submissions:
-    const BOOKING_ENDPOINT = '';
     const bookingForm = document.getElementById('booking-form');
     if (bookingForm) {
       const bookingMsg = document.getElementById('booking-msg');
@@ -786,16 +784,21 @@
         const btn = bookingForm.querySelector('.form-btn');
         btn.disabled = true;
         btn.textContent = 'Sending…';
-        if (!BOOKING_ENDPOINT) {
-          showMsg('✓ Thanks — I\'ll be in touch within a day or two to confirm your spot!', true);
-          return;
-        }
-        fetch(BOOKING_ENDPOINT, {
+        fetch('/api/contact', {
           method: 'POST',
-          mode: 'no-cors',
-          body: new URLSearchParams(new FormData(bookingForm)),
+          body: new FormData(bookingForm),
         })
-          .then(() => showMsg('✓ Inquiry received — I\'ll be in touch shortly!', true))
+          .then(r => r.json())
+          .then(data => {
+            if (data.ok) {
+              showMsg('✓ Inquiry received — I\'ll be in touch shortly!', true);
+            } else {
+              btn.disabled = false;
+              btn.textContent = 'Send Inquiry';
+              bookingMsg.hidden = false;
+              bookingMsg.textContent = data.error || 'Something went wrong. Please try again.';
+            }
+          })
           .catch(() => {
             btn.disabled = false;
             btn.textContent = 'Send Inquiry';
