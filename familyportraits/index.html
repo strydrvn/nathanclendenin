@@ -455,6 +455,70 @@
 
     .cta-btn:hover { background: var(--olive-dark); }
 
+    /* ─── BOOKING FORM ───────────────────────────────── */
+
+    .booking-form {
+      max-width: 520px;
+      margin: 2.5rem auto 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      text-align: left;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .form-input {
+      width: 100%;
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 0.88rem;
+      color: var(--black);
+      background: var(--white);
+      border: 1px solid var(--rule);
+      padding: 0.85rem 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .form-input:focus { border-color: var(--olive); }
+    .form-input::placeholder { color: var(--gray-mid); }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: 'Jost', sans-serif;
+    }
+
+    .form-btn {
+      font-family: 'Jost', sans-serif;
+      font-weight: 400;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--white);
+      background: var(--olive);
+      border: none;
+      padding: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .form-btn:hover { background: var(--olive-dark); }
+    .form-btn:disabled { opacity: 0.65; cursor: default; }
+
+    .booking-msg {
+      margin-top: 1.25rem;
+      font-size: 0.9rem;
+      color: var(--gray-mid);
+    }
+    .booking-msg.ok { color: #4a6741; }
+
     /* ─── FOOTER ──────────────────────────────────────── */
 
     footer {
@@ -513,6 +577,7 @@
       .pricing-card { padding: 2.5rem 2rem; }
 
       footer { flex-direction: column; gap: 0.75rem; text-align: center; }
+      .form-row { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 480px) {
@@ -528,7 +593,7 @@
   <!-- NAV -->
   <nav id="nav">
     <a class="nav-name" href="#">Nathan Clendenin</a>
-    <a class="nav-cta" href="mailto:nathan.clendenin@tsdch.org?subject=Family Portrait Session Inquiry">Book a Session</a>
+    <a class="nav-cta" href="#book">Book a Session</a>
   </nav>
 
   <!-- HERO -->
@@ -546,7 +611,7 @@
     <div class="hero-content">
       <h1 class="hero-title">Family<br>Portraits</h1>
       <p class="hero-byline">with Nathan Clendenin</p>
-      <a class="hero-cta" href="mailto:nathan.clendenin@tsdch.org?subject=Family Portrait Session Inquiry">Book Your Session — $225</a>
+      <a class="hero-cta" href="#book">Book Your Session — $225</a>
     </div>
   </section>
 
@@ -672,15 +737,24 @@
         <li>Private online gallery for easy download</li>
         <li>Beautiful outdoor setting at Solterra Co-Housing Community</li>
       </ul>
-      <a class="pricing-btn" href="mailto:nathan.clendenin@tsdch.org?subject=Family Portrait Session Inquiry">Book Your Session</a>
+      <a class="pricing-btn" href="#book">Book Your Session</a>
     </div>
   </section>
 
-  <!-- FINAL CTA -->
-  <section class="cta">
+  <!-- BOOKING FORM -->
+  <section class="cta" id="book">
     <h2 class="cta-heading">Let's make something<br>beautiful together.</h2>
-    <p class="cta-sub">Sessions are offered seasonally at Solterra Co-Housing Community. Reach out to reserve your spot — availability is limited.</p>
-    <a class="cta-btn" href="mailto:nathan.clendenin@tsdch.org?subject=Family Portrait Session Inquiry">Get in Touch</a>
+    <p class="cta-sub">Sessions are offered seasonally at Solterra Co-Housing Community. Fill out the form below — I'll be in touch to confirm your spot.</p>
+    <form id="booking-form" class="booking-form">
+      <div class="form-row">
+        <input class="form-input" type="text"  name="name"  placeholder="Your name"    autocomplete="name"  required>
+        <input class="form-input" type="email" name="email" placeholder="Email address" autocomplete="email" required>
+      </div>
+      <input class="form-input" type="tel" name="phone" placeholder="Phone number (optional)" autocomplete="tel">
+      <textarea class="form-input form-textarea" name="message" placeholder="Tell me about your family and any preferred dates or questions." required></textarea>
+      <button class="form-btn" type="submit">Send Inquiry</button>
+    </form>
+    <p id="booking-msg" class="booking-msg" hidden></p>
   </section>
 
   <!-- FOOTER -->
@@ -694,6 +768,42 @@
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 20);
     }, { passive: true });
+
+    // ── Booking form ──
+    // Paste your Google Apps Script /exec URL here to receive submissions:
+    const BOOKING_ENDPOINT = '';
+    const bookingForm = document.getElementById('booking-form');
+    if (bookingForm) {
+      const bookingMsg = document.getElementById('booking-msg');
+      const showMsg = (text, ok) => {
+        bookingForm.style.display = 'none';
+        bookingMsg.hidden = false;
+        bookingMsg.textContent = text;
+        bookingMsg.classList.toggle('ok', !!ok);
+      };
+      bookingForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const btn = bookingForm.querySelector('.form-btn');
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+        if (!BOOKING_ENDPOINT) {
+          showMsg('✓ Thanks — I\'ll be in touch within a day or two to confirm your spot!', true);
+          return;
+        }
+        fetch(BOOKING_ENDPOINT, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: new URLSearchParams(new FormData(bookingForm)),
+        })
+          .then(() => showMsg('✓ Inquiry received — I\'ll be in touch shortly!', true))
+          .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Send Inquiry';
+            bookingMsg.hidden = false;
+            bookingMsg.textContent = 'Something went wrong. Please email nathan.clendenin@tsdch.org directly.';
+          });
+      });
+    }
   </script>
 
 </body>
